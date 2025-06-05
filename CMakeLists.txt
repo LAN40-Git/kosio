@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.31)
+project(coruring VERSION 1.0.1 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 23)
+
+# liburing
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBURING REQUIRED liburing)
+
+# json
+find_package(nlohmann_json 3.5 REQUIRED)
+
+set(SOURCE_FILES
+        coruring/src/io/io_uring.cpp
+)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/coruring/include)
+
+add_executable(main
+        coruring/src/main.cpp
+        ${SOURCE_FILES}
+)
+target_include_directories(main PUBLIC
+        ${LIBURING_INCLUDE_DIRS}
+)
+target_link_libraries(main PRIVATE
+        ${LIBURING_LIBRARIES}
+)

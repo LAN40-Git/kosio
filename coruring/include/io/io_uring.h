@@ -1,0 +1,58 @@
+#pragma once
+#include "runtime/config.h"
+#include <cstring>
+#include <format>
+#include <liburing.h>
+#include <stdexcept>
+#include <unordered_set>
+
+namespace coruring::io
+{
+class IoUring {
+public:
+    IoUring(const IoUring&) = delete;
+    IoUring& operator=(const IoUring&) = delete;
+
+public:
+    // 获取线程局部 io_uring 实例
+    static IoUring& instance();
+    // 存储所有请求数据指针的哈希表（线程局部）
+    static std::unordered_set<void*>& callback_map();
+
+public:
+    [[nodiscard]]
+    auto submit_interval() const noexcept -> uint32_t { return submit_interval_; }
+    [[nodiscard]]
+    auto ring() -> io_uring& { return ring_; }
+    [[nodiscard]]
+    auto get_sqe() -> io_uring_sqe* { return io_uring_get_sqe(&ring_); }
+    [[nodiscard]]
+    auto peek_batch(std::span<io_uring_cqe*> cqes) -> std::size_t;
+    [[nodiscard]]
+    auto peek_cqe(io_uring_cqe **cqe) -> int;
+
+    void consume(std::size_t count) { io_uring_cq_advance(&ring_, count); }
+    void seen(io_uring_cqe *cqe) { io_uring_cqe_seen(&ring_, cqe); }
+    // 暂存一个请求
+    void pend_submit();
+    // 暂存多个请求
+    void pend_submit_batch(std::size_t count);
+    // 立即提交请求
+    void submit();
+    // 尝试立即提交请求（若无请求不会进行提交）
+    void try_submit();
+    // 清除所有请求
+    bool clear();
+
+private:
+    explicit IoUring(const Config& config);
+    ~IoUring() {
+        io_uring_queue_exit(&ring_);
+    }
+
+private:
+    io_uring ring_{};
+    uint32_t submit_tick_{0};
+    uint32_t submit_interval_;
+};
+}
