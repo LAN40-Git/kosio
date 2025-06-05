@@ -13,16 +13,8 @@ public:
     IoRegistrator(F&& f, Args&&... args)
         : sqe_{IoUring::instance().get_sqe()} {
         if (sqe_ != nullptr) [[likely]] {
-            auto binder = [f = std::forward<F>(f),
-                          args = std::make_tuple(std::forward<Args>(args)...)](io_uring_sqe* sqe) {
-                std::apply([&](auto&&... args) {
-                    std::invoke(f, sqe, std::forward<decltype(args)>(args)...);
-                }, args);
-            };
-            binder(sqe_);
-            void *user_data = &this->cb_;
-            io_uring_sqe_set_data(sqe_, user_data);
-            IoUring::callback_map().emplace(user_data);
+            std::invoke(std::forward<F>(f), sqe_, std::forward<Args>(args)...);
+            io_uring_sqe_set_data(sqe_, &this->cb_);
         } else {
             cb_.result_ = -ENOMEM;
         }
@@ -31,14 +23,14 @@ public:
     IoRegistrator(const IoRegistrator&) = delete;
     auto operator=(const IoRegistrator&) -> IoRegistrator& = delete;
     IoRegistrator(IoRegistrator&& other) noexcept
-        : cb_{std::move(other.cb_)}
+        : cb_{other.cb_}
         , sqe_{other.sqe_} {
         io_uring_sqe_set_data(sqe_, &this->cb_);
         other.sqe_ = nullptr;
     }
-    auto operator=(IoRegistrator&& other) noexcept -> IoRegistrator&
-        : cb_{std::move(other.cb_)}
-        , sqe_{other.sqe_} {
+    auto operator=(IoRegistrator&& other) noexcept -> IoRegistrator& {
+        cb_ = other.cb_;
+        sqe_ = other.sqe_;
         io_uring_sqe_set_data(sqe_, &this->cb_);
         other.sqe_ = nullptr;
         return *this;
@@ -51,11 +43,14 @@ public:
 
     auto await_suspend(std::coroutine_handle<> handle) {
         assert(sqe_);
-        cb_.handle_ = std::move(handle);
+        cb_.handle_ = handle;
         IoUring::instance().pend_submit();
+        IoUring::callback_map().emplace(&this->cb_);
     }
 
-    auto await_resume() const noexcept -> int {
+    auto await_resume() noexcept -> int {
+        void *user_data = &this->cb_;
+        IoUring::callback_map().erase(user_data);
         return cb_.result_;
     }
 

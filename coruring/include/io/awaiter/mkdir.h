@@ -11,4 +11,15 @@ public:
     MkDir(const char *path, mode_t mode)
         : MkDir{AT_FDCWD, path, mode} {}
 };
+
+[[nodiscard]]
+static inline auto mkdir(const char *path, mode_t mode) {
+    return MkDir{path, mode};
+}
+
+[[nodiscard]]
+static inline auto mkdirat(int dfd, const char *path, mode_t mode) {
+    return MkDir{dfd, path, mode};
+}
+
 }

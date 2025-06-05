@@ -8,4 +8,9 @@ public:
     Connect(int fd, sockaddr *addr, socklen_t addrlen)
         : IoRegistrator{io_uring_prep_connect, fd, addr, addrlen} {}
 };
+
+[[nodiscard]]
+static inline auto connect(int fd, sockaddr *addr, socklen_t addrlen) {
+    return Connect {fd, addr, addrlen};
+}
 }

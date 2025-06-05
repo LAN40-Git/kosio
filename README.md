@@ -1,4 +1,4 @@
-# coruring
+# CorUring
 
 ## 简介
 

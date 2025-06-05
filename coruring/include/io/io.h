@@ -1,1 +1,16 @@
-
+#pragma once
+#include "async/coroutine/task.h"
+#include "io/awaiter/accept.h"
+#include "io/awaiter/cancel.h"
+#include "io/awaiter/close.h"
+#include "io/awaiter/connect.h"
+#include "io/awaiter/fsync.h"
+#include "io/awaiter/mkdir.h"
+#include "io/awaiter/open.h"
+#include "io/awaiter/read.h"
+#include "io/awaiter/recv.h"
+#include "io/awaiter/rename.h"
+#include "io/awaiter/send.h"
+#include "io/awaiter/timeout.h"
+#include "io/awaiter/timeout_recv.h"
+#include "io/awaiter/write.h"

@@ -8,4 +8,9 @@ public:
     Timeout(__kernel_timespec *ts, unsigned count, unsigned flags)
         : IoRegistrator{io_uring_prep_timeout, ts, count, flags} {}
 };
+
+[[nodiscard]]
+static inline auto timeout(__kernel_timespec *ts, unsigned count, unsigned flags) {
+    return Timeout{ts, count, flags};
+}
 } // namespace coruring::io

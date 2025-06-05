@@ -1,5 +1,7 @@
 #include "io/io_uring.h"
 
+#include <iostream>
+
 coruring::io::IoUring& coruring::io::IoUring::instance() {
     static const Config config = Config::load_from_file();
     thread_local IoUring inst{config};
