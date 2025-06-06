@@ -1,5 +1,8 @@
 #pragma once
 #include "io/io_uring.h"
+#include "common/concepts.h"
+#include "common/macros.h"
+#include "common/error.h"
 #include "callback.h"
 #include <functional>
 
@@ -25,13 +28,13 @@ public:
     IoRegistrator(IoRegistrator&& other) noexcept
         : cb_{other.cb_}
         , sqe_{other.sqe_} {
-        io_uring_sqe_set_data(sqe_, &this->cb_);
+        if (sqe_) io_uring_sqe_set_data(sqe_, &this->cb_);
         other.sqe_ = nullptr;
     }
     auto operator=(IoRegistrator&& other) noexcept -> IoRegistrator& {
         cb_ = other.cb_;
         sqe_ = other.sqe_;
-        io_uring_sqe_set_data(sqe_, &this->cb_);
+        if (sqe_) io_uring_sqe_set_data(sqe_, &this->cb_);
         other.sqe_ = nullptr;
         return *this;
     }
@@ -48,11 +51,7 @@ public:
         IoUring::callback_map().emplace(&this->cb_);
     }
 
-    auto await_resume() noexcept -> int {
-        void *user_data = &this->cb_;
-        IoUring::callback_map().erase(user_data);
-        return cb_.result_;
-    }
+    /* set cb_.result_ to cqe->res */
 
 protected:
     Callback cb_{};

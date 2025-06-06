@@ -10,14 +10,23 @@ public:
 
     MkDir(const char *path, mode_t mode)
         : MkDir{AT_FDCWD, path, mode} {}
+
+    auto await_resume() noexcept -> std::expected<void, std::error_code> {
+        IoUring::callback_map().erase(&this->cb_);
+        if (this->cb_.result_ >= 0) [[likely]] {
+            return {};
+        }
+        return std::unexpected{std::error_code(-this->cb_.result_,
+                                               std::generic_category())};
+    }
 };
 
-[[nodiscard]]
+[[REMEMBER_CO_AWAIT]]
 static inline auto mkdir(const char *path, mode_t mode) {
     return MkDir{path, mode};
 }
 
-[[nodiscard]]
+[[REMEMBER_CO_AWAIT]]
 static inline auto mkdirat(int dfd, const char *path, mode_t mode) {
     return MkDir{dfd, path, mode};
 }

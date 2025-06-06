@@ -1,65 +1,58 @@
-#include "io/io.h"
+#include "socket/net/listener.h"
 #include "log/log.h"
 #include <thread>
 #include <arpa/inet.h>
 
-std::vector<std::coroutine_handle<coruring::async::Task<>::promise_type>> handles(100);
-
-coruring::async::Task<> handle_connection(int fd) {
-    char buffer[1024]{};
+coruring::async::Task<> handle_connection(coruring::socket::Socket&& s) {
+    auto socket = std::move(s);
+    char buffer[1024];
+    __kernel_timespec ts {.tv_sec = 3};
     while (true) {
-        int recv_bytes = co_await coruring::io::recv(fd, buffer, sizeof(buffer), 0);
-        if (recv_bytes <= 0) {
-            if (recv_bytes == 0) {
-                coruring::log::console.info("Client closed connection");
-            } else {
-                coruring::log::console.error("Recv error: {}", strerror(-recv_bytes));
+        auto result = co_await coruring::io::timeout_recv(socket.fd(), buffer, sizeof(buffer), 0, &ts);
+        if (result) {
+            if (result == 0) {
+                coruring::log::console.info("Client closed connection or timeout");
+                break;
             }
+            buffer[result.value()] = 0;
+            std::cout << buffer;
+            // 回显消息
+            co_await coruring::io::send(socket.fd(), buffer, result.value(), 0);
+        } else {
+            coruring::log::console.error("Failed to recv: {}", result.error().message());
             break;
         }
-        buffer[recv_bytes] = '\0';
-        coruring::log::console.info("Received: {}", buffer);
-
-        // 示例：回显消息
-        co_await coruring::io::send(fd, buffer, recv_bytes, 0);
     }
-    close(fd);
 }
 
 coruring::async::Task<> server() {
-    sockaddr_in serv_addr{};
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(9190);
-
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    bind(server_fd, reinterpret_cast<sockaddr*>(&serv_addr), sizeof(serv_addr));
-    listen(server_fd, 5);
-
-    coruring::log::console.info("Listening on port 9190...");
+    auto has_addr = coruring::socket::net::SocketAddr::parse("127.0.0.1", 8080);
+    if (!has_addr) {
+        coruring::log::console.error(has_addr.error().message());
+        co_return;
+    }
+    auto has_listener = coruring::socket::net::TcpListener::bind(has_addr.value());
+    if (!has_listener) {
+        coruring::log::console.error("Failed to bind tcp listener");
+        co_return;
+    }
+    auto listener = std::move(has_listener.value());
+    coruring::log::console.info("Listening on port 8080");
 
     while (true) {
-        sockaddr_in clnt_addr{};
-        socklen_t clnt_len = sizeof(clnt_addr);
-        int fd = co_await coruring::io::accept(server_fd,
-            reinterpret_cast<sockaddr*>(&clnt_addr), &clnt_len, 0);
-
-        if (fd < 0) {
-            coruring::log::console.error("Accept error: {}", strerror(-fd));
+        auto has_sock = co_await listener.accept();
+        if (!has_sock) {
+            coruring::log::console.error("Failed to accept connection");
             continue;
         }
-
-        char ip[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &clnt_addr.sin_addr, ip, sizeof(ip));
-        coruring::log::console.info("New connection from {}", ip);
+        auto &[socket, peer_addr] = has_sock.value();
+        coruring::log::console.info("New connection from {}-{}", peer_addr, socket.fd());
 
         // 为每个连接创建独立任务
-        auto h = handle_connection(fd).take();
-        handles.push_back(h);
+        auto h = handle_connection(std::move(socket)).take();
         h.resume();
     }
-
-    close(server_fd);
+    co_await listener.close();
 }
 
 int main() {
@@ -74,11 +67,12 @@ int main() {
         if (ret == 0 && cqe) {
             auto cb = static_cast<coruring::io::Callback*>(io_uring_cqe_get_data(cqe));
             if (cb && cb->handle_) {
+                cb->result_ = cqe->res;
                 cb->handle_.resume();
             }
             coruring::io::IoUring::instance().seen(cqe);
         } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 project(coruring VERSION 0.2.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # liburing
 find_package(PkgConfig REQUIRED)
@@ -12,6 +12,7 @@ find_package(nlohmann_json 3.5 REQUIRED)
 
 set(SOURCE_FILES
         coruring/src/io/io_uring.cpp
+        coruring/src/io/io.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/coruring/include)

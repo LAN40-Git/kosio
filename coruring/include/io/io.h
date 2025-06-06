@@ -1,4 +1,6 @@
 #pragma once
+#include <expected>
+
 #include "async/coroutine/task.h"
 #include "io/awaiter/accept.h"
 #include "io/awaiter/cancel.h"
@@ -16,24 +18,20 @@
 #include "io/awaiter/write.h"
 #include <string>
 #include <fcntl.h>
-#include <unistd.h>
-#include <arpa/inet.h>
 
-namespace coruring::util
+namespace coruring::io
 {
 class FD
 {
-public:
+protected:
     explicit FD(int fd = -1) noexcept : fd_(fd) {}
     ~FD() {
-        close();
+        do_close();
     }
 
     FD(const FD&) = delete;
     auto operator=(const FD&) -> FD& = delete;
-    FD(FD&& other) noexcept : fd_(other.fd_) {
-        other.fd_ = -1;
-    }
+    FD(FD&& other) noexcept : fd_(other.fd_) { other.fd_ = -1; }
     auto operator=(FD&& other) noexcept -> FD&;
 
 public:
@@ -41,16 +39,17 @@ public:
     auto fd() const noexcept { return fd_; }
     [[nodiscard]]
     auto is_valid() const noexcept { return fd_ >= 0; }
-    void close() noexcept;
+    [[REMEMBER_CO_AWAIT]]
+    auto close() noexcept -> Close;
     [[nodiscard]]
-    auto release() noexcept -> int {
-        int released_fd = fd_;
-        fd_ = -1;
-        return released_fd;
-    }
+    auto release() noexcept -> int;
+    [[nodiscard]]
+    auto set_nonblocking(bool status) const noexcept -> std::error_code;
+    [[nodiscard]]
+    auto nonblocking() const noexcept -> std::expected<bool, std::error_code>;
 
 private:
-
+    void do_close() noexcept;
 
 protected:
     int fd_{-1};

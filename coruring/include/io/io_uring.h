@@ -31,7 +31,9 @@ public:
     [[nodiscard]]
     auto peek_cqe(io_uring_cqe **cqe) -> int;
 
+    // 收割多个请求
     void consume(std::size_t count) { io_uring_cq_advance(&ring_, count); }
+    // 收割一个请求
     void seen(io_uring_cqe *cqe) { io_uring_cqe_seen(&ring_, cqe); }
     // 暂存一个请求
     void pend_submit();

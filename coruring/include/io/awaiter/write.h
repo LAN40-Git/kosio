@@ -7,9 +7,18 @@ class Write : public IoRegistrator<Write> {
 public:
     Write(int fd, void* buf, unsigned nbytes, __u64 offse)
         : IoRegistrator{io_uring_prep_write, fd, buf, nbytes, offse} {}
+
+    auto await_resume() noexcept -> std::expected<std::size_t, std::error_code> {
+        IoUring::callback_map().erase(&this->cb_);
+        if (this->cb_.result_ >= 0) [[likely]] {
+            return static_cast<std::size_t>(this->cb_.result_);
+        }
+        return std::unexpected{std::error_code(-this->cb_.result_,
+                                               std::generic_category())};
+    }
 };
 
-[[nodiscard]]
+[[REMEMBER_CO_AWAIT]]
 static inline auto write(int fd, void* buf, unsigned nbytes, __u64 offse) {
     return Write(fd, buf, nbytes, offse);
 }
