@@ -3,7 +3,7 @@
 #include "socket.h"
 #include "net/addr.h"
 
-namespace coruring::socket
+namespace coruring::socket::detail
 {
 template <class Listener, class Addr>
 class BaseListener {
@@ -33,7 +33,7 @@ public:
         return Accept{fd()};
     }
     [[REMEMBER_CO_AWAIT]]
-    auto close() noexcept -> io::Close { return inner_.close(); }
+    auto close() noexcept { return inner_.close(); }
     [[nodiscard]]
     auto fd() const noexcept -> int { return inner_.fd(); }
 

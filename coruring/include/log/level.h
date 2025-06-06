@@ -3,7 +3,7 @@
 #include <string_view>
 #include <utility>
 
-namespace coruring::log
+namespace coruring::log::detail
 {
 enum class LogLevel {
     Debug,

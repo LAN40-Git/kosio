@@ -12,9 +12,11 @@ namespace coruring::async
 template <typename T>
 class Task;
 
+namespace detail
+{
 struct TaskPromiseBase {
     struct TaskFinalAwaiter {
-        constexpr auto await_ready() const noexcept -> bool { return false; } 
+        constexpr auto await_ready() const noexcept -> bool { return false; }
         template <typename T>
         auto await_suspend(std::coroutine_handle<T> callee) const noexcept -> std::coroutine_handle<> {
             if (callee.promise().caller_) {
@@ -43,7 +45,7 @@ struct TaskPromiseBase {
     };
 
     constexpr auto initial_suspend() const noexcept -> std::suspend_always {
-        return {}; 
+        return {};
     }
 
     constexpr auto final_suspend() noexcept -> TaskFinalAwaiter {
@@ -93,7 +95,7 @@ private:
 
 // 无返回值特化（co_return无返回值）
 template <>
-struct TaskPromise<void> final : public TaskPromiseBase {
+struct TaskPromise<void> final : public detail::TaskPromiseBase {
     auto get_return_object() noexcept -> Task<void>;
 
     constexpr void return_void() const noexcept {};
@@ -104,11 +106,12 @@ struct TaskPromise<void> final : public TaskPromiseBase {
         }
     }
 };
+} // namespace detail
 
 template <typename T = void>
 class [[nodiscard]] Task {
 public:
-    using promise_type = TaskPromise<T>;
+    using promise_type = detail::TaskPromise<T>;
 
 private:
     struct AwaitableBase {
@@ -206,11 +209,11 @@ private:
 };
 
 template <typename T>
-inline auto TaskPromise<T>::get_return_object() noexcept -> Task<T> {
+inline auto detail::TaskPromise<T>::get_return_object() noexcept -> Task<T> {
     return Task<T> { std::coroutine_handle<TaskPromise>::from_promise(*this) };
 }
 
-inline auto TaskPromise<void>::get_return_object() noexcept -> Task<void> {
+inline auto detail::TaskPromise<void>::get_return_object() noexcept -> Task<void> {
     return Task<void> { std::coroutine_handle<TaskPromise>::from_promise(*this) };
 }
 

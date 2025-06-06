@@ -9,10 +9,10 @@ auto coruring::io::FD::operator=(FD&& other) noexcept -> FD& {
     return *this;
 }
 
-auto coruring::io::FD::close() noexcept -> Close {
+auto coruring::io::FD::close() noexcept -> detail::Close {
     auto fd = fd_;
     fd_ = -1;
-    return Close{fd};
+    return detail::Close{fd};
 }
 
 auto coruring::io::FD::release() noexcept -> int {
@@ -43,7 +43,7 @@ auto coruring::io::FD::nonblocking() const noexcept -> std::expected<bool, std::
 }
 
 void coruring::io::FD::do_close() noexcept {
-    auto sqe = io::IoUring::instance().get_sqe();
+    auto sqe = io::detail::IoUring::instance().get_sqe();
     if (sqe != nullptr) [[likely]] {
         // async close
         io_uring_prep_close(sqe, fd_);

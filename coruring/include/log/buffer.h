@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 
-namespace coruring::log
+namespace coruring::log::detail
 {
 template <std::size_t SIZE>
 class LogBuffer

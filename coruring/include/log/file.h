@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-namespace coruring::log
+namespace coruring::log::detail
 {
 class LogFile {
 public:

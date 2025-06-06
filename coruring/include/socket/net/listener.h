@@ -3,9 +3,9 @@
 
 namespace coruring::socket::net
 {
-class TcpListener : public BaseListener<TcpListener, SocketAddr> {
+class TcpListener : public detail::BaseListener<TcpListener, SocketAddr> {
 public:
-    explicit TcpListener(Socket &&inner)
+    explicit TcpListener(detail::Socket &&inner)
         : BaseListener(std::move(inner)) {}
 };
 }

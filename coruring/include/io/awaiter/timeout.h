@@ -3,23 +3,26 @@
 
 namespace coruring::io
 {
-class Timeout : public IoRegistrator<Timeout> {
-public:
-    Timeout(__kernel_timespec *ts, unsigned count, unsigned flags)
-        : IoRegistrator{io_uring_prep_timeout, ts, count, flags} {}
+namespace detail
+{
+    class Timeout : public IoRegistrator<Timeout> {
+    public:
+        Timeout(__kernel_timespec *ts, unsigned count, unsigned flags)
+            : IoRegistrator{io_uring_prep_timeout, ts, count, flags} {}
 
-    auto await_resume() noexcept -> std::expected<void, std::error_code> {
-        IoUring::callback_map().erase(&this->cb_);
-        if (this->cb_.result_ >= 0) [[likely]] {
-            return {};
+        auto await_resume() noexcept -> std::expected<void, std::error_code> {
+            detail::IoUring::callback_map().erase(&this->cb_);
+            if (this->cb_.result_ >= 0) [[likely]] {
+                return {};
+            }
+            return std::unexpected{std::error_code(-this->cb_.result_,
+                                                   std::generic_category())};
         }
-        return std::unexpected{std::error_code(-this->cb_.result_,
-                                               std::generic_category())};
-    }
-};
+    };
+}
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto timeout(__kernel_timespec *ts, unsigned count, unsigned flags) {
-    return Timeout{ts, count, flags};
+    return detail::Timeout{ts, count, flags};
 }
 } // namespace coruring::io

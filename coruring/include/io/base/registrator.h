@@ -14,7 +14,7 @@ public:
     template<typename F, typename... Args>
         requires std::is_invocable_v<F, io_uring_sqe *, Args...>
     IoRegistrator(F&& f, Args&&... args)
-        : sqe_{IoUring::instance().get_sqe()} {
+        : sqe_{detail::IoUring::instance().get_sqe()} {
         if (sqe_ != nullptr) [[likely]] {
             std::invoke(std::forward<F>(f), sqe_, std::forward<Args>(args)...);
             io_uring_sqe_set_data(sqe_, &this->cb_);
@@ -47,14 +47,14 @@ public:
     auto await_suspend(std::coroutine_handle<> handle) {
         assert(sqe_);
         cb_.handle_ = handle;
-        IoUring::instance().pend_submit();
-        IoUring::callback_map().emplace(&this->cb_);
+        detail::IoUring::instance().pend_submit();
+        detail::IoUring::callback_map().emplace(&this->cb_);
     }
 
     /* set cb_.result_ to cqe->res */
 
 protected:
-    Callback cb_{};
+    detail::Callback cb_{};
     io_uring_sqe *sqe_;
 };
 }

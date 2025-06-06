@@ -3,7 +3,7 @@
 #include <thread>
 #include <arpa/inet.h>
 
-coruring::async::Task<> handle_connection(coruring::socket::Socket&& s) {
+coruring::async::Task<> handle_connection(coruring::socket::detail::Socket&& s) {
     auto socket = std::move(s);
     char buffer[1024];
     __kernel_timespec ts {.tv_sec = 3};
@@ -69,15 +69,15 @@ int main() {
     // 完整的事件循环
     while (!h.done()) {
         io_uring_cqe* cqe = nullptr;
-        int ret = coruring::io::IoUring::instance().peek_cqe(&cqe);
+        int ret = coruring::io::detail::IoUring::instance().peek_cqe(&cqe);
 
         if (ret == 0 && cqe) {
-            auto cb = static_cast<coruring::io::Callback*>(io_uring_cqe_get_data(cqe));
+            auto cb = static_cast<coruring::io::detail::Callback*>(io_uring_cqe_get_data(cqe));
             if (cb && cb->handle_) {
                 cb->result_ = cqe->res;
                 cb->handle_.resume();
             }
-            coruring::io::IoUring::instance().seen(cqe);
+            coruring::io::detail::IoUring::instance().seen(cqe);
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }

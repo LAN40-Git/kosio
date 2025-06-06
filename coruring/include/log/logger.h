@@ -12,6 +12,8 @@
 
 namespace coruring::log
 {
+namespace detail
+{
 class FmtWithSourceLocation
 {
 public:
@@ -121,11 +123,12 @@ private:
 private:
     LogLevel level_{LogLevel::Debug};
 };
+}
 
-class ConsoleLogger : public BaseLogger<ConsoleLogger> {
+class ConsoleLogger : public detail::BaseLogger<ConsoleLogger> {
 public:
-    template <LogLevel level>
-    void log(const LogRecord& record) {
+    template <detail::LogLevel level>
+    void log(const detail::LogRecord& record) {
         std::cout << std::format("{} {} {}:{} {}\n",
                                     record.datetime,
                                     level_to_string(level),
@@ -135,7 +138,7 @@ public:
     }
 };
 
-class FileLogger : public BaseLogger<FileLogger> {
+class FileLogger : public detail::BaseLogger<FileLogger> {
 public:
     explicit FileLogger(std::string_view file_base_name)
         : file_{file_base_name}
@@ -152,8 +155,8 @@ public:
         if (thread_.joinable()) thread_.join();
     }
 
-    template <LogLevel level>
-    void log(const LogRecord& record) {
+    template <detail::LogLevel level>
+    void log(const detail::LogRecord& record) {
         if (!running_) [[unlikely]] {
             return;
         }
@@ -232,13 +235,13 @@ private:
     }
 
 private:
-    using Buffer = LogBuffer<4000 * 1024>; // 4MB
+    using Buffer = detail::LogBuffer<4000 * 1024>; // 4MB
     using BufferPtr = std::unique_ptr<Buffer>;
 
-    LogFile                 file_;
+    detail::LogFile         file_;
     BufferPtr               current_buffer_{};
-    std::list<BufferPtr>   empty_buffers_{};
-    std::list<BufferPtr>   full_buffers_{};
+    std::list<BufferPtr>    empty_buffers_{};
+    std::list<BufferPtr>    full_buffers_{};
     std::mutex              mutex_{};
     std::condition_variable cond_{};
     std::thread             thread_{};

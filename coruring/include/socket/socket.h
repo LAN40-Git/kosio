@@ -1,7 +1,7 @@
 #pragma once
 #include "io/io.h"
 
-namespace coruring::socket
+namespace coruring::socket::detail
 {
 /**Support
  * IPv4

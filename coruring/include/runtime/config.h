@@ -4,7 +4,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-namespace coruring::io {
+namespace coruring::runtime {
 class Config {
 public:
     // ====== 默认配置 ======

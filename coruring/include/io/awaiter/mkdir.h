@@ -3,6 +3,8 @@
 
 namespace coruring::io
 {
+namespace detail
+{
 class MkDir : public IoRegistrator<MkDir> {
 public:
     MkDir(int dfd, const char *path, mode_t mode)
@@ -12,7 +14,7 @@ public:
         : MkDir{AT_FDCWD, path, mode} {}
 
     auto await_resume() noexcept -> std::expected<void, std::error_code> {
-        IoUring::callback_map().erase(&this->cb_);
+        detail::IoUring::callback_map().erase(&this->cb_);
         if (this->cb_.result_ >= 0) [[likely]] {
             return {};
         }
@@ -20,15 +22,16 @@ public:
                                                std::generic_category())};
     }
 };
+}
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto mkdir(const char *path, mode_t mode) {
-    return MkDir{path, mode};
+    return detail::MkDir{path, mode};
 }
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto mkdirat(int dfd, const char *path, mode_t mode) {
-    return MkDir{dfd, path, mode};
+    return detail::MkDir{dfd, path, mode};
 }
 
 }
