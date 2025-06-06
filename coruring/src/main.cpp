@@ -8,15 +8,22 @@ coruring::async::Task<> handle_connection(coruring::socket::Socket&& s) {
     char buffer[1024];
     __kernel_timespec ts {.tv_sec = 3};
     while (true) {
+        auto now = std::chrono::steady_clock::now();
+        auto before_timestamp_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now)
+                        .time_since_epoch()
+                        .count();
         auto result = co_await coruring::io::timeout_recv(socket.fd(), buffer, sizeof(buffer), 0, &ts);
+        now = std::chrono::steady_clock::now();
+        auto last_timestamp_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now)
+                        .time_since_epoch()
+                        .count();
+        coruring::log::console.info("{}-{}", before_timestamp_ms, last_timestamp_ms);
         if (result) {
             if (result == 0) {
                 coruring::log::console.info("Client closed connection or timeout");
                 break;
             }
             buffer[result.value()] = 0;
-            std::cout << buffer;
-            // 回显消息
             co_await coruring::io::send(socket.fd(), buffer, result.value(), 0);
         } else {
             coruring::log::console.error("Failed to recv: {}", result.error().message());

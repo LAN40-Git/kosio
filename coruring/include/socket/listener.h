@@ -7,7 +7,6 @@ namespace coruring::socket
 {
 template <class Listener, class Addr>
 class BaseListener {
-public:
 protected:
     explicit BaseListener(Socket &&inner)
         : inner_{std::move(inner)} {}
