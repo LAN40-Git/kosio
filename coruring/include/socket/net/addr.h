@@ -1,6 +1,5 @@
 #pragma once
 #include "common/error.h"
-#include <cstdint>
 #include <cstring>
 #include <format>
 #include <string>
@@ -20,9 +19,7 @@ public:
         : ip_{ip} {}
 
     [[nodiscard]]
-    auto addr() const noexcept -> uint32_t {
-        return ip_;
-    }
+    auto addr() const noexcept -> uint32_t { return ip_; }
     [[nodiscard]]
     auto to_string() const -> std::string {
         char buf[16];
@@ -146,24 +143,19 @@ public:
             return Ipv6Addr{addr_.in6.sin6_addr};
         }
     }
-
     void set_ip(Ipv4Addr ip) {
         addr_.in4.sin_addr.s_addr = ip.addr();
     }
-
     void set_ip(const Ipv6Addr &ip) {
         addr_.in6.sin6_addr = ip.addr();
     }
-
     [[nodiscard]]
     auto port() const -> uint16_t {
         return ::ntohs(addr_.in6.sin6_port);
     }
-
     void set_port(uint16_t port) {
         addr_.in6.sin6_port = ::htons(port);
     }
-
     [[nodiscard]]
     auto to_string() const -> std::string {
         char buf[128];

@@ -13,24 +13,22 @@
 #include "io/awaiter/recv.h"
 #include "io/awaiter/rename.h"
 #include "io/awaiter/send.h"
-#include "io/awaiter/timeout.h"
-#include "io/awaiter/timeout_recv.h"
+#include "io/awaiter/shutdown.h"
 #include "io/awaiter/write.h"
 #include <string>
 #include <fcntl.h>
 
-namespace coruring::io
+namespace coruring::io::detail
 {
 class FD
 {
-protected:
-    explicit FD(int fd = -1) noexcept : fd_(fd) {}
-    ~FD() {
-        do_close();
-    }
-
+public:
     FD(const FD&) = delete;
     auto operator=(const FD&) -> FD& = delete;
+
+protected:
+    explicit FD(int fd = -1) noexcept : fd_(fd) {}
+    ~FD() { do_close(); }
     FD(FD&& other) noexcept : fd_(other.fd_) { other.fd_ = -1; }
     auto operator=(FD&& other) noexcept -> FD&;
 

@@ -1,6 +1,6 @@
 #include "io/io.h"
 
-auto coruring::io::FD::operator=(FD&& other) noexcept -> FD& {
+auto coruring::io::detail::FD::operator=(FD&& other) noexcept -> FD& {
     if (this != &other) {
         this->do_close();
         this->fd_ = other.fd_;
@@ -9,19 +9,19 @@ auto coruring::io::FD::operator=(FD&& other) noexcept -> FD& {
     return *this;
 }
 
-auto coruring::io::FD::close() noexcept -> detail::Close {
+auto coruring::io::detail::FD::close() noexcept -> detail::Close {
     auto fd = fd_;
     fd_ = -1;
     return detail::Close{fd};
 }
 
-auto coruring::io::FD::release() noexcept -> int {
+auto coruring::io::detail::FD::release() noexcept -> int {
     int released_fd = fd_;
     fd_ = -1;
     return released_fd;
 }
 
-auto coruring::io::FD::set_nonblocking(bool status) const noexcept -> std::error_code {
+auto coruring::io::detail::FD::set_nonblocking(bool status) const noexcept -> std::error_code {
     auto flags = ::fcntl(fd_, F_GETFL, 0);
     if (status) {
         flags |= O_NONBLOCK;
@@ -34,7 +34,7 @@ auto coruring::io::FD::set_nonblocking(bool status) const noexcept -> std::error
     return {};
 }
 
-auto coruring::io::FD::nonblocking() const noexcept -> std::expected<bool, std::error_code> {
+auto coruring::io::detail::FD::nonblocking() const noexcept -> std::expected<bool, std::error_code> {
     auto flags = ::fcntl(fd_, F_GETFL, 0);
     if (flags == -1) [[unlikely]] {
         return std::unexpected{std::error_code(errno, std::generic_category())};
@@ -42,7 +42,7 @@ auto coruring::io::FD::nonblocking() const noexcept -> std::expected<bool, std::
     return {true};
 }
 
-void coruring::io::FD::do_close() noexcept {
+void coruring::io::detail::FD::do_close() noexcept {
     auto sqe = io::detail::IoUring::instance().get_sqe();
     if (sqe != nullptr) [[likely]] {
         // async close

@@ -1,27 +1,26 @@
 #pragma once
-#include <netinet/in.h>
-#include "socket.h"
-#include "net/addr.h"
+#include "socket/impl/impl_local_addr.h"
+#include "socket/socket.h"
 
 namespace coruring::socket::detail
 {
-template <class Listener, class Addr>
-class BaseListener {
+template <class Listener, class Stream, class Addr>
+class BaseListener : public ImplLocalAddr<BaseListener<Listener, Stream, Addr>, Addr> {
 protected:
-    explicit BaseListener(Socket &&inner)
+    explicit BaseListener(Socket&& inner)
         : inner_{std::move(inner)} {}
 
 public:
     [[REMEMBER_CO_AWAIT]]
     auto accept() noexcept {
-        class Accept : public io::IoRegistrator<Accept> {
+        class Accept : public io::detail::IoRegistrator<Accept> {
         public:
             Accept(int fd)
-                : io::IoRegistrator<Accept>{io_uring_prep_accept, fd, reinterpret_cast<sockaddr *>(&addr_), &addrlen_, 0} {}
+                : io::detail::IoRegistrator<Accept>{io_uring_prep_accept, fd, reinterpret_cast<sockaddr *>(&addr_), &addrlen_, 0} {}
 
-            auto await_resume() const noexcept -> std::expected<std::pair<Socket, Addr>, std::error_code> {
+            auto await_resume() const noexcept -> std::expected<std::pair<Stream, Addr>, std::error_code> {
                 if (this->cb_.result_ >= 0) [[likely]] {
-                    return std::make_pair(Socket{this->cb_.result_}, addr_);
+                    return std::make_pair(Stream{Socket{this->cb_.result_}}, addr_);
                 }
                 return std::unexpected{std::error_code{-this->cb_.result_, std::generic_category()}};
             }
@@ -48,7 +47,11 @@ public:
         if (auto ret = inner.bind(addr); !ret) [[unlikely]] {
             return std::unexpected{ret.error()};
         }
+        // 默认复用地址和端口
         if (auto ret = inner.set_reuseaddr(1); !ret) [[unlikely]] {
+            return std::unexpected{ret.error()};
+        }
+        if (auto ret = inner.set_reuseport(1); !ret) [[unlikely]] {
             return std::unexpected{ret.error()};
         }
         if (auto ret = inner.listen(); !ret) [[unlikely]] {

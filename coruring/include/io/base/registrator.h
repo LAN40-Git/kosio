@@ -6,7 +6,7 @@
 #include "callback.h"
 #include <functional>
 
-namespace coruring::io
+namespace coruring::io::detail
 {
 template<class IO>
 class IoRegistrator {

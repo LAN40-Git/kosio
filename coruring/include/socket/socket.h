@@ -1,5 +1,6 @@
 #pragma once
 #include "io/io.h"
+#include "common/error.h"
 
 namespace coruring::socket::detail
 {
@@ -7,7 +8,7 @@ namespace coruring::socket::detail
  * IPv4
  * -----END
  */
-class Socket : public io::FD {
+class Socket : public io::detail::FD {
 public:
     explicit Socket(int fd)
         : FD(fd) {}
@@ -19,34 +20,27 @@ public:
     auto bind(const Addr &addr)
     -> std::expected<void, std::error_code> {
         if (::bind(fd_, addr.sockaddr(), addr.length()) != 0) [[unlikely]] {
-            return std::unexpected{std::error_code{errno, std::generic_category()}};
+            return std::unexpected{std::error_code{errno, std::system_category()}};
         }
         return {};
     }
     [[nodiscard]]
-    auto listen(int maxn = SOMAXCONN) -> std::expected<void, std::error_code> {
-        if (::listen(fd_, maxn) != 0) [[unlikely]] {
-            return std::unexpected{std::error_code{errno, std::generic_category()}};
-        }
-        return {};
-    }
+    auto listen(int maxn = SOMAXCONN) -> std::expected<void, std::error_code>;
+    [[REMEMBER_CO_AWAIT]]
+    auto shutdown(int how) noexcept;
     [[nodiscard]]
-    auto set_reuseaddr(int option) -> std::expected<void, std::error_code> {
-        auto ret = setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
-        if (ret == -1) [[unlikely]] {
-            return std::unexpected{std::error_code{errno, std::generic_category()}};
-        }
-        return {};
-    }
+    auto set_reuseaddr(int option) -> std::expected<void, std::error_code>;
+    [[nodiscard]]
+    auto set_reuseport(int option) -> std::expected<void, std::error_code>;
 
 public:
     template <typename T = Socket>
     [[nodiscard]]
     static auto create(int domain, int type, int protocol) ->
-    std::expected<Socket, std::error_code> {
+    std::expected<T, std::error_code> {
         auto fd = ::socket(domain, type, protocol);
         if (fd < 0) [[unlikely]] {
-            return std::unexpected{std::error_code(errno, std::generic_category())};
+            return std::unexpected{std::error_code(errno, std::system_category())};
         }
         return T{Socket{fd}};
     }

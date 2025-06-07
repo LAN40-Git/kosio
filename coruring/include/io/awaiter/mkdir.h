@@ -5,23 +5,23 @@ namespace coruring::io
 {
 namespace detail
 {
-class MkDir : public IoRegistrator<MkDir> {
-public:
-    MkDir(int dfd, const char *path, mode_t mode)
-        : IoRegistrator{io_uring_prep_mkdirat, dfd, path, mode} {}
+    class MkDir : public IoRegistrator<MkDir> {
+    public:
+        MkDir(int dfd, const char *path, mode_t mode)
+            : IoRegistrator{io_uring_prep_mkdirat, dfd, path, mode} {}
 
-    MkDir(const char *path, mode_t mode)
-        : MkDir{AT_FDCWD, path, mode} {}
+        MkDir(const char *path, mode_t mode)
+            : MkDir{AT_FDCWD, path, mode} {}
 
-    auto await_resume() noexcept -> std::expected<void, std::error_code> {
-        detail::IoUring::callback_map().erase(&this->cb_);
-        if (this->cb_.result_ >= 0) [[likely]] {
-            return {};
+        auto await_resume() noexcept -> std::expected<void, std::error_code> {
+            detail::IoUring::callback_map().erase(&this->cb_);
+            if (this->cb_.result_ >= 0) [[likely]] {
+                return {};
+            }
+            return std::unexpected{std::error_code(-this->cb_.result_,
+                                                   std::generic_category())};
         }
-        return std::unexpected{std::error_code(-this->cb_.result_,
-                                               std::generic_category())};
-    }
-};
+    };
 }
 
 [[REMEMBER_CO_AWAIT]]
