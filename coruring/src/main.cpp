@@ -1,21 +1,20 @@
 #include "net.h"
 #include "log.h"
-
 using namespace coruring::async;
 using namespace coruring::log;
 using namespace coruring::socket;
 
 auto process(net::TcpStream stream) -> Task<void> {
     char buf[1024];
-
+    auto [reader, writer] = stream.split();
     while (true) {
-        auto ok = co_await stream.read(buf);
+        auto ok = co_await reader.read(buf);
         if (!ok) {
             console.error("{} {}", ok.value(), ok.error().message());
             break;
         }
         if (ok.value() == 0) {
-            console.info("Connection closed : {}", stream.local_addr().value());
+            console.info("Connection closed : {}", reader.local_addr().value());
             break;
         }
 
@@ -23,7 +22,7 @@ auto process(net::TcpStream stream) -> Task<void> {
         buf[len] = 0;
         console.info("read: {}", buf);
 
-        ok = co_await stream.write({buf, len});
+        ok = co_await writer.write({buf, len});
         if (!ok) {
             console.error(ok.error().message());
             break;
@@ -46,10 +45,12 @@ auto server() -> Task<void> {
     }
     auto listener = std::move(has_listener.value());
     while (true) {
+        // 3. 接收连接
         auto has_stream = co_await listener.accept();
         if (has_stream) {
             auto &[stream, peer_addr] = has_stream.value();
             console.info("Accept a connection from {}", peer_addr);
+            // 4. 回声服务
             auto h = process(std::move(stream)).take();
             h.resume();
         } else {
@@ -64,7 +65,7 @@ void event_loop() {
     h.resume();
     while (!h.done()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        std::array<io_uring_cqe*, 16> cqes;
+        std::array<io_uring_cqe*, 16> cqes{};
         auto count = coruring::io::detail::IoUring::instance().peek_batch({cqes.data(), cqes.size()});
         for (auto i = 0u; i < count; i++) {
             if (!cqes[i]) {

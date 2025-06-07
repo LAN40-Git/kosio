@@ -5,10 +5,10 @@ namespace coruring::io
 {
 namespace detail
 {
-    class Accept : public IoRegistrator<Accept> {
+    class Socket : public IoRegistrator<Socket> {
     public:
-        Accept(int fd, sockaddr* addr, socklen_t* addrlen, int flags)
-            : IoRegistrator(io_uring_prep_accept, fd, addr, addrlen, flags) {}
+        Socket(int domain, int type, int protocol, unsigned int flags)
+            : IoRegistrator(io_uring_prep_socket, domain, type, protocol, flags) {}
 
         auto await_resume() noexcept -> std::expected<int, std::error_code> {
             if (this->cb_.result_ >= 0) [[likely]] {
@@ -21,7 +21,7 @@ namespace detail
 }
 
 [[REMEMBER_CO_AWAIT]]
-static inline auto accept(int fd, sockaddr* addr, socklen_t* addrlen, int flags) {
-    return detail::Accept{fd, addr, addrlen, flags};
+static inline auto socket(int domain, int type, int protocol, unsigned int flags) {
+    return detail::Socket{domain, type, protocol, flags};
 }
 } // namespace coruring::io

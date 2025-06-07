@@ -8,7 +8,7 @@ namespace detail
     class Accept : public IoRegistrator<Accept> {
     public:
         Accept(int fd, sockaddr* addr, socklen_t* addrlen, int flags)
-            : IoRegistrator(io_uring_prep_accept, fd, addr, addrlen, flags) {}
+            : IoRegistrator{io_uring_prep_accept, fd, addr, addrlen, flags} {}
 
         auto await_resume() noexcept -> std::expected<int, std::error_code> {
             if (this->cb_.result_ >= 0) [[likely]] {

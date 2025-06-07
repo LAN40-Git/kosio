@@ -15,7 +15,7 @@ public:
     auto accept() noexcept {
         class Accept : public io::detail::IoRegistrator<Accept> {
         public:
-            Accept(int fd)
+            explicit Accept(int fd)
                 : io::detail::IoRegistrator<Accept>{io_uring_prep_accept, fd, reinterpret_cast<sockaddr *>(&addr_), &addrlen_, 0} {}
 
             auto await_resume() const noexcept -> std::expected<std::pair<Stream, Addr>, std::error_code> {

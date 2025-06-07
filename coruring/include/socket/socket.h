@@ -20,7 +20,7 @@ public:
     auto bind(const Addr &addr)
     -> std::expected<void, std::error_code> {
         if (::bind(fd_, addr.sockaddr(), addr.length()) != 0) [[unlikely]] {
-            return std::unexpected{std::error_code{errno, std::system_category()}};
+            return std::unexpected{std::error_code{errno, std::generic_category()}};
         }
         return {};
     }
@@ -40,7 +40,7 @@ public:
     std::expected<T, std::error_code> {
         auto fd = ::socket(domain, type, protocol);
         if (fd < 0) [[unlikely]] {
-            return std::unexpected{std::error_code(errno, std::system_category())};
+            return std::unexpected{std::error_code(errno, std::generic_category())};
         }
         return T{Socket{fd}};
     }

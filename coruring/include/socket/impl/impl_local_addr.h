@@ -13,7 +13,7 @@ struct ImplLocalAddr {
         socklen_t addrlen{sizeof(addr)};
         if (::getsockname(static_cast<const T*>(this)->fd(),
             addr.sockaddr(), &addrlen) == -1) [[unlikely]] {
-            return std::unexpected{std::error_code{errno, std::system_category()}};
+            return std::unexpected{std::error_code{errno, std::generic_category()}};
         }
         return addr;
     }

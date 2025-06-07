@@ -6,7 +6,10 @@
 #include "io/awaiter/cancel.h"
 #include "io/awaiter/close.h"
 #include "io/awaiter/connect.h"
+#include "io/awaiter/fsetxattr.h"
 #include "io/awaiter/fsync.h"
+#include "io/awaiter/getxattr.h"
+#include "io/awaiter/link.h"
 #include "io/awaiter/mkdir.h"
 #include "io/awaiter/open.h"
 #include "io/awaiter/read.h"
@@ -14,6 +17,10 @@
 #include "io/awaiter/rename.h"
 #include "io/awaiter/send.h"
 #include "io/awaiter/shutdown.h"
+#include "io/awaiter/socket.h"
+#include "io/awaiter/splice.h"
+#include "io/awaiter/statx.h"
+#include "io/awaiter/unlink.h"
 #include "io/awaiter/write.h"
 #include <string>
 #include <fcntl.h>

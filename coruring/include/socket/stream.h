@@ -1,5 +1,5 @@
 #pragma once
-#include "socket/socket.h"
+#include "socket/split.h"
 #include "socket/impl/impl_local_addr.h"
 #include "socket/impl/impl_peer_addr.h"
 #include "socket/impl/impl_stream_read.h"
@@ -12,7 +12,13 @@ class BaseStream : public ImplStreamRead<BaseStream<Stream, Addr>>,
                    public ImplStreamWrite<BaseStream<Stream, Addr>>,
                    public ImplLocalAddr<BaseStream<Stream, Addr>, Addr>,
                    public ImplPeerAddr<BaseStream<Stream, Addr>, Addr> {
-protected:
+public:
+    using Reader = ReadHalf<Addr>;
+    using Writer = WriteHalf<Addr>;
+    using OwnedReader = OwnedReadHalf<Stream, Addr>;
+    using OwnedWriter = OwnedWriteHalf<Stream, Addr>;
+
+    protected:
     explicit BaseStream(Socket &&inner)
         : inner_(std::move(inner)) {}
 
@@ -39,7 +45,7 @@ public:
         private:
             using Super = io::detail::IoRegistrator<Connect>;
         public:
-            Connect(const Addr& addr)
+            explicit Connect(const Addr& addr)
                 : Super{io_uring_prep_connect, -1, nullptr, sizeof(Addr)}
                 , addr_(addr) {}
 
@@ -64,15 +70,26 @@ public:
                     if (fd_ >= 0) {
                         ::close(fd_);
                     }
-                    return std::unexpected{std::error_code(-this->cb_.result_, std::system_category())};
+                    return std::unexpected{std::error_code(-this->cb_.result_, std::generic_category())};
                 }
             }
 
         private:
-            int fd_;
+            int fd_{-1};
             Addr addr_;
         };
         return Connect{addr};
+    }
+
+    [[nodiscard]]
+    auto split() noexcept -> std::pair<Reader, Writer> {
+        return std::make_pair(Reader{inner_}, Writer{inner_});
+    }
+
+    [[nodiscard]]
+    auto into_split() noexcept -> std::pair<OwnedReader, OwnedWriter> {
+        auto stream = std::make_shared<Stream>(std::move(inner_));
+        return std::make_pair(OwnedReader{stream}, OwnedWriter{stream});
     }
 
 private:
