@@ -11,7 +11,6 @@ namespace detail
             : IoRegistrator(io_uring_prep_close, fd) {}
 
         auto await_resume() noexcept -> std::expected<void, std::error_code> {
-            detail::IoUring::callback_map().erase(&this->cb_);
             if (this->cb_.result_ >= 0) [[likely]] {
                 return {};
             }

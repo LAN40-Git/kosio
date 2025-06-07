@@ -11,7 +11,6 @@ namespace detail
             : IoRegistrator{io_uring_prep_recv, sockfd, buf, len, flags} {}
 
         auto await_resume() noexcept -> std::expected<std::size_t, std::error_code> {
-            detail::IoUring::callback_map().erase(&this->cb_);
             if (this->cb_.result_ >= 0) [[likely]] {
                 return static_cast<std::size_t>(this->cb_.result_);
             }

@@ -16,8 +16,6 @@ public:
 public:
     // 获取线程局部 io_uring 实例
     static IoUring& instance();
-    // 存储所有请求数据指针的哈希表（线程局部）
-    static std::unordered_set<void*>& callback_map();
 
 public:
     [[nodiscard]]
@@ -43,8 +41,6 @@ public:
     void submit();
     // 尝试立即提交请求（若无请求不会进行提交）
     void try_submit();
-    // 清除所有请求
-    bool clear();
 
 private:
     explicit IoUring(const runtime::Config& config);

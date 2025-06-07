@@ -25,7 +25,6 @@ auto coruring::socket::net::TcpSocket::connect(const SocketAddr& addr) {
         }
 
         auto await_resume() noexcept -> std::expected<void, std::error_code> {
-            io::detail::IoUring::callback_map().erase(&this->cb_);
             if (this->cb_.result_ >= 0) [[likely]] {
                 return {};
             }

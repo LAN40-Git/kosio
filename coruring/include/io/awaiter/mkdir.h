@@ -14,7 +14,6 @@ namespace detail
             : MkDir{AT_FDCWD, path, mode} {}
 
         auto await_resume() noexcept -> std::expected<void, std::error_code> {
-            detail::IoUring::callback_map().erase(&this->cb_);
             if (this->cb_.result_ >= 0) [[likely]] {
                 return {};
             }

@@ -8,11 +8,6 @@ coruring::io::detail::IoUring& coruring::io::detail::IoUring::instance() {
     return inst;
 }
 
-std::unordered_set<void*>& coruring::io::detail::IoUring::callback_map() {
-    thread_local std::unordered_set<void*> callback_map{};
-    return callback_map;
-}
-
 auto coruring::io::detail::IoUring::peek_batch(std::span<io_uring_cqe*> cqes) -> std::size_t {
     return io_uring_peek_batch_cqe(&ring_, cqes.data(), cqes.size());
 }
@@ -44,24 +39,6 @@ void coruring::io::detail::IoUring::try_submit() {
     if (submit_tick_ > 0) {
         submit();
     }
-}
-
-bool coruring::io::detail::IoUring::clear() {
-    auto &callback_map = IoUring::callback_map();
-    std::size_t count = callback_map.size();
-    if (count == 0) {
-        return true;
-    }
-    for (auto user_data : callback_map) {
-        io_uring_sqe* sqe = get_sqe();
-        if (!sqe) [[unlikely]] {
-            return false;
-        }
-        io_uring_prep_cancel(sqe, user_data, 0);
-        io_uring_sqe_set_data(sqe, nullptr);
-    }
-    pend_submit_batch(count);
-    return true;
 }
 
 coruring::io::detail::IoUring::IoUring(const runtime::Config& config)

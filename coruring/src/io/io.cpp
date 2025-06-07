@@ -29,7 +29,7 @@ auto coruring::io::detail::FD::set_nonblocking(bool status) const noexcept -> st
         flags &= ~O_NONBLOCK;
     }
     if (::fcntl(fd_, F_SETFL, flags) == -1) [[unlikely]] {
-        return std::error_code(errno, std::generic_category());
+        return std::error_code(errno, std::system_category());
     }
     return {};
 }
@@ -37,7 +37,7 @@ auto coruring::io::detail::FD::set_nonblocking(bool status) const noexcept -> st
 auto coruring::io::detail::FD::nonblocking() const noexcept -> std::expected<bool, std::error_code> {
     auto flags = ::fcntl(fd_, F_GETFL, 0);
     if (flags == -1) [[unlikely]] {
-        return std::unexpected{std::error_code(errno, std::generic_category())};
+        return std::unexpected{std::error_code(errno, std::system_category())};
     }
     return {true};
 }

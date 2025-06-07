@@ -47,14 +47,13 @@ public:
     auto await_suspend(std::coroutine_handle<> handle) {
         assert(sqe_);
         cb_.handle_ = handle;
-        detail::IoUring::instance().pend_submit();
-        detail::IoUring::callback_map().emplace(&this->cb_);
+        IoUring::instance().pend_submit();
     }
 
     /* set cb_.result_ to cqe->res */
 
 protected:
-    detail::Callback cb_{};
+    Callback cb_{};
     io_uring_sqe *sqe_;
 };
 }

@@ -14,7 +14,6 @@ namespace detail
             : Open{AT_FDCWD, path, flags, mode} {}
 
         auto await_resume() noexcept -> std::expected<int, std::error_code> {
-            detail::IoUring::callback_map().erase(&this->cb_);
             if (this->cb_.result_ >= 0) [[likely]] {
                 return this->cb_.result_;
             }
@@ -32,7 +31,6 @@ namespace detail
             : Open2{AT_FDCWD, path, how} {}
 
         auto await_resume() noexcept -> std::expected<int, std::error_code> {
-            detail::IoUring::callback_map().erase(&this->cb_);
             if (this->cb_.result_ >= 0) [[likely]] {
                 return this->cb_.result_;
             }

@@ -15,6 +15,7 @@ auto process(net::TcpStream stream) -> Task<void> {
             break;
         }
         if (ok.value() == 0) {
+            console.info("Connection closed : {}", stream.local_addr().value());
             break;
         }
 
@@ -32,7 +33,7 @@ auto process(net::TcpStream stream) -> Task<void> {
 
 auto server() -> Task<void> {
     // 1. 设置监听地址和端口
-    auto has_addr = net::SocketAddr::parse("127.0.0.1", 8080);
+    auto has_addr = net::SocketAddr::parse("127.0.0.1", 8081);
     if (!has_addr) {
         console.error(has_addr.error().message());
         co_return;
@@ -49,9 +50,12 @@ auto server() -> Task<void> {
         if (has_stream) {
             auto &[stream, peer_addr] = has_stream.value();
             console.info("Accept a connection from {}", peer_addr);
-
+            auto h = process(std::move(stream)).take();
+            h.resume();
+        } else {
+            console.error(has_stream.error().message());
+            break;
         }
-
     }
 }
 
@@ -59,12 +63,25 @@ void event_loop() {
     auto h = server().take();
     h.resume();
     while (!h.done()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         std::array<io_uring_cqe*, 16> cqes;
         auto count = coruring::io::detail::IoUring::instance().peek_batch({cqes.data(), cqes.size()});
-        for (auto i = 0u; i < count; ++i) {
-            
+        for (auto i = 0u; i < count; i++) {
+            if (!cqes[i]) {
+                continue;
+            }
+            auto cb = static_cast<coruring::io::detail::Callback*>(io_uring_cqe_get_data(cqes[i]));
+            if (!cb) {
+                continue;
+            }
+            cb->result_ = cqes[i]->res;
+            cb->handle_.resume();
+        }
+        if (count > 0) {
+            coruring::io::detail::IoUring::instance().consume(count);
         }
     }
+    h.destroy();
 }
 
 int main() {

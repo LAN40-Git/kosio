@@ -39,7 +39,7 @@ public:
 public:
     [[nodiscard]]
     static auto bind(const Addr& addr) -> std::expected<Listener, std::error_code> {
-        auto ret = Socket::create(addr.family(), SOCK_STREAM, 0);
+        auto ret = Socket::create(addr.family(), SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (!ret) [[unlikely]] {
             return std::unexpected{ret.error()};
         }

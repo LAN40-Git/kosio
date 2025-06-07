@@ -12,11 +12,11 @@ class BaseStream : public ImplStreamRead<BaseStream<Stream, Addr>>,
                    public ImplStreamWrite<BaseStream<Stream, Addr>>,
                    public ImplLocalAddr<BaseStream<Stream, Addr>, Addr>,
                    public ImplPeerAddr<BaseStream<Stream, Addr>, Addr> {
-public:
+protected:
     explicit BaseStream(Socket &&inner)
         : inner_(std::move(inner)) {}
 
-protected:
+public:
     [[REMEMBER_CO_AWAIT]]
     auto shutdown(int how) noexcept {
         return inner_.shutdown(how);
