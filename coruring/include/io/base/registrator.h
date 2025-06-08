@@ -50,10 +50,6 @@ public:
         IoUring::instance().pend_submit();
     }
 
-    /* set cb_.result_ to cqe->res */
-
-
-
 protected:
     Callback cb_{};
     io_uring_sqe *sqe_;
