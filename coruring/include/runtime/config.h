@@ -5,12 +5,6 @@
 #include <nlohmann/json.hpp>
 
 namespace coruring::runtime::detail {
-
-// 最大时间轮级数
-constexpr static inline std::size_t MAX_WHEEL{6uz};
-// 时间轮每级槽位
-constexpr static inline std::size_t SLOT_SIZE{64uz};
-
 class Config {
 public:
     // ====== 默认配置 ======
