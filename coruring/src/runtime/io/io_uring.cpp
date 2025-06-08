@@ -1,9 +1,9 @@
-#include "../../include/runtime/io/io_uring.h"
+#include "../../../include/runtime/io/io_uring.h"
 
 #include <iostream>
 
 coruring::io::detail::IoUring& coruring::io::detail::IoUring::instance() {
-    static const runtime::Config config = runtime::Config::load_from_file();
+    static const runtime::detail::Config config = runtime::detail::Config::load_from_file();
     thread_local IoUring inst{config};
     return inst;
 }
@@ -41,7 +41,7 @@ void coruring::io::detail::IoUring::try_submit() {
     }
 }
 
-coruring::io::detail::IoUring::IoUring(const runtime::Config& config)
+coruring::io::detail::IoUring::IoUring(const runtime::detail::Config& config)
     : submit_interval_{config.submit_interval} {
     if (auto ret = io_uring_queue_init(config.entries, &ring_, 0); ret < 0) [[unlikely]] {
         throw std::runtime_error(std::format("io_uring_queue_init failed: {}", strerror(-ret)));
