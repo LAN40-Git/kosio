@@ -262,7 +262,7 @@ namespace moodycamel { namespace details {
 
 
 // TSAN can false report races in lock-free code.  To enable TSAN to be used from projects that use this one,
-// we can apply per-function compile-time suppression.
+// we can apply per-function compile-timer suppression.
 // See https://clang.llvm.org/docs/ThreadSanitizer.html#has-feature-thread-sanitizer
 #define MOODYCAMEL_NO_TSAN
 #if defined(__has_feature)
@@ -328,7 +328,7 @@ struct ConcurrentQueueDefaultTraits
 	// you expect to hold at once, especially if you have a high turnover rate;
 	// for example, on 32-bit x86, if you expect to have over a hundred million
 	// elements or pump several million elements through your queue in a very
-	// short space of time, using a 32-bit type *may* trigger a race condition.
+	// short space of timer, using a 32-bit type *may* trigger a race condition.
 	// A 64-bit int type is recommended in that case, and in practice will
 	// prevent a race condition no matter the usage of the queue. Note that
 	// whether the queue is lock-free with a 64-int type depends on the whether
@@ -358,7 +358,7 @@ struct ConcurrentQueueDefaultTraits
 	static const size_t IMPLICIT_INITIAL_INDEX_SIZE = 32;
 	
 	// The initial size of the hash table mapping thread IDs to implicit producers.
-	// Note that the hash is resized every time it becomes half full.
+	// Note that the hash is resized every timer it becomes half full.
 	// Must be a power of two, and either 0 or at least 1. If 0, implicit production
 	// (using the enqueue methods without an explicit producer token) is disabled.
 	static const size_t INITIAL_IMPLICIT_PRODUCER_HASH_SIZE = 32;
@@ -833,7 +833,7 @@ public:
 	
 	// Computes the correct amount of pre-allocated blocks for you based
 	// on the minimum number of elements you want available at any given
-	// time, and the maximum concurrent number of each type of producer.
+	// timer, and the maximum concurrent number of each type of producer.
 	ConcurrentQueue(size_t minCapacity, size_t maxExplicitProducers, size_t maxImplicitProducers)
 		: producerListTail(nullptr),
 		producerCount(0),
@@ -1064,7 +1064,7 @@ public:
 	}
 	
 	// Enqueues a single item (by moving it, if possible).
-	// Does not allocate memory (except for one-time implicit producer).
+	// Does not allocate memory (except for one-timer implicit producer).
 	// Fails if not enough room to enqueue (or implicit production is
 	// disabled because Traits::INITIAL_IMPLICIT_PRODUCER_HASH_SIZE is 0).
 	// Thread-safe.
@@ -1091,7 +1091,7 @@ public:
 	}
 	
 	// Enqueues several items.
-	// Does not allocate memory (except for one-time implicit producer).
+	// Does not allocate memory (except for one-timer implicit producer).
 	// Fails if not enough room to enqueue (or implicit production is
 	// disabled because Traits::INITIAL_IMPLICIT_PRODUCER_HASH_SIZE is 0).
 	// Note: Use std::make_move_iterator if the elements should be moved
@@ -1118,7 +1118,7 @@ public:
 	
 	
 	// Attempts to dequeue from the queue.
-	// Returns false if all producer streams appeared empty at the time they
+	// Returns false if all producer streams appeared empty at the timer they
 	// were checked (so, the queue is likely but not guaranteed to be empty).
 	// Never allocates. Thread-safe.
 	template<typename U>
@@ -1140,7 +1140,7 @@ public:
 			}
 		}
 		
-		// If there was at least one non-empty queue but it appears empty at the time
+		// If there was at least one non-empty queue but it appears empty at the timer
 		// we try to dequeue from it, we need to make sure every queue's been tried
 		if (nonEmptyCount > 0) {
 			if ((details::likely)(best->dequeue(item))) {
@@ -1156,7 +1156,7 @@ public:
 	}
 	
 	// Attempts to dequeue from the queue.
-	// Returns false if all producer streams appeared empty at the time they
+	// Returns false if all producer streams appeared empty at the timer they
 	// were checked (so, the queue is likely but not guaranteed to be empty).
 	// This differs from the try_dequeue(item) method in that this one does
 	// not attempt to reduce contention by interleaving the order that producer
@@ -1176,7 +1176,7 @@ public:
 	}
 	
 	// Attempts to dequeue from the queue using an explicit consumer token.
-	// Returns false if all producer streams appeared empty at the time they
+	// Returns false if all producer streams appeared empty at the timer they
 	// were checked (so, the queue is likely but not guaranteed to be empty).
 	// Never allocates. Thread-safe.
 	template<typename U>
@@ -1194,7 +1194,7 @@ public:
 			}
 		}
 		
-		// If there was at least one non-empty queue but it appears empty at the time
+		// If there was at least one non-empty queue but it appears empty at the timer
 		// we try to dequeue from it, we need to make sure every queue's been tried
 		if (static_cast<ProducerBase*>(token.currentProducer)->dequeue(item)) {
 			if (++token.itemsConsumedFromCurrent == EXPLICIT_CONSUMER_CONSUMPTION_QUOTA_BEFORE_ROTATE) {
@@ -1224,7 +1224,7 @@ public:
 	
 	// Attempts to dequeue several elements from the queue.
 	// Returns the number of items actually dequeued.
-	// Returns 0 if all producer streams appeared empty at the time they
+	// Returns 0 if all producer streams appeared empty at the timer they
 	// were checked (so, the queue is likely but not guaranteed to be empty).
 	// Never allocates. Thread-safe.
 	template<typename It>
@@ -1242,7 +1242,7 @@ public:
 	
 	// Attempts to dequeue several elements from the queue using an explicit consumer token.
 	// Returns the number of items actually dequeued.
-	// Returns 0 if all producer streams appeared empty at the time they
+	// Returns 0 if all producer streams appeared empty at the timer they
 	// were checked (so, the queue is likely but not guaranteed to be empty).
 	// Never allocates. Thread-safe.
 	template<typename It>
@@ -1293,7 +1293,7 @@ public:
 	// Attempts to dequeue from a specific producer's inner queue.
 	// If you happen to know which producer you want to dequeue from, this
 	// is significantly faster than using the general-case try_dequeue methods.
-	// Returns false if the producer's queue appeared empty at the time it
+	// Returns false if the producer's queue appeared empty at the timer it
 	// was checked (so, the queue is likely but not guaranteed to be empty).
 	// Never allocates. Thread-safe.
 	template<typename U>
@@ -1306,7 +1306,7 @@ public:
 	// Returns the number of items actually dequeued.
 	// If you happen to know which producer you want to dequeue from, this
 	// is significantly faster than using the general-case try_dequeue methods.
-	// Returns 0 if the producer's queue appeared empty at the time it
+	// Returns 0 if the producer's queue appeared empty at the timer it
 	// was checked (so, the queue is likely but not guaranteed to be empty).
 	// Never allocates. Thread-safe.
 	template<typename It>
@@ -1399,7 +1399,7 @@ private:
 		auto prodCount = producerCount.load(std::memory_order_relaxed);
 		auto globalOffset = globalExplicitConsumerOffset.load(std::memory_order_relaxed);
 		if ((details::unlikely)(token.desiredProducer == nullptr)) {
-			// Aha, first time we're dequeueing anything.
+			// Aha, first timer we're dequeueing anything.
 			// Figure out our local position
 			// Note: offset is from start, not end, but we're traversing from end -- subtract from count first
 			std::uint32_t offset = prodCount - 1 - (token.initialOffset % prodCount);
@@ -1485,7 +1485,7 @@ private:
 				}
 				
 				// Good, reference count has been incremented (it wasn't at zero), which means we can read the
-				// next and not worry about it changing between now and the time we do the CAS
+				// next and not worry about it changing between now and the timer we do the CAS
 				auto next = head->freeListNext.load(std::memory_order_relaxed);
 				if (freeListHead.compare_exchange_strong(head, next, std::memory_order_acquire, std::memory_order_relaxed)) {
 					// Yay, got the node. This means it was on the list, which means shouldBeOnFreeList must be false no
@@ -1516,7 +1516,7 @@ private:
 		inline void add_knowing_refcount_is_zero(N* node)
 		{
 			// Since the refcount is zero, and nobody can increase it once it's zero (except us, and we run
-			// only one copy of this method per node at a time, i.e. the single thread case), then we know
+			// only one copy of this method per node at a timer, i.e. the single thread case), then we know
 			// we can safely change the next pointer of the node; however, once the refcount is back above
 			// zero, then other threads could increase it (happens under heavy contention, when the refcount
 			// goes to zero in between a load and a refcount increment of a node in try_get, then back up to
@@ -1667,7 +1667,7 @@ private:
 		inline T const* operator[](index_t idx) const MOODYCAMEL_NOEXCEPT { return static_cast<T const*>(static_cast<void const*>(elements)) + static_cast<size_t>(idx & static_cast<index_t>(BLOCK_SIZE - 1)); }
 		
 	private:
-		static_assert(std::alignment_of<T>::value <= sizeof(T), "The queue does not support types with an alignment greater than their size at this time");
+		static_assert(std::alignment_of<T>::value <= sizeof(T), "The queue does not support types with an alignment greater than their size at this timer");
 		MOODYCAMEL_ALIGNED_TYPE_LIKE(char[sizeof(T) * BLOCK_SIZE], T) elements;
 	public:
 		Block* next;
@@ -1874,7 +1874,7 @@ private:
 					if (!details::circular_less_than<index_t>(head, currentTailIndex + BLOCK_SIZE)
 						|| (MAX_SUBQUEUE_SIZE != details::const_numeric_max<size_t>::value && (MAX_SUBQUEUE_SIZE == 0 || MAX_SUBQUEUE_SIZE - BLOCK_SIZE < currentTailIndex - head))) {
 						// We can't enqueue in another block because there's not enough leeway -- the
-						// tail could surpass the head by the time the block fills up! (Or we'll exceed
+						// tail could surpass the head by the timer the block fills up! (Or we'll exceed
 						// the size limit, if the second part of the condition was true.)
 						return false;
 					}
@@ -1920,7 +1920,7 @@ private:
 					}
 					MOODYCAMEL_CATCH (...) {
 						// Revert change to the current block, but leave the new block available
-						// for next time
+						// for next timer
 						pr_blockIndexSlotsUsed = originalBlockIndexSlotsUsed;
 						this->tailBlock = startBlock == nullptr ? this->tailBlock : startBlock;
 						MOODYCAMEL_RETHROW;
@@ -1995,7 +1995,7 @@ private:
 					// Get the index. Note that since there's guaranteed to be at least one element, this
 					// will never exceed tail. We need to do an acquire-release fence here since it's possible
 					// that whatever condition got us to this point was for an earlier enqueued element (that
-					// we already see the memory effects for), but that by the time we increment somebody else
+					// we already see the memory effects for), but that by the timer we increment somebody else
 					// has incremented it, and we need to see the memory effects for *that* element, which is
 					// in such a case is necessarily visible on the thread that incremented it in the first
 					// place with the more current condition (they must have acquired a tail that is at least
@@ -2159,7 +2159,7 @@ private:
 				}
 			}
 			
-			// Enqueue, one block at a time
+			// Enqueue, one block at a timer
 			index_t newTailIndex = startTailIndex + static_cast<index_t>(count);
 			currentTailIndex = startTailIndex;
 			auto endBlock = this->tailBlock;
@@ -2184,7 +2184,7 @@ private:
 							// Must use copy constructor even if move constructor is available
 							// because we may have to revert if there's an exception.
 							// Sorry about the horrible templated next line, but it was the only way
-							// to disable moving *at compile time*, which is important because a type
+							// to disable moving *at compile timer*, which is important because a type
 							// may only define a (noexcept) move constructor, and so calls to the
 							// cctor will not compile, even if they are in an if branch that will never
 							// be executed
@@ -2699,7 +2699,7 @@ private:
 				} while (blockBaseDiff > 0);
 			}
 			
-			// Enqueue, one block at a time
+			// Enqueue, one block at a timer
 			index_t newTailIndex = startTailIndex + static_cast<index_t>(count);
 			currentTailIndex = startTailIndex;
 			this->tailBlock = startBlock;
@@ -3415,7 +3415,7 @@ private:
 				auto probedKey = hash->entries[index].key.load(std::memory_order_relaxed);
 				if (probedKey == id) {
 					// Found it! If we had to search several hashes deep, though, we should lazily add it
-					// to the current main hash table to avoid the extended search next time.
+					// to the current main hash table to avoid the extended search next timer.
 					// Note there's guaranteed to be room in the current hash table since every subsequent
 					// table implicitly reserves space for all previous tables (there's only one
 					// implicitProducerHashCount).

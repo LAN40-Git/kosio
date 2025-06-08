@@ -24,4 +24,4 @@ namespace detail
 static inline auto timeout(__kernel_timespec *ts, unsigned count, unsigned flags) {
     return detail::Timeout{ts, count, flags};
 }
-} // namespace coruring::time
+} // namespace coruring::timer

@@ -33,9 +33,7 @@ public:
                 // 文件不存在，保存默认配置
                 save_to_file(config, path);
             }
-        } catch (...) {
-            // 解析失败时忽略，继续使用默认值
-        }
+        } catch (...) {}
 
         return config;
     }

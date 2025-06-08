@@ -27,8 +27,8 @@ private:
 
 template<class Addr>
 class WriteHalf : public ImplStreamWrite<WriteHalf<Addr>>,
-             public ImplLocalAddr<WriteHalf<Addr>, Addr>,
-             public ImplPeerAddr<WriteHalf<Addr>, Addr> {
+                  public ImplLocalAddr<WriteHalf<Addr>, Addr>,
+                  public ImplPeerAddr<WriteHalf<Addr>, Addr> {
 public:
     WriteHalf(Socket &inner)
         : inner_(inner) {}
@@ -86,10 +86,10 @@ public:
 };
 
 template <class T, class Addr>
-class OwnedWriteHalf : public OwnedBase<T>
-                , public ImplStreamRead<OwnedWriteHalf<T, Addr>>
-                , public ImplLocalAddr<OwnedWriteHalf<T, Addr>, Addr>
-                , public ImplPeerAddr<OwnedWriteHalf<T, Addr>, Addr> {
+class OwnedWriteHalf : public OwnedBase<T>,
+                       public ImplStreamRead<OwnedWriteHalf<T, Addr>>,
+                       public ImplLocalAddr<OwnedWriteHalf<T, Addr>, Addr>,
+                       public ImplPeerAddr<OwnedWriteHalf<T, Addr>, Addr> {
 public:
     OwnedWriteHalf(std::shared_ptr<T> stream)
         : OwnedBase<T>(std::move(stream)) {}
