@@ -11,7 +11,7 @@ pkg_check_modules(LIBURING REQUIRED liburing)
 find_package(nlohmann_json 3.5 REQUIRED)
 
 set(SOURCE_FILES
-        coruring/src/io/io_uring.cpp
+        coruring/src/runtime/io/io_uring.cpp
         coruring/src/io/io.cpp
         coruring/src/socket/net/socket.cpp
         coruring/src/socket/socket.cpp

@@ -15,9 +15,7 @@
    ```shell
    sudo apt install nlohmann-json3-dev
    ```
-
-   or
-
+   或者
    ```shell
    wget https://github.com/nlohmann/json/releases/latest/download/json.hpp
    sudo mv json.hpp /usr/local/include/nlohmann/json.hpp

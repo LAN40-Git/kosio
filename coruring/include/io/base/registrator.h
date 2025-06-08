@@ -4,6 +4,7 @@
 #include "common/macros.h"
 #include "common/error.h"
 #include "callback.h"
+#include "time/timeout.h"
 #include <functional>
 
 namespace coruring::io::detail
@@ -14,7 +15,7 @@ public:
     template<typename F, typename... Args>
         requires std::is_invocable_v<F, io_uring_sqe *, Args...>
     IoRegistrator(F&& f, Args&&... args)
-        : sqe_{detail::IoUring::instance().get_sqe()} {
+        : sqe_{runtime::detail::IoUring::instance().get_sqe()} {
         if (sqe_ != nullptr) [[likely]] {
             std::invoke(std::forward<F>(f), sqe_, std::forward<Args>(args)...);
             io_uring_sqe_set_data(sqe_, &this->cb_);
@@ -48,6 +49,17 @@ public:
         assert(sqe_);
         cb_.handle_ = handle;
         IoUring::instance().pend_submit();
+    }
+
+    [[REMEMBER_CO_AWAIT]]
+    auto set_timeout_at(std::chrono::steady_clock::time_point deadline) noexcept {
+        cb_.deadline_ = deadline;
+        return time::detail::Timeout{std::move(*static_cast<IO *>(this))};
+    }
+
+    [[REMEMBER_CO_AWAIT]]
+    auto set_timeout(std::chrono::milliseconds interval) noexcept {
+        return set_timeout_at(std::chrono::steady_clock::now() + interval);
     }
 
 protected:

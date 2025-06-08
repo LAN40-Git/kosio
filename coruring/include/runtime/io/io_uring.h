@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <unordered_set>
 
-namespace coruring::io::detail
+namespace coruring::runtime::detail
 {
 class IoUring {
 public:
@@ -43,7 +43,7 @@ public:
     void try_submit();
 
 private:
-    explicit IoUring(const runtime::Config& config);
+    explicit IoUring(const runtime::detail::Config& config);
     ~IoUring() {
         io_uring_queue_exit(&ring_);
     }

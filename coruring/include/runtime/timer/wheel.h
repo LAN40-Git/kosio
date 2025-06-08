@@ -1,11 +1,13 @@
 #pragma once
+#include <cstddef>
+#include "runtime/config.h"
 
-namespace
+namespace coruring::runtime::detail
 {
-class MyClass {
+class TimeWheel {
 public:
     
 private:
-    
+
 };
 }
