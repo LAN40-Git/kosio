@@ -1,54 +1,55 @@
 #pragma once
-#include <cstdint>
-#include <filesystem>
+#include <mutex>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include "common/util/nocopyable.h"
 
 namespace coruring::runtime::detail {
-class Config {
+class Config : public util::Noncopyable {
+    static constexpr std::string CONFIG_PATH = "config.json";
 public:
     // ====== 默认配置 ======
-    // io_uring 队列纵深
-    constexpr static uint32_t DEFAULT_ENTRIES = 1024;
-    // io_uring 提交间隔
-    constexpr static uint32_t DEFAULT_SUBMIT_INTERVAL = 64;
+    // ====== io ======
+    static constexpr uint32_t ENTRIES = 1024;
+    static constexpr uint32_t SUBMIT_INTERVAL = 1;
+    // ====== timer ======
+    static constexpr uint8_t MAX_LEVEL = 6;
+    static constexpr uint16_t SLOTS = 64;
 
-    uint32_t entries{DEFAULT_ENTRIES};
-    uint32_t submit_interval{DEFAULT_SUBMIT_INTERVAL};
+    // ====== 成员变量 ======
+    uint32_t entries{ENTRIES};
+    uint32_t submit_interval{SUBMIT_INTERVAL};
 
-    Config() = default;
-
-    // 从文件加载配置
-    static Config load_from_file(const std::filesystem::path& path = "config.json") {
-        Config config;
-
-        try {
-            std::ifstream file(path);
+    // 从文件加载配置 TODO：添加错误处理
+    static const Config& load() {
+        static Config instance;
+        static std::once_flag flag;
+        std::call_once(flag, [&] {
+            std::ifstream file(CONFIG_PATH);
             if (file.good()) {
                 nlohmann::json j;
                 file >> j;
-                config.entries = j.value("entries", config.entries);
-                config.submit_interval = j.value("submit_interval", config.submit_interval);
+                instance.entries = j.value("entries", instance.entries);
+                instance.submit_interval = j.value("submit_interval", instance.submit_interval);
             } else {
-                // 文件不存在，保存默认配置
-                save_to_file(config, path);
+                save(instance);
             }
-        } catch (...) {}
-
-        return config;
+        });
+        return instance;
     }
 
+private:
     // 保存配置到文件
-    static void save_to_file(const Config& config,
-                           const std::filesystem::path& path = "config.json") {
+    static void save(const Config& config) {
         nlohmann::json j;
         j["entries"] = config.entries;
         j["submit_interval"] = config.submit_interval;
 
-        std::ofstream file(path);
-        if (file.good()) {
-            file << j.dump(4);
+        std::ofstream file(CONFIG_PATH);
+        if (!file.good()) {
+            throw std::runtime_error("Failed to open config file");
         }
+        file << j.dump(4);
     }
 };
-} // namespace coruring::io
+} // namespace coruring::runtime::detail

@@ -66,7 +66,7 @@ void event_loop() {
     while (!h.done()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         std::array<io_uring_cqe*, 16> cqes{};
-        auto count = coruring::io::detail::IoUring::instance().peek_batch({cqes.data(), cqes.size()});
+        auto count = coruring::runtime::detail::IoUring::instance().peek_batch({cqes.data(), cqes.size()});
         for (auto i = 0u; i < count; i++) {
             if (!cqes[i]) {
                 continue;
@@ -79,7 +79,7 @@ void event_loop() {
             cb->handle_.resume();
         }
         if (count > 0) {
-            coruring::io::detail::IoUring::instance().consume(count);
+            coruring::runtime::detail::IoUring::instance().consume(count);
         }
     }
     h.destroy();

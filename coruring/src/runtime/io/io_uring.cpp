@@ -2,8 +2,7 @@
 #include <iostream>
 
 coruring::runtime::detail::IoUring& coruring::runtime::detail::IoUring::instance() {
-    static const Config config = Config::load_from_file();
-    thread_local IoUring inst{config};
+    thread_local IoUring inst{Config::load()};
     return inst;
 }
 

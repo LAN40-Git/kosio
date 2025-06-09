@@ -20,8 +20,8 @@ Entry
 
 2. 计算对应槽位
 
+   ```mermaid
+   graph TD
+   A["Shopping"] --> B["Having lunch"]
    ```
-   
-   ```
-
    
