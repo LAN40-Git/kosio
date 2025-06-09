@@ -18,7 +18,7 @@ namespace detail
 
     public:
         auto await_suspend(std::coroutine_handle<> handle) -> bool {
-            
+
         }
     };
 }

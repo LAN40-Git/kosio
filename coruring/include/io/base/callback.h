@@ -7,5 +7,6 @@ namespace coruring::io::detail
 struct Callback {
     std::coroutine_handle<> handle_{nullptr};
     int result_;
+    uint64_t deadline_;
 };
 }

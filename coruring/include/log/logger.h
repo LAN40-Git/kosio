@@ -144,7 +144,7 @@ public:
         : file_{file_base_name}
         , current_buffer_{std::make_unique<Buffer>()} 
         , thread_{&FileLogger::work, this} {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; ++i) {
             empty_buffers_.emplace_back(std::make_unique<Buffer>());
         }
     }

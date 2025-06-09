@@ -1,13 +1,27 @@
-```mermaid
-graph TD
-add_entry["添加定时事件"]
-handle_expire_entries["时间轮找到非空槽位"]
-execute["触发事件"]
-add_entry 
---> 找到并加入对应时间轮
---> handle_expire_entries
---> execut
+Entry
 
+- expiration_time_：到期时间
+- data_：回调结构体
 
-```
+**示例：**
 
+事件A[expiratio_time=78ms]加入
+
+计算对应槽位：
+
+1. 计算层级：
+
+   ```c++
+   while (level + 1 < MAX_LEVEL && ticks >= PRECISION[level + 1]) {
+       ++level;
+       ticks /= SLOT_SIZE;
+   }
+   ```
+
+2. 计算对应槽位
+
+   ```
+   
+   ```
+
+   
