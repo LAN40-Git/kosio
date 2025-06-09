@@ -17,7 +17,9 @@ namespace detail
             : T{std::move(io)} {}
 
     public:
-
+        auto await_suspend(std::coroutine_handle<> handle) -> bool {
+            
+        }
     };
 }
 } // namespace coruring::timer
