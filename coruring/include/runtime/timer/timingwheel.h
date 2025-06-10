@@ -9,11 +9,13 @@
 
 namespace coruring::runtime::detail
 {
+// 线程不安全
 template <std::size_t MAX_LEVEL, std::size_t SLOT_SIZE>
     requires (MAX_LEVEL > 0) && (SLOT_SIZE > 0) && ((SLOT_SIZE & (SLOT_SIZE - 1)) == 0) // SLOT_SIZE必须大于0且为2的幂次
-class TimingWheel {
+class TimingWheel : util::Noncopyable {
+private:
     static constexpr auto make_precision() {
-        std::array<size_t, MAX_LEVEL> precision{};
+        std::array<std::size_t, MAX_LEVEL> precision{};
         precision[0] = 1;
         for (size_t i = 1; i < MAX_LEVEL; ++i) {
             precision[i] = precision[i - 1] * SLOT_SIZE;
@@ -21,63 +23,89 @@ class TimingWheel {
         return precision;
     }
 
-public:
-    static constexpr auto PRECISION = make_precision();
+    static constexpr auto PRECISION = make_precision(); // 每层时间轮的时间范围
     static constexpr std::size_t MASK = SLOT_SIZE - 1;
+    static constexpr size_t SHIFT = std::countr_zero(SLOT_SIZE);
+
+public:
     using ENTRIES = std::list<std::unique_ptr<Entry>>;
-    using BITMAPS = std::bitset<SLOT_SIZE>;
+    using BITMAP = std::bitset<SLOT_SIZE>;
 
     TimingWheel() = default;
     ~TimingWheel() = default;
-    TimingWheel(const TimingWheel&) = delete;
-    TimingWheel& operator=(const TimingWheel&) = delete;
 
 public:
-    void add_entry(std::unique_ptr<Entry> &&entry, uint64_t timeout_ms) {
-        std::size_t level = 0;
-
-        // 找到对应层级
-        while (level + 1 < MAX_LEVEL && timeout_ms >= PRECISION[level + 1]) {
-            ++level;
+    void add_entry(std::unique_ptr<Entry> &&entry, int64_t expiration_ms_) {
+        int64_t remaining_ms = expiration_ms_ - now_ms;
+        if (remaining_ms <= 0) [[unlikely]] {
+            // 加入底层当前槽位
+            wheels_[0][current_slots_[0]].push_back(std::move(entry));
+            return;
         }
 
-        // 计算槽位
-        std::size_t slot = (timeout_ms >> current_slots_[level]) & (MASK >> current_slots_[level]);
+        // 确认层级和槽位
+        size_t level = find_level(remaining_ms);
+        size_t slot = ((remaining_ms >> (level * SHIFT)) + current_slots_[level]) & MASK;
 
-        // 将事件放入对应层级对应的槽位中
+        // 将事件放入对应位置
         wheels_[level][slot].push_back(std::move(entry));
+        bitmaps_[level].set(slot);
     }
 
     // 底层步进
     void tick() {
+        now_ms = util::current_ms(); // 更新缓存时间
         // 1. 若当前为最后槽位，则上层步进（上层下放任务以避免对齐误差）
         if (current_slots_[0] == SLOT_SIZE - 1) {
             tick(1);
         }
         // 2. 处理槽位中的事件
         auto& entries = wheels_[0][current_slots_[0]];
-        handle_expired_entries(entries);
+        while (!entries.empty()) {
+            // TODO: 添加处理逻辑
+        }
+        bitmaps_[0].reset(current_slots_[0]);
         // 3. 移动到下一槽位
         current_slots_[0] = (current_slots_[0] + 1) & MASK;
     }
 
+private:
     // 上层步进
     void tick(std::size_t level) {
-        if (level >= MAX_LEVEL) {
-            return;
-        }
-        assert(level > 0);
-        // 1. 下放当前槽位事件
-        auto& entries = wheels_[level][current_slots_[level]];
-        for (auto& entry : entries) {
-            uint64_t remaining_ms = entry->expiration_ms_ - util::current_ms();
-            // TODO: 计算事件槽位
-        }
+         if (level >= MAX_LEVEL) {
+             return;
+         }
+         assert(level > 0);
+         // 1. 检查上层是否需要步进
+         if (current_slots_[level] == SLOT_SIZE - 1) {
+             tick(level + 1);
+         }
+         // 2. 下放当前槽位事件
+         auto& entries = wheels_[level][current_slots_[level]];
+         while (!entries.empty()) {
+             auto& entry = entries.front();
+             entries.pop_front();
+             int64_t remaining_ms = entry->expiration_ms_ - now_ms;
+             if (remaining_ms <= 0) [[unlikely]] {
+                 // 加入底层当前槽位
+                 wheels_[0][current_slots_[0]].push_back(std::move(entry));
+                 continue;
+             }
+             // 确认层级和槽位
+             size_t to_level = find_level(remaining_ms);
+             size_t slot = ((remaining_ms >> (to_level * SHIFT)) + current_slots_[to_level]) & MASK;
 
-    }
+             // 将事件放入对应位置
+             wheels_[to_level][slot].push_back(std::move(entry));
+         }
+         bitmaps_[level].reset(current_slots_[level]);
+         // 3. 步进
+         current_slots_[level] = (current_slots_[level] + 1) & MASK;
+     }
 
-    void handle_expired_entries(ENTRIES& entries) {
-
+    auto find_level(int64_t remaining_ms) const -> std::size_t {
+        auto it = std::upper_bound(PRECISION.rbegin(), PRECISION.rend(), remaining_ms);
+        return (MAX_LEVEL - 1) - (it - PRECISION.rbegin());
     }
 
 private:
@@ -85,7 +113,9 @@ private:
     std::array<std::array<ENTRIES, SLOT_SIZE>, MAX_LEVEL> wheels_{0};
     // current_slots_[层级][当前槽位] -> 当前层级所在的槽位
     std::array<std::size_t, MAX_LEVEL> current_slots_{0};
-    // 时间轮启动运行时间
-    uint64_t start_ms_{util::current_ms()};
+    // 位图，标记槽位是否为空
+    std::array<BITMAP, MAX_LEVEL> bitmaps_{0};
+    // 当前时间缓存
+    int64_t now_ms{util::current_ms()};
 };
 }

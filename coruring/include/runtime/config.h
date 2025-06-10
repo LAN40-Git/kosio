@@ -39,6 +39,9 @@ public:
     }
 
 private:
+    Config() = default;
+
+private:
     // 保存配置到文件
     static void save(const Config& config) {
         nlohmann::json j;
