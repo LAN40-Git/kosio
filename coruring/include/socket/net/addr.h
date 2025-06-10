@@ -91,7 +91,7 @@ public:
 public:
     [[nodiscard]]
     static auto parse(std::string_view ip) -> std::expected<Ipv6Addr, std::error_code> {
-        in6_addr addr;
+        in6_addr addr{};
         if (::inet_pton(AF_INET6, ip.data(), &addr) != 1) [[unlikely]] {
             return std::unexpected{std::error_code(errno, std::generic_category())};
         }

@@ -45,7 +45,7 @@ public:
     [[nodiscard]]
     auto is_valid() const noexcept { return fd_ >= 0; }
     [[REMEMBER_CO_AWAIT]]
-    auto close() noexcept -> detail::Close;
+    auto close() noexcept -> Close;
     [[nodiscard]]
     auto release() noexcept -> int;
     [[nodiscard]]

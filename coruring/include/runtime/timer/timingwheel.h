@@ -2,7 +2,6 @@
 #include <array>
 #include <bitset>
 #include <list>
-#include <list>
 #include "runtime/config.h"
 #include "common/util/time.h"
 #include "entry.h"

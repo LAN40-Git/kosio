@@ -9,7 +9,7 @@
 
 namespace coruring::io::detail
 {
-template<class IO>
+template <class IO>
 class IoRegistrator {
 public:
     template<typename F, typename... Args>
