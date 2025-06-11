@@ -3,6 +3,7 @@
 #include "common/concepts.h"
 #include "common/macros.h"
 #include "common/error.h"
+#include "common/util/time.h"
 #include "callback.h"
 #include "time/timeout.h"
 #include <functional>
@@ -51,7 +52,16 @@ public:
         runtime::detail::IoUring::instance().pend_submit();
     }
 
+    [[REMEMBER_CO_AWAIT]]
+    auto set_timeout(uint64_t timeout_ms) {
+        return set_timeout_at(util::current_ms() + static_cast<int64_t>(timeout_ms));
+    }
 
+    [[REMEMBER_CO_AWAIT]]
+    auto set_timeout_at(uint64_t deadline) noexcept {
+        cb_.deadline_ = static_cast<int64_t>(deadline);
+        return time::detail::Timeout{std::move(static_cast<IO*>(this))};
+    }
 
 protected:
     Callback      cb_{};
