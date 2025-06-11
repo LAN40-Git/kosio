@@ -16,7 +16,7 @@ namespace detail
 {
 struct TaskPromiseBase {
     struct TaskFinalAwaiter {
-        constexpr auto await_ready() const noexcept -> bool { return false; }
+        constexpr auto await_ready() noexcept -> bool { return false; }
         template <typename T>
         auto await_suspend(std::coroutine_handle<T> callee) const noexcept -> std::coroutine_handle<> {
             if (callee.promise().caller_) {
@@ -95,7 +95,7 @@ private:
 
 // 无返回值特化（co_return无返回值）
 template <>
-struct TaskPromise<void> final : public detail::TaskPromiseBase {
+struct TaskPromise<void> final : public TaskPromiseBase {
     auto get_return_object() noexcept -> Task<void>;
 
     constexpr void return_void() const noexcept {};

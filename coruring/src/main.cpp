@@ -11,7 +11,7 @@ auto process(net::TcpStream stream) -> Task<void> {
     while (true) {
         auto ok = co_await reader.read(buf).set_timeout(1000);
         if (!ok) {
-            console.error("{} {}", ok.value(), ok.error().message());
+            console.error("{}", ok.error().message());
             break;
         }
         if (ok.value() == 0) {
