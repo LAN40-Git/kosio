@@ -53,14 +53,14 @@ public:
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto set_timeout(uint64_t timeout_ms) {
-        return set_timeout_at(util::current_ms() + static_cast<int64_t>(timeout_ms));
+    auto set_timeout_at(uint64_t deadline) noexcept {
+        cb_.deadline_ = static_cast<int64_t>(deadline);
+        return time::detail::Timeout{std::move(*static_cast<IO*>(this))};
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto set_timeout_at(uint64_t deadline) noexcept {
-        cb_.deadline_ = static_cast<int64_t>(deadline);
-        return time::detail::Timeout{std::move(static_cast<IO*>(this))};
+    auto set_timeout(uint64_t timeout_ms) noexcept {
+        return set_timeout_at(util::current_ms() + static_cast<int64_t>(timeout_ms));
     }
 
 protected:

@@ -1,5 +1,6 @@
 #include "net.h"
 #include "log.h"
+#include "time/timeout.h"
 using namespace coruring::async;
 using namespace coruring::log;
 using namespace coruring::socket;
@@ -8,7 +9,7 @@ auto process(net::TcpStream stream) -> Task<void> {
     char buf[1024];
     auto [reader, writer] = stream.split();
     while (true) {
-        auto ok = co_await reader.read(buf);
+        auto ok = co_await reader.read(buf).set_timeout(1000);
         if (!ok) {
             console.error("{} {}", ok.value(), ok.error().message());
             break;
@@ -64,7 +65,8 @@ void event_loop() {
     auto h = server().take();
     h.resume();
     while (!h.done()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        coruring::runtime::Timer::instance().tick();
         std::array<io_uring_cqe*, 16> cqes{};
         auto count = coruring::runtime::detail::IoUring::instance().peek_batch({cqes.data(), cqes.size()});
         for (auto i = 0u; i < count; i++) {
