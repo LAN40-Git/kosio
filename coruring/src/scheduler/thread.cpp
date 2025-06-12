@@ -1,5 +1,1 @@
-//
-// Created by lan on 25-6-13.
-//
-
-#include "../../include/scheduler/thread.h"
+#include "scheduler/thread.h"
