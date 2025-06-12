@@ -31,7 +31,7 @@ public:
         }
 
         auto entry = std::make_unique<detail::Entry>(detail::Entry{data, expiration_ms});
-        return wheel_.add_entry(std::move(entry), remaining_ms);
+        return wheel_.add_entry(std::move(entry), (remaining_ms));
     }
 
     void tick() {

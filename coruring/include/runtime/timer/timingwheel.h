@@ -41,8 +41,8 @@ public:
         while (level + 1 < MAX_LEVEL && remaining_ms >= PRECISION[level]) {
             ++level;
         }
-        size_t slot = ((remaining_ms >> (level * SHIFT)) + current_slots_[level]) & MASK;
-        log::console.info("Add entry {}-{}-{}", remaining_ms, level, slot);
+        size_t slot = (((remaining_ms-1) >> (level * SHIFT)) + current_slots_[level]) & MASK;
+        log::console.info("Add entry to {}-{}", level, slot);
 
         // 将事件放入对应位置
         Entry* ret_entry = entry.get();
@@ -98,7 +98,7 @@ private:
             while (to_level + 1 < MAX_LEVEL && remaining_ms >= PRECISION[to_level]) {
                 ++to_level;
             }
-            size_t slot = ((remaining_ms >> (to_level * SHIFT)) + current_slots_[to_level]) & MASK;
+            size_t slot = (((remaining_ms-1) >> (to_level * SHIFT)) + current_slots_[to_level]) & MASK;
 
             // 将事件放入对应位置
             wheels_[to_level][slot].push_back(std::move(entry));

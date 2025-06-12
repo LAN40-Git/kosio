@@ -77,6 +77,9 @@ void event_loop() {
             if (!cb) {
                 continue;
             }
+            if (cb->entry_) {
+                cb->entry_->data_ = nullptr;
+            }
             cb->result_ = cqes[i]->res;
             cb->handle_.resume();
         }
