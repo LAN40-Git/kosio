@@ -5,7 +5,7 @@
 #include "common/error.h"
 #include "common/util/time.h"
 #include "callback.h"
-#include "time/timeout.h"
+#include "timer/timeout.h"
 #include <functional>
 
 namespace coruring::io::detail
@@ -55,7 +55,7 @@ public:
     [[REMEMBER_CO_AWAIT]]
     auto set_timeout_at(uint64_t deadline) noexcept {
         cb_.deadline_ = static_cast<int64_t>(deadline);
-        return time::detail::Timeout{std::move(*static_cast<IO*>(this))};
+        return timer::detail::Timeout{std::move(*static_cast<IO*>(this))};
     }
 
     [[REMEMBER_CO_AWAIT]]

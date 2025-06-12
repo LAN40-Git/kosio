@@ -6,7 +6,7 @@ template <class T>
 class IoRegistrator;
 }
 
-namespace coruring::time
+namespace coruring::timer
 {
 namespace detail
 {

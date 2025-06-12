@@ -1,7 +1,7 @@
 #pragma once
 #include "io/base/registrator.h"
 
-namespace coruring::time
+namespace coruring::timer
 {
 namespace detail
 {
