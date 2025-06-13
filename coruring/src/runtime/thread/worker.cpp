@@ -2,6 +2,7 @@
 #include "runtime/worker/worker.h"
 #include "io/base/callback.h"
 #include "runtime/timer/entry.h"
+#include "scheduler/scheduler.h"
 
 void coruring::runtime::detail::Worker::run() {
     std::lock_guard lock(mutex_);
@@ -27,10 +28,10 @@ void coruring::runtime::detail::Worker::stop() {
 
 void coruring::runtime::detail::Worker::event_loop() {
     std::array<std::coroutine_handle<>, Config::IO_INTERVAL> io_buf;
-    std::array<io_uring_cqe *, Config::IO_INTERVAL> cqes;
+    std::array<io_uring_cqe *, Config::IO_INTERVAL> cqes{};
     while (is_running_.load(std::memory_order_relaxed)) {
         // 1. 处理IO事件
-        std::size_t count = local_queue_.try_dequeue_bulk(std::make_move_iterator(io_buf.begin()), io_buf.size());
+        std::size_t count = local_queue_.try_dequeue_bulk(io_buf.begin(), io_buf.size());
         for (std::size_t i = 0; i < count; ++i) {
             if (io_buf[i]) {
                 io_buf[i].resume();
@@ -59,7 +60,26 @@ void coruring::runtime::detail::Worker::event_loop() {
         // 3. 推进时间轮（仅在时间差>=1ms时真实推进）
         timer_.tick();
 
-        // 4. 尝试窃取任务
+        // 4. 尝试窃取任务（削峰窃取）
+        std::size_t size = local_queue_.size();
+        for (auto& worker : scheduler_.workers()) {
+            if (worker.get() == this) {
+                continue;
+            }
+            if (worker->is_running()) [[likely]] {
+                auto& local_queue = worker->local_queue();
+                // 计算平均值
+                std::size_t average = (size + local_queue.size()) / 2;
+                if (average > size + static_cast<std::size_t>(Config::STEAL_FACTOR*size)) {
+                    count = local_queue.try_dequeue_bulk(io_buf.begin(),
+                                            std::min(io_buf.size(), average - size));
+                    local_queue_.enqueue_bulk(io_buf.begin(), count);
+                    break;
+                }
+            }
+        }
 
+        // 5. 尝试立即提交请求
+        IoUring::instance().try_submit();
     }
 }

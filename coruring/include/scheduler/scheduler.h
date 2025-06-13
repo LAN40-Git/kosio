@@ -13,7 +13,12 @@ public:
 public:
     void run();
     void stop();
-    
+    [[nodiscard]]
+    bool is_running() const { return is_running_; }
+
+public:
+    auto workers() -> std::set<Worker>& { return workers_; }
+
 private:
     std::atomic<bool> is_running_{false};
     std::mutex        mutex_;

@@ -7,7 +7,7 @@ void coruring::scheduler::Scheduler::run() {
     }
     is_running_.store(true, std::memory_order_release);
     for (std::size_t i = 0; i < worker_nums_; ++i) {
-        auto worker = std::make_unique<runtime::detail::Worker>();
+        auto worker = std::make_unique<runtime::detail::Worker>(*this);
         worker->run();
         workers_.emplace(std::move(worker));
     }
