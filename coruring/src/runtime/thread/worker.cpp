@@ -1,9 +1,9 @@
 #include <runtime/io/io_uring.h>
-#include "runtime/worker/thread.h"
+#include "runtime/worker/worker.h"
 #include "io/base/callback.h"
 #include "runtime/timer/entry.h"
 
-void coruring::runtime::detail::Thread::run() {
+void coruring::runtime::detail::Worker::run() {
     std::lock_guard lock(mutex_);
     if (is_running_) {
         return;
@@ -14,7 +14,7 @@ void coruring::runtime::detail::Thread::run() {
     });
 }
 
-void coruring::runtime::detail::Thread::stop() {
+void coruring::runtime::detail::Worker::stop() {
     std::lock_guard lock(mutex_);
     if (!is_running_) {
         return;
@@ -25,7 +25,7 @@ void coruring::runtime::detail::Thread::stop() {
     }
 }
 
-void coruring::runtime::detail::Thread::event_loop() {
+void coruring::runtime::detail::Worker::event_loop() {
     std::array<std::coroutine_handle<>, Config::IO_INTERVAL> io_buf;
     std::array<io_uring_cqe *, Config::IO_INTERVAL> cqes;
     while (is_running_.load(std::memory_order_relaxed)) {

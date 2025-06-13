@@ -81,7 +81,6 @@ private:
         if (level >= MAX_LEVEL) [[unlikely]] {
             return;
         }
-        assert(level > 0);
         // 1. 检查上层是否需要步进
         if (current_slots_[level] == SLOT_SIZE - 1) {
             tick(level + 1);

@@ -1,12 +1,12 @@
 #pragma once
 #include <queue>
-
+#include "common/util/nocopyable.h"
 #include "third_party/concurrentqueue.h"
 
 namespace coruring::runtime::detail
 {
 template <typename T>
-class Queue {
+class Queue : public util::Noncopyable {
 public:
     static Queue<T>& global_queue() {
         static Queue<T> global_queue;
