@@ -14,6 +14,17 @@ auto coruring::runtime::detail::IoUring::peek_cqe(io_uring_cqe** cqe) -> int {
     return io_uring_peek_cqe(&ring_, cqe);
 }
 
+void coruring::runtime::detail::IoUring::wait() {
+    io_uring_cqe *cqe{nullptr};
+    io_uring_wait_cqe(&ring_, &cqe);
+}
+
+void coruring::runtime::detail::IoUring::wait(long long tv_sec, long long tv_nsec) {
+    io_uring_cqe *cqe{nullptr};
+    struct __kernel_timespec ts{.tv_sec = tv_sec, .tv_nsec = tv_nsec};
+    io_uring_wait_cqe_timeout(&ring_, &cqe, &ts);
+}
+
 void coruring::runtime::detail::IoUring::pend_submit() {
     submit_tick_++;
     if (submit_tick_ >= submit_interval_) {

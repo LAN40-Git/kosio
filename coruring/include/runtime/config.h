@@ -10,15 +10,18 @@ class Config : public util::Noncopyable {
 public:
     // ====== 默认配置 ======
     // ====== io ======
-    static constexpr uint32_t ENTRIES = 1024;
-    static constexpr uint32_t SUBMIT_INTERVAL = 1;
+    static constexpr std::size_t ENTRIES = 1024;
+    static constexpr std::size_t SUBMIT_INTERVAL = 1;
     // ====== timer ======
-    static constexpr uint8_t MAX_LEVEL = 6;
-    static constexpr uint16_t SLOTS = 64;
+    static constexpr std::size_t MAX_LEVEL = 6;
+    static constexpr std::size_t SLOTS = 64;
+    // ====== worker ======
+    // 工作线程每次循环尝试处理的IO事件数
+    static constexpr std::size_t IO_INTERVAL = 64;
 
     // ====== 成员变量 ======
-    uint32_t entries{ENTRIES};
-    uint32_t submit_interval{SUBMIT_INTERVAL};
+    std::size_t entries{ENTRIES};
+    std::size_t submit_interval{SUBMIT_INTERVAL};
 
     // 从文件加载配置 TODO：添加错误处理
     static const Config& load() {

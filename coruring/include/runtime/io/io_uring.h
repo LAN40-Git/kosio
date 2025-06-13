@@ -29,6 +29,10 @@ public:
     [[nodiscard]]
     auto peek_cqe(io_uring_cqe **cqe) -> int;
 
+    // 阻塞等待一个请求完成（无限等待）
+    void wait();
+    // 阻塞等待一个请求完成（超时等待）
+    void wait(long long tv_sec, long long tv_nsec);
     // 收割多个请求
     void consume(std::size_t count) { io_uring_cq_advance(&ring_, count); }
     // 收割一个请求

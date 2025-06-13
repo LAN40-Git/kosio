@@ -53,7 +53,11 @@ public:
 
     // 底层步进
     void tick() {
+        int64_t last_now_ms = now_ms;
         now_ms = util::current_ms(); // 更新缓存时间
+        if (last_now_ms == now_ms) {
+            return;
+        }
         // 1. 若当前为最后槽位，则上层步进（上层下放任务以避免对齐误差）
         if (current_slots_[0] == SLOT_SIZE - 1) {
             tick(1);

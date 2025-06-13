@@ -3,10 +3,16 @@
 
 #include "third_party/concurrentqueue.h"
 
-namespace coruring::scheduler::detail
+namespace coruring::runtime::detail
 {
 template <typename T>
 class Queue {
+public:
+    static Queue<T>& global_queue() {
+        static Queue<T> global_queue;
+        return global_queue;
+    }
+
 public:
     bool enqueue(T&& item) {
         return queue_.enqueue(std::forward<T>(item));
@@ -20,12 +26,12 @@ public:
     requires std::input_iterator<It> &&
          std::convertible_to<std::iter_value_t<It>, T>
     bool enqueue_bulk(It itemFirst, std::size_t count) {
-        return queue_.enqueue_bulk(std::make_move_iterator(itemFirst), count);
+        return queue_.enqueue_bulk(itemFirst, count);
     }
 
     template <typename It>
-    requires std::forward_iterator<It> &&
-        std::assignable_from<std::iter_reference_t<It>, T>
+    requires std::input_iterator<It> &&
+         std::convertible_to<std::iter_value_t<It>, T>
     std::size_t try_dequeue_bulk(It itemFirst, std::size_t max) {
         return queue_.try_dequeue_bulk(itemFirst, max);
     }
