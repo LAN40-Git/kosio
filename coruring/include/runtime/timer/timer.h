@@ -11,11 +11,13 @@ public:
     ~Timer() = default;
 
 public:
+    [[nodiscard]]
     static auto instance() -> Timer& {
         thread_local Timer instance;
         return instance;
     }
 
+    [[nodiscard]]
     auto add_entry(io::detail::Callback *data, int64_t expiration_ms)
     -> std::expected<detail::Entry*, std::error_code> {
         int64_t remaining_ms = expiration_ms - util::current_ms();
@@ -37,6 +39,12 @@ public:
     void tick() {
         wheel_.tick();
     }
+
+    [[nodiscard]]
+    bool is_idle() const noexcept {
+        return wheel_.is_idle();
+    }
+
 
 private:
     detail::TimingWheel<detail::Config::MAX_LEVEL, detail::Config::SLOTS> wheel_;

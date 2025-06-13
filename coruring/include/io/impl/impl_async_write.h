@@ -6,15 +6,15 @@ namespace coruring::io::detail
 template<class T>
 struct ImplAsyncWrite {
     [[REMEMBER_CO_AWAIT]]
-    auto write(std::span<char> buf) const noexcept {
-        return Write{static_cast<const T*>(this)->fd(),
+    auto write(std::span<const char> buf) noexcept {
+        return Write{static_cast<T*>(this)->fd(),
                     buf.data(),
                     static_cast<unsigned int>(buf.size_bytes()),
                     static_cast<std::size_t>(-1)};
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto write_exact(std::span<const char> buf) const noexcept
+    auto write_all(std::span<const char> buf) noexcept
     -> async::Task<std::expected<void, std::error_code>> {
         std::expected<std::size_t, std::error_code> ret{0uz};
         while (!buf.empty()) {
@@ -28,7 +28,7 @@ struct ImplAsyncWrite {
             }
             buf = buf.subspan( ret.value(), buf.size_bytes() - ret.value());
         }
-        co_return {};
+        co_return std::expected<void, std::error_code>{};
     }
 };
 }

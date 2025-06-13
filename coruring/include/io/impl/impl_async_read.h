@@ -28,7 +28,7 @@ struct ImplAsyncRead {
             }
             buf = buf.subspan( ret.value(), buf.size_bytes() - ret.value());
         }
-        co_return {};
+        co_return std::expected<void, std::error_code>{};
     }
 };
 }

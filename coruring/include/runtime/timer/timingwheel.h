@@ -15,7 +15,7 @@ template <std::size_t MAX_LEVEL, std::size_t SLOT_SIZE>
 class TimingWheel : util::Noncopyable {
     static constexpr auto make_precision() {
         std::array<std::size_t, MAX_LEVEL> precision{};
-        precision[0] = 64;
+        precision[0] = SLOT_SIZE * Config::TICK;
         for (size_t i = 1; i < MAX_LEVEL; ++i) {
             precision[i] = precision[i-1] * SLOT_SIZE;
         }
@@ -53,8 +53,8 @@ public:
     // 底层步进
     void tick() {
         int64_t last_now_ms = now_ms;
-        now_ms = util::current_ms(); // 更新缓存时间
-        if (last_now_ms == now_ms) {
+        now_ms = util::current_ms();
+        if (last_now_ms != now_ms) {
             return;
         }
         // 1. 若当前为最后槽位，则上层步进（上层下放任务以避免对齐误差）
@@ -64,7 +64,6 @@ public:
         // 2. 处理槽位中的事件
         auto& entries = wheels_[0][current_slots_[0]];
         while (!entries.empty()) {
-            // TODO: 添加处理逻辑
             auto entry = std::move(entries.front());
             entries.pop_front();
             entry->execute();
@@ -72,6 +71,11 @@ public:
         bitmaps_[0].reset(current_slots_[0]);
         // 3. 移动到下一槽位
         current_slots_[0] = (current_slots_[0] + 1) & MASK;
+    }
+
+    [[nodiscard]]
+    bool is_idle() const noexcept {
+        return entries_ == 0;
     }
 
 private:
@@ -91,8 +95,7 @@ private:
             entries.pop_front();
             int64_t remaining_ms = entry->expiration_ms_ - now_ms;
             if (remaining_ms <= 0) [[unlikely]] {
-                // 加入底层当前槽位
-                wheels_[0][current_slots_[0]].push_back(std::move(entry));
+                entry->execute();
                 continue;
             }
             // 确认层级和槽位
@@ -119,5 +122,7 @@ private:
     std::array<BITMAP, MAX_LEVEL> bitmaps_{0};
     // 当前时间缓存
     int64_t now_ms{util::current_ms()};
+    // 所有事件数量
+    uint64_t entries_{0};
 };
 }

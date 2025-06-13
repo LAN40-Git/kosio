@@ -22,7 +22,6 @@ void coruring::scheduler::Scheduler::stop() {
     for (auto& worker : workers_) {
         worker->stop();
     }
-    workers_.clear();
     clear();
 }
 

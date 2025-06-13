@@ -52,11 +52,11 @@ void coruring::runtime::detail::Worker::event_loop() {
         if (count > 0) {
             IoUring::instance().consume(count);
         } else {
-            constexpr long long NS_PER_US = 1000;
-            IoUring::instance().wait(0, 500*NS_PER_US);
+            constexpr long long NS_PER_MS = 1000000;
+            IoUring::instance().wait(0, 2*NS_PER_MS);
         }
 
-        // 3. 推进时间轮（仅在时间差>=1ms时真实推进）
+        // 3. 推进时间轮
         timer_.tick();
 
         // 4. 尝试窃取任务（削峰窃取）
@@ -85,6 +85,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         // 5. 尝试立即提交请求
         IoUring::instance().try_submit();
     }
+    // 释放资源
     clear();
 }
 

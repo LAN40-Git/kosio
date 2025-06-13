@@ -15,6 +15,7 @@ public:
     // ====== timer ======
     static constexpr std::size_t MAX_LEVEL = 6;
     static constexpr std::size_t SLOTS = 64;
+    static constexpr std::size_t TICK = 2;
     // ====== worker ======
     // 工作线程每次循环尝试处理的IO事件数
     static constexpr std::size_t IO_INTERVAL = 64;

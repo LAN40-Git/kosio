@@ -2,6 +2,7 @@
 #include "net.h"
 #include "log.h"
 #include "timer.h"
+#include <string_view>
 using namespace coruring::async;
 using namespace coruring::socket::net;
 using namespace coruring::log;
@@ -10,32 +11,27 @@ using namespace coruring::scheduler;
 
 Scheduler sched{8};
 
-Task<> process(TcpStream stream) {
+constexpr std::string_view response = R"(
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 13
+
+Hello, World!
+)";
+
+auto process(TcpStream stream) -> Task<void> {
     char buf[1024];
     while (true) {
-        auto ok = co_await stream.read(buf);
-        if (!ok) {
-            console.error(ok.error().message());
+        if (auto ret = co_await stream.read(buf); !ret || ret.value() == 0) {
             break;
         }
-        if (ok.value() == 0) {
-            console.info("Connection closed");
-            break;
-        }
-
-        auto len = ok.value();
-        buf[len] = '\0';
-        console.info("read {}", buf);
-
-        ok = co_await stream.write({buf, len});
-        if (!ok) {
-            console.error(ok.error().message());
+        if (auto ret = co_await stream.write_all(response); !ret) {
             break;
         }
     }
 }
 
-Task<> server() {
+auto server() -> Task<void> {
     auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
     if (!has_addr) {
         console.error(has_addr.error().message());
@@ -49,13 +45,13 @@ Task<> server() {
     auto listener = std::move(has_listener.value());
     while (true) {
         auto has_stream = co_await listener.accept();
-        if (!has_stream) {
-            console.error(has_stream.error().message());
+        if (has_stream) {
+            auto &[stream, peer_addr] = has_stream.value();
+            sched.spawn(process(std::move(stream)));
+        } else {
+            console.info("{}", has_stream.error().message());
             break;
         }
-        auto& [stream, peer_addr] = has_stream.value();
-        console.info("Accepted connection {}", peer_addr);
-        sched.spawn(process(std::move(stream)));
     }
 }
 
@@ -65,4 +61,5 @@ int main() {
     while (true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+    // TODO: 改进任务窃取，处理IO错误
 }
