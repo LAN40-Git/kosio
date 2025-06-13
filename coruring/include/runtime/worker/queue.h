@@ -1,5 +1,7 @@
 #pragma once
-#include <queue>
+#ifdef BLOCK_SIZE
+#undef BLOCK_SIZE
+#endif
 #include "common/util/nocopyable.h"
 #include "third_party/concurrentqueue.h"
 
@@ -7,12 +9,6 @@ namespace coruring::runtime::detail
 {
 template <typename T>
 class Queue : public util::Noncopyable {
-public:
-    static Queue<T>& global_queue() {
-        static Queue<T> global_queue;
-        return global_queue;
-    }
-
 public:
     bool enqueue(T&& item) {
         return queue_.enqueue(std::forward<T>(item));
@@ -36,10 +32,12 @@ public:
         return queue_.try_dequeue_bulk(itemFirst, max);
     }
 
+    [[nodiscard]]
     std::size_t size() const noexcept {
         return queue_.size_approx();
     }
 
+    [[nodiscard]]
     bool empty() const noexcept {
         return queue_.size_approx() == 0;
     }

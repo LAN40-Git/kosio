@@ -1,10 +1,10 @@
 #pragma once
 #include <mutex>
 #include <thread>
-#include <coroutine>
 #include "queue.h"
 #include "runtime/timer/timer.h"
 #include "runtime/config.h"
+#include "async/coroutine/task.h"
 
 namespace coruring::scheduler
 {
@@ -17,6 +17,7 @@ class Worker : public util::Noncopyable {
     using TaskQueue = Queue<std::coroutine_handle<>>;
 public:
     explicit Worker(scheduler::Scheduler& scheduler) : scheduler_(scheduler) {}
+    ~Worker() { stop(); }
 
 public:
     void run();

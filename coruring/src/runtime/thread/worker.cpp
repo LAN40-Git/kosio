@@ -62,6 +62,10 @@ void coruring::runtime::detail::Worker::event_loop() {
 
         // 4. 尝试窃取任务（削峰窃取）
         std::size_t size = local_queue_.size();
+        // 首先窃取全局队列
+        count = scheduler_.global_queue().try_dequeue_bulk(io_buf.begin(), io_buf.size());
+        local_queue_.enqueue_bulk(io_buf.begin(), count);
+        size += count;
         for (auto& worker : scheduler_.workers()) {
             if (worker.get() == this) {
                 continue;

@@ -4,8 +4,8 @@
 #include <list>
 #include "runtime/config.h"
 #include "common/util/time.h"
+#include "common/error.h"
 #include "entry.h"
-#include "log.h"
 
 namespace coruring::runtime::detail
 {
@@ -42,7 +42,6 @@ public:
             ++level;
         }
         size_t slot = (((remaining_ms-1) >> (level * SHIFT)) + current_slots_[level]) & MASK;
-        log::console.info("Add entry to {}-{}", level, slot);
 
         // 将事件放入对应位置
         Entry* ret_entry = entry.get();
