@@ -3,6 +3,7 @@
 #include <cstring>
 #include <format>
 #include <liburing.h>
+#include <unordered_set>
 #include <stdexcept>
 #include <unordered_set>
 
@@ -16,6 +17,8 @@ public:
 public:
     // 获取线程局部 io_uring 实例
     static IoUring& instance();
+    // 获取线程局部请求表
+    static std::unordered_set<void*>& data_set();
 
 public:
     [[nodiscard]]
@@ -45,6 +48,8 @@ public:
     void submit();
     // 尝试立即提交请求（若无请求不会进行提交）
     void try_submit();
+    // 取消所有请求
+    void cancle_all_request();
 
 private:
     explicit IoUring(const runtime::detail::Config& config);

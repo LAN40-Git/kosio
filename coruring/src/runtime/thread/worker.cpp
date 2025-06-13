@@ -27,26 +27,25 @@ void coruring::runtime::detail::Worker::stop() {
 }
 
 void coruring::runtime::detail::Worker::event_loop() {
-    std::array<std::coroutine_handle<>, Config::IO_INTERVAL> io_buf;
-    std::array<io_uring_cqe *, Config::IO_INTERVAL> cqes{};
-    while (is_running_.load(std::memory_order_relaxed)) {
+    while (is_running()) {
         // 1. 处理IO事件
-        std::size_t count = local_queue_.try_dequeue_bulk(io_buf.begin(), io_buf.size());
+        std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         for (std::size_t i = 0; i < count; ++i) {
-            if (io_buf[i]) {
-                io_buf[i].resume();
+            if (io_buf_[i]) {
+                io_buf_[i].resume();
             }
         }
 
         // 2. 收割完成队列
-        count = IoUring::instance().peek_batch(cqes);
+        count = IoUring::instance().peek_batch(cqes_);
         for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
             if (cb != nullptr) [[likely]] {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
-                cb->result_ = cqes[i]->res;
+                cb->result_ = cqes_[i]->res;
+                IoUring::data_set().erase(cb);
                 local_queue_.enqueue(std::move(cb->handle_));
             }
         }
@@ -63,8 +62,8 @@ void coruring::runtime::detail::Worker::event_loop() {
         // 4. 尝试窃取任务（削峰窃取）
         std::size_t size = local_queue_.size();
         // 首先窃取全局队列
-        count = scheduler_.global_queue().try_dequeue_bulk(io_buf.begin(), io_buf.size());
-        local_queue_.enqueue_bulk(io_buf.begin(), count);
+        count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
+        local_queue_.enqueue_bulk(io_buf_.begin(), count);
         size += count;
         for (auto& worker : scheduler_.workers()) {
             if (worker.get() == this) {
@@ -75,9 +74,9 @@ void coruring::runtime::detail::Worker::event_loop() {
                 // 计算平均值
                 std::size_t average = (size + local_queue.size()) / 2;
                 if (average > size + static_cast<std::size_t>(Config::STEAL_FACTOR*size)) {
-                    count = local_queue.try_dequeue_bulk(io_buf.begin(),
-                                            std::min(io_buf.size(), average - size));
-                    local_queue_.enqueue_bulk(io_buf.begin(), count);
+                    count = local_queue.try_dequeue_bulk(io_buf_.begin(),
+                                            std::min(io_buf_.size(), average - size));
+                    local_queue_.enqueue_bulk(io_buf_.begin(), count);
                     break;
                 }
             }
@@ -85,5 +84,36 @@ void coruring::runtime::detail::Worker::event_loop() {
 
         // 5. 尝试立即提交请求
         IoUring::instance().try_submit();
+    }
+    clear();
+}
+
+void coruring::runtime::detail::Worker::clear() noexcept {
+    // 1. 清理所有请求
+    IoUring::instance().cancle_all_request();
+    while (!IoUring::data_set().empty()) {
+        std::size_t count = IoUring::instance().peek_batch(cqes_);
+        for (std::size_t i = 0; i < count; ++i) {
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
+            if (cb != nullptr) [[likely]] {
+                if (cb->entry_ != nullptr) {
+                    cb->entry_->data_ = nullptr;
+                }
+                cb->result_ = cqes_[i]->res;
+                if (cb->handle_) {
+                    cb->handle_.destroy();
+                }
+                IoUring::data_set().erase(cb);
+            }
+        }
+    }
+    // 2. 清除本地队列
+    while (!local_queue_.empty()) {
+        std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
+        for (std::size_t i = 0; i < count; ++i) {
+            if (io_buf_[i]) {
+                io_buf_[i].destroy();
+            }
+        }
     }
 }

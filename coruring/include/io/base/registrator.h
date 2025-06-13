@@ -49,6 +49,7 @@ public:
     auto await_suspend(std::coroutine_handle<> handle) {
         assert(sqe_);
         cb_.handle_ = handle;
+        runtime::detail::IoUring::data_set().emplace(&this->cb_);
         runtime::detail::IoUring::instance().pend_submit();
     }
 

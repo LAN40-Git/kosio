@@ -6,6 +6,11 @@ coruring::runtime::detail::IoUring& coruring::runtime::detail::IoUring::instance
     return inst;
 }
 
+std::unordered_set<void*>& coruring::runtime::detail::IoUring::data_set() {
+    thread_local  std::unordered_set<void*> data_set;
+    return data_set;
+}
+
 auto coruring::runtime::detail::IoUring::peek_batch(std::span<io_uring_cqe*> cqes) -> std::size_t {
     return io_uring_peek_batch_cqe(&ring_, cqes.data(), cqes.size());
 }
@@ -48,6 +53,18 @@ void coruring::runtime::detail::IoUring::try_submit() {
     if (submit_tick_ > 0) {
         submit();
     }
+}
+
+void coruring::runtime::detail::IoUring::cancle_all_request() {
+    auto& set = data_set();
+    for (auto& data : set) {
+        io_uring_sqe *sqe = get_sqe();
+        if (sqe) [[likely]] {
+            io_uring_prep_cancel(sqe, data, 0);
+            io_uring_sqe_set_data(sqe, nullptr);
+        }
+    }
+    submit();
 }
 
 coruring::runtime::detail::IoUring::IoUring(const Config& config)

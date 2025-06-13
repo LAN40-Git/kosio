@@ -6,11 +6,10 @@ namespace coruring::scheduler
 {
 class Scheduler : public util::Noncopyable {
     using Worker = std::unique_ptr<runtime::detail::Worker>;
-    using Queue = runtime::detail::Queue<std::coroutine_handle<>>;
 public:
     explicit Scheduler(std::size_t worker_nums)
         : worker_nums_(worker_nums) {}
-
+    ~Scheduler() { stop();clear(); }
 
 public:
     void run();
@@ -33,13 +32,17 @@ public:
 
 public:
     auto workers() -> std::set<Worker>& { return workers_; }
-    auto global_queue() -> Queue& { return global_queue_; }
+    auto global_queue() -> runtime::detail::Worker::TaskQueue& { return global_queue_; }
 
 private:
-    std::atomic<bool> is_running_{false};
-    std::mutex        mutex_;
-    std::size_t       worker_nums_;
-    std::set<Worker>  workers_;
-    Queue             global_queue_;
+    void clear() noexcept;
+
+private:
+    std::atomic<bool>                  is_running_{false};
+    std::mutex                         mutex_;
+    std::size_t                        worker_nums_;
+    std::set<Worker>                   workers_;
+    runtime::detail::Worker::IoBuf     io_buf_;
+    runtime::detail::Worker::TaskQueue global_queue_;
 };
 }

@@ -14,16 +14,17 @@ class Scheduler;
 namespace coruring::runtime::detail
 {
 class Worker : public util::Noncopyable {
+public:
     using TaskQueue = Queue<std::coroutine_handle<>>;
+    using IoBuf = std::array<std::coroutine_handle<>, Config::IO_INTERVAL>;
 public:
     explicit Worker(scheduler::Scheduler& scheduler) : scheduler_(scheduler) {}
-    ~Worker() { stop(); }
 
 public:
     void run();
     void stop();
     [[nodiscard]]
-    bool is_running() const { return is_running_; }
+    bool is_running() const { return is_running_.load(std::memory_order_relaxed); }
 
 public:
     [[nodiscard]]
@@ -31,6 +32,7 @@ public:
 
 private:
     void event_loop();
+    void clear() noexcept;
     
 private:
     std::atomic<bool>     is_running_{false};
@@ -39,5 +41,7 @@ private:
     Timer                 timer_;
     TaskQueue             local_queue_;
     scheduler::Scheduler& scheduler_;
+    IoBuf io_buf_;
+    std::array<io_uring_cqe *, Config::IO_INTERVAL> cqes_{};
 };
 }

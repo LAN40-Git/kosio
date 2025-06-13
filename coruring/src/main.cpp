@@ -8,7 +8,7 @@ using namespace coruring::log;
 using namespace coruring::timer;
 using namespace coruring::scheduler;
 
-Scheduler sched{1};
+Scheduler sched{8};
 
 Task<> process(TcpStream stream) {
     char buf[1024];
