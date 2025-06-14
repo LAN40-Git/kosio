@@ -51,12 +51,6 @@ void coruring::runtime::detail::IoUring::submit() {
     }
 }
 
-void coruring::runtime::detail::IoUring::try_submit() {
-    if (submit_tick_ > 0) {
-        submit();
-    }
-}
-
 void coruring::runtime::detail::IoUring::cancle_all_request() {
     auto& set = data_set();
     for (auto& data : set) {

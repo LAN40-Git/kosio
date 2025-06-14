@@ -9,7 +9,7 @@ using namespace coruring::log;
 using namespace coruring::timer;
 using namespace coruring::scheduler;
 
-Scheduler sched{8};
+Scheduler sched{1};
 
 constexpr std::string_view response = R"(
 HTTP/1.1 200 OK

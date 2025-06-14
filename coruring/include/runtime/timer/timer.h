@@ -40,6 +40,10 @@ public:
         wheel_.tick();
     }
 
+    void clear() noexcept {
+        wheel_.clear();
+    }
+
 
 private:
     detail::TimingWheel<detail::Config::MAX_LEVEL, detail::Config::SLOTS> wheel_;

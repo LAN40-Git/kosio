@@ -28,7 +28,6 @@ void coruring::runtime::detail::Worker::stop() {
 
 void coruring::runtime::detail::Worker::event_loop() {
     while (is_running()) {
-        active_tasks_ = IoUring::data_set().size();
         // 1. 处理IO事件
         while (local_queue_.size_approx() != 0) {
             std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
@@ -63,31 +62,12 @@ void coruring::runtime::detail::Worker::event_loop() {
         // 3. 推进时间轮
         Timer::instance().tick();
 
-        // 4. 尝试窃取任务（削峰窃取）
-        std::size_t size = tasks();
-        // 首先窃取全局队列
+        // 4. 窃取任务
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         local_queue_.enqueue_bulk(io_buf_.begin(), count);
-        size += count;
-        for (auto& worker : scheduler_.workers()) {
-            if (worker.get() == this) {
-                continue;
-            }
-            if (worker->is_running()) [[likely]] {
-                auto& local_queue = worker->local_queue();
-                // 计算平均值
-                std::size_t average = (size + worker->tasks()) / 2;
-                if (average > size + static_cast<std::size_t>(Config::STEAL_FACTOR*size)) {
-                    count = local_queue.try_dequeue_bulk(io_buf_.begin(),
-                                            std::min(io_buf_.size(), average - size));
-                    local_queue_.enqueue_bulk(io_buf_.begin(), count);
-                    break;
-                }
-            }
-        }
 
-        // 5. 尝试立即提交请求
-        IoUring::instance().try_submit();
+        // 5. 立即提交请求
+        IoUring::instance().submit();
     }
     // 释放资源
     clear();
@@ -121,4 +101,6 @@ void coruring::runtime::detail::Worker::clear() noexcept {
             }
         }
     }
+    // 3. 清理定时器
+    Timer::instance().clear();
 }

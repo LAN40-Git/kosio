@@ -30,8 +30,6 @@ public:
 public:
     [[nodiscard]]
     auto local_queue() -> TaskQueue & { return local_queue_; }
-    [[nodiscard]]
-    auto tasks() -> std::size_t { return local_queue_.size_approx() + active_tasks_; }
 
 private:
     void event_loop();

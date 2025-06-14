@@ -46,8 +46,6 @@ public:
     void pend_submit_batch(std::size_t count);
     // 立即提交请求
     void submit();
-    // 尝试立即提交请求（若无请求不会进行提交）
-    void try_submit();
     // 取消所有请求
     void cancle_all_request();
 

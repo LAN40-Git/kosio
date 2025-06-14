@@ -74,6 +74,18 @@ public:
         current_slots_[0] = (current_slots_[0] + 1) & MASK;
     }
 
+    void clear() noexcept {
+        for (size_t level = 0; level < MAX_LEVEL; ++level) {
+            for (size_t slot = 0; slot < SLOT_SIZE; ++slot) {
+                if (!bitmaps_[level].test(slot)) continue;  // 位图跳过空槽
+                wheels_[level][slot].clear();
+                bitmaps_[level].reset(slot);
+            }
+            current_slots_[level] = 0;
+        }
+        now_ms = util::current_ms();
+    }
+
 private:
     // 上层步进
     void tick(std::size_t level) {
