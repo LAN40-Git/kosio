@@ -20,6 +20,7 @@ public:
         if (sqe_ != nullptr) [[likely]] {
             std::invoke(std::forward<F>(f), sqe_, std::forward<Args>(args)...);
             io_uring_sqe_set_data(sqe_, &this->cb_);
+            runtime::detail::IoUring::data_set().emplace(&this->cb_);
         } else {
             cb_.result_ = -ENOMEM;
         }
@@ -48,9 +49,8 @@ public:
 
     auto await_suspend(std::coroutine_handle<> handle) {
         assert(sqe_);
-        cb_.handle_ = std::move(handle);
+        cb_.handle_ = handle;
         runtime::detail::IoUring::instance().pend_submit();
-        runtime::detail::IoUring::data_set().emplace(&this->cb_);
     }
 
     [[REMEMBER_CO_AWAIT]]

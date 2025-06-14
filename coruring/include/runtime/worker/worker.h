@@ -44,6 +44,7 @@ private:
     TaskQueue             local_queue_;
     scheduler::Scheduler& scheduler_;
     IoBuf                 io_buf_;
+    std::array<io_uring_cqe*, Config::IO_INTERVAL> cqes_{};
     std::size_t           active_tasks_{0};
 };
 }

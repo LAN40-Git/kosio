@@ -27,7 +27,6 @@ void coruring::runtime::detail::Worker::stop() {
 }
 
 void coruring::runtime::detail::Worker::event_loop() {
-    std::array<io_uring_cqe*, Config::IO_INTERVAL> cqes{};
     while (is_running()) {
         active_tasks_ = IoUring::data_set().size();
         // 1. 处理IO事件
@@ -40,21 +39,26 @@ void coruring::runtime::detail::Worker::event_loop() {
             }
         }
 
-
         // 2. 收割完成队列
-        std::size_t count = IoUring::instance().peek_batch(cqes);
+        std::size_t count = IoUring::instance().peek_batch(cqes_);
         for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
             if (cb != nullptr) [[likely]] {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
                 local_queue_.enqueue(cb->handle_);
-                cb->result_ = cqes[i]->res;
+                cb->result_ = cqes_[i]->res;
                 IoUring::data_set().erase(cb);
             }
         }
-        IoUring::instance().consume(count);
+        if (count > 0) {
+            IoUring::instance().consume(count);
+        } else {
+            if (local_queue_.size_approx() == 0) {
+                IoUring::instance().wait(0, 1000000);
+            }
+        }
 
         // 3. 推进时间轮
         Timer::instance().tick();
@@ -90,18 +94,17 @@ void coruring::runtime::detail::Worker::event_loop() {
 }
 
 void coruring::runtime::detail::Worker::clear() noexcept {
-    std::array<io_uring_cqe*, Config::IO_INTERVAL> cqes{};
     // 1. 清理所有请求
     IoUring::instance().cancle_all_request();
     while (!IoUring::data_set().empty()) {
-        std::size_t count = IoUring::instance().peek_batch(cqes);
+        std::size_t count = IoUring::instance().peek_batch(cqes_);
         for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
             if (cb != nullptr) [[likely]] {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
-                cb->result_ = cqes[i]->res;
+                cb->result_ = cqes_[i]->res;
                 if (cb->handle_) {
                     cb->handle_.destroy();
                 }

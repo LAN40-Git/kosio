@@ -21,8 +21,7 @@ public:
 public:
     template <typename T>
     void spawn(async::Task<T>&& task) noexcept {
-        auto handle = task.take();
-        global_queue_.enqueue(handle);
+        global_queue_.enqueue(task.take());
     }
     template <typename It>
         requires std::input_iterator<It> &&
