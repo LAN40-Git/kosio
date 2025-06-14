@@ -9,9 +9,7 @@ using namespace coruring::log;
 using namespace coruring::timer;
 using namespace coruring::scheduler;
 
-Scheduler sched{8};
-
-std::map<int, uint64_t> times;
+Scheduler sched{1};
 
 constexpr std::string_view response =
     "HTTP/1.1 200 OK\r\n"
@@ -21,39 +19,36 @@ constexpr std::string_view response =
     "\r\n"  // 必须的空行
     "Hello, World!";
 
-auto process(TcpStream stream) -> Task<void> {
-    char buf[128];
+auto handle_client(int fd) -> Task<> {
+    char buf[1024];
     while (true) {
-        if (auto ret = co_await stream.read(buf); !ret || ret.value() == 0) {
+        if (auto ret = co_await coruring::io::recv(fd, buf, sizeof(buf), 0); !ret) {
             break;
         }
-        if (auto ret = co_await stream.write_all(response); !ret) {
+        if (auto ret = co_await coruring::io::send(fd, response.data(), response.size(), 0); !ret) {
             break;
         }
     }
 }
 
-auto server() -> Task<void> {
-    auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
-    if (!has_addr) {
-        console.error(has_addr.error().message());
-        co_return;
-    }
-    auto has_listener = TcpListener::bind(has_addr.value());
-    if (!has_listener) {
-        console.error(has_listener.error().message());
-        co_return;
-    }
-    auto listener = std::move(has_listener.value());
+auto server() -> Task<> {
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    sockaddr_in server_addr{};
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(8080);
+    bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
+    listen(server_fd, SOMAXCONN);
+
+    sockaddr_in client_addr{};
+    socklen_t addr_len = sizeof(client_addr);
     while (true) {
-        auto has_stream = co_await listener.accept();
-        if (has_stream) {
-            auto &[stream, peer_addr] = has_stream.value();
-            sched.spawn(process(std::move(stream)));
-        } else {
-            console.error("{}", has_stream.error().message());
-            break;
+        auto fd = co_await coruring::io::accept(server_fd, reinterpret_cast<sockaddr*>(&client_addr), &addr_len, 0);
+        if (!fd) {
+            console.error("Failed to accept connection");
+            continue;
         }
+        sched.spawn(handle_client(fd.value()));
     }
 }
 
@@ -63,10 +58,5 @@ int main() {
     int opt;
     while (true) {
         std::cin >> opt;
-        std::cout << "===============================================" << std::endl;
-        std::cout << times.size() << std::endl;
-        for (auto& [fd, time] : times) {
-            std::cout << fd << " " << time << std::endl;
-        }
     }
 }

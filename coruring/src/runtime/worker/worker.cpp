@@ -27,37 +27,34 @@ void coruring::runtime::detail::Worker::stop() {
 }
 
 void coruring::runtime::detail::Worker::event_loop() {
+    std::array<io_uring_cqe*, Config::IO_INTERVAL> cqes{};
     while (is_running()) {
         active_tasks_ = IoUring::data_set().size();
         // 1. 处理IO事件
-        std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
-        for (std::size_t i = 0; i < count; ++i) {
-            if (io_buf_[i]) {
-                io_buf_[i].resume();
+        while (local_queue_.size_approx() != 0) {
+            std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
+            for (std::size_t i = 0; i < count; ++i) {
+                if (io_buf_[i]) {
+                    io_buf_[i].resume();
+                }
             }
         }
 
+
         // 2. 收割完成队列
-        count = IoUring::instance().peek_batch(cqes_);
+        std::size_t count = IoUring::instance().peek_batch(cqes);
         for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
             if (cb != nullptr) [[likely]] {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
                 local_queue_.enqueue(cb->handle_);
-                cb->result_ = cqes_[i]->res;
+                cb->result_ = cqes[i]->res;
                 IoUring::data_set().erase(cb);
             }
         }
-        if (count > 0) {
-            IoUring::instance().consume(count);
-        } else {
-            if (local_queue_.size_approx() == 0) {
-                constexpr long long NS_PER_MS = 1000000;
-                IoUring::instance().wait(0, 5*NS_PER_MS);
-            }
-        }
+        IoUring::instance().consume(count);
 
         // 3. 推进时间轮
         Timer::instance().tick();
@@ -93,17 +90,18 @@ void coruring::runtime::detail::Worker::event_loop() {
 }
 
 void coruring::runtime::detail::Worker::clear() noexcept {
+    std::array<io_uring_cqe*, Config::IO_INTERVAL> cqes{};
     // 1. 清理所有请求
     IoUring::instance().cancle_all_request();
     while (!IoUring::data_set().empty()) {
-        std::size_t count = IoUring::instance().peek_batch(cqes_);
+        std::size_t count = IoUring::instance().peek_batch(cqes);
         for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
             if (cb != nullptr) [[likely]] {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
-                cb->result_ = cqes_[i]->res;
+                cb->result_ = cqes[i]->res;
                 if (cb->handle_) {
                     cb->handle_.destroy();
                 }

@@ -46,7 +46,9 @@ void coruring::runtime::detail::IoUring::pend_submit_batch(std::size_t count) {
 
 void coruring::runtime::detail::IoUring::submit() {
     submit_tick_ = 0;
-    io_uring_submit(&ring_);
+    if (auto ret = io_uring_submit(&ring_); ret < 0) [[unlikely]] {
+        std::cerr << "io_uring_submit failed: " << ret << std::endl;
+    }
 }
 
 void coruring::runtime::detail::IoUring::try_submit() {
