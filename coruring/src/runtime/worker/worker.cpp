@@ -66,6 +66,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         local_queue_.enqueue_bulk(io_buf_.begin(), count);
 
+
         // 5. 立即提交请求
         IoUring::instance().submit();
     }
