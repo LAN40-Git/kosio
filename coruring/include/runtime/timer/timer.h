@@ -40,11 +40,6 @@ public:
         wheel_.tick();
     }
 
-    [[nodiscard]]
-    bool is_idle() const noexcept {
-        return wheel_.is_idle();
-    }
-
 
 private:
     detail::TimingWheel<detail::Config::MAX_LEVEL, detail::Config::SLOTS> wheel_;

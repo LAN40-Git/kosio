@@ -26,7 +26,7 @@ void coruring::scheduler::Scheduler::stop() {
 }
 
 void coruring::scheduler::Scheduler::clear() noexcept {
-    while (!global_queue_.empty()) {
+    while (global_queue_.size_approx() != 0) {
         std::size_t count = global_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         for (std::size_t i = 0; i < count; ++i) {
             if (io_buf_[i]) {

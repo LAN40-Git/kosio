@@ -11,16 +11,18 @@ using namespace coruring::scheduler;
 
 Scheduler sched{8};
 
-constexpr std::string_view response = R"(
-HTTP/1.1 200 OK
-Content-Type: text/html; charset=utf-8
-Content-Length: 13
+std::map<int, uint64_t> times;
 
-Hello, World!
-)";
+constexpr std::string_view response =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=utf-8\r\n"
+    "Content-Length: 13\r\n"
+    "Connection: keep-alive\r\n"
+    "\r\n"  // 必须的空行
+    "Hello, World!";
 
 auto process(TcpStream stream) -> Task<void> {
-    char buf[1024];
+    char buf[128];
     while (true) {
         if (auto ret = co_await stream.read(buf); !ret || ret.value() == 0) {
             break;
@@ -49,7 +51,7 @@ auto server() -> Task<void> {
             auto &[stream, peer_addr] = has_stream.value();
             sched.spawn(process(std::move(stream)));
         } else {
-            console.info("{}", has_stream.error().message());
+            console.error("{}", has_stream.error().message());
             break;
         }
     }
@@ -58,8 +60,13 @@ auto server() -> Task<void> {
 int main() {
     sched.spawn(server());
     sched.run();
+    int opt;
     while (true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::cin >> opt;
+        std::cout << "===============================================" << std::endl;
+        std::cout << times.size() << std::endl;
+        for (auto& [fd, time] : times) {
+            std::cout << fd << " " << time << std::endl;
+        }
     }
-    // TODO: 改进任务窃取，处理IO错误
 }

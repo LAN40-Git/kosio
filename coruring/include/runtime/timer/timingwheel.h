@@ -6,6 +6,7 @@
 #include "common/util/time.h"
 #include "common/error.h"
 #include "entry.h"
+#include "log.h"
 
 namespace coruring::runtime::detail
 {
@@ -15,7 +16,7 @@ template <std::size_t MAX_LEVEL, std::size_t SLOT_SIZE>
 class TimingWheel : util::Noncopyable {
     static constexpr auto make_precision() {
         std::array<std::size_t, MAX_LEVEL> precision{};
-        precision[0] = SLOT_SIZE * Config::TICK;
+        precision[0] = 64;
         for (size_t i = 1; i < MAX_LEVEL; ++i) {
             precision[i] = precision[i-1] * SLOT_SIZE;
         }
@@ -52,11 +53,11 @@ public:
 
     // 底层步进
     void tick() {
-        int64_t last_now_ms = now_ms;
-        now_ms = util::current_ms();
-        if (last_now_ms != now_ms) {
+        int64_t new_now_ms = util::current_ms();
+        if (new_now_ms - now_ms < Config::TICK) {
             return;
         }
+        now_ms = new_now_ms;
         // 1. 若当前为最后槽位，则上层步进（上层下放任务以避免对齐误差）
         if (current_slots_[0] == SLOT_SIZE - 1) {
             tick(1);
@@ -65,17 +66,12 @@ public:
         auto& entries = wheels_[0][current_slots_[0]];
         while (!entries.empty()) {
             auto entry = std::move(entries.front());
-            entries.pop_front();
             entry->execute();
+            entries.pop_front();
         }
         bitmaps_[0].reset(current_slots_[0]);
         // 3. 移动到下一槽位
         current_slots_[0] = (current_slots_[0] + 1) & MASK;
-    }
-
-    [[nodiscard]]
-    bool is_idle() const noexcept {
-        return entries_ == 0;
     }
 
 private:
@@ -122,7 +118,5 @@ private:
     std::array<BITMAP, MAX_LEVEL> bitmaps_{0};
     // 当前时间缓存
     int64_t now_ms{util::current_ms()};
-    // 所有事件数量
-    uint64_t entries_{0};
 };
 }

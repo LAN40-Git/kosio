@@ -58,7 +58,7 @@ private:
     }
 
 private:
-    io_uring ring_{};
+    struct io_uring ring_{};
     uint32_t submit_tick_{0};
     uint32_t submit_interval_;
 };

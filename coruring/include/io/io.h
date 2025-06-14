@@ -35,7 +35,11 @@ public:
 
 protected:
     explicit FD(int fd = -1) noexcept : fd_(fd) {}
-    ~FD() { do_close(); }
+    ~FD() {
+        if (fd_ >= 0) {
+            do_close();
+        }
+    }
     FD(FD&& other) noexcept : fd_(other.fd_) { other.fd_ = -1; }
     auto operator=(FD&& other) noexcept -> FD&;
 

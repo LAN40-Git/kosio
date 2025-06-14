@@ -10,12 +10,12 @@ class Config : public util::Noncopyable {
 public:
     // ====== 默认配置 ======
     // ====== io ======
-    static constexpr std::size_t ENTRIES = 1024;
+    static constexpr std::size_t ENTRIES = 2048;
     static constexpr std::size_t SUBMIT_INTERVAL = 64;
     // ====== timer ======
     static constexpr std::size_t MAX_LEVEL = 6;
     static constexpr std::size_t SLOTS = 64;
-    static constexpr std::size_t TICK = 2;
+    static constexpr std::size_t TICK = 1;
     // ====== worker ======
     // 工作线程每次循环尝试处理的IO事件数
     static constexpr std::size_t IO_INTERVAL = 64;

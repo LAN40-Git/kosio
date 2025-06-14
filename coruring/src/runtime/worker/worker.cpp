@@ -55,12 +55,12 @@ void coruring::runtime::detail::Worker::event_loop() {
         } else {
             if (local_queue_.size_approx() == 0) {
                 constexpr long long NS_PER_MS = 1000000;
-                IoUring::instance().wait(0, 2*NS_PER_MS);
+                IoUring::instance().wait(0, 5*NS_PER_MS);
             }
         }
 
         // 3. 推进时间轮
-        timer_.tick();
+        Timer::instance().tick();
 
         // 4. 尝试窃取任务（削峰窃取）
         std::size_t size = tasks();

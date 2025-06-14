@@ -6,6 +6,7 @@ namespace coruring::scheduler
 {
 class Scheduler : public util::Noncopyable {
     using Worker = std::unique_ptr<runtime::detail::Worker>;
+    using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
 public:
     explicit Scheduler(std::size_t worker_nums)
         : worker_nums_(worker_nums) {}
@@ -32,17 +33,17 @@ public:
 
 public:
     auto workers() -> std::set<Worker>& { return workers_; }
-    auto global_queue() -> runtime::detail::Worker::TaskQueue& { return global_queue_; }
+    auto global_queue() -> TaskQueue& { return global_queue_; }
 
 private:
     void clear() noexcept;
 
 private:
-    std::atomic<bool>                  is_running_{false};
-    std::mutex                         mutex_;
-    std::size_t                        worker_nums_;
-    std::set<Worker>                   workers_;
-    runtime::detail::Worker::IoBuf     io_buf_;
-    runtime::detail::Worker::TaskQueue global_queue_;
+    std::atomic<bool>              is_running_{false};
+    std::mutex                     mutex_;
+    std::size_t                    worker_nums_;
+    std::set<Worker>               workers_;
+    runtime::detail::Worker::IoBuf io_buf_;
+    TaskQueue                      global_queue_;
 };
 }

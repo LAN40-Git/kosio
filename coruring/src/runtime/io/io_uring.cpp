@@ -7,7 +7,7 @@ coruring::runtime::detail::IoUring& coruring::runtime::detail::IoUring::instance
 }
 
 std::unordered_set<void*>& coruring::runtime::detail::IoUring::data_set() {
-    thread_local  std::unordered_set<void*> data_set;
+    thread_local std::unordered_set<void*> data_set;
     return data_set;
 }
 
@@ -26,7 +26,7 @@ void coruring::runtime::detail::IoUring::wait() {
 
 void coruring::runtime::detail::IoUring::wait(long long tv_sec, long long tv_nsec) {
     io_uring_cqe *cqe{nullptr};
-    struct __kernel_timespec ts{.tv_sec = tv_sec, .tv_nsec = tv_nsec};
+    __kernel_timespec ts{.tv_sec = tv_sec, .tv_nsec = tv_nsec};
     io_uring_wait_cqe_timeout(&ring_, &cqe, &ts);
 }
 
@@ -45,8 +45,8 @@ void coruring::runtime::detail::IoUring::pend_submit_batch(std::size_t count) {
 }
 
 void coruring::runtime::detail::IoUring::submit() {
-    io_uring_submit(&ring_);
     submit_tick_ = 0;
+    io_uring_submit(&ring_);
 }
 
 void coruring::runtime::detail::IoUring::try_submit() {

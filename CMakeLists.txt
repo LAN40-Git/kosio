@@ -16,7 +16,7 @@ set(SOURCE_FILES
         coruring/src/socket/net/socket.cpp
         coruring/src/socket/socket.cpp
         coruring/src/scheduler/scheduler.cpp
-        coruring/src/runtime/thread/worker.cpp
+        coruring/src/runtime/worker/worker.cpp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/coruring/include)
