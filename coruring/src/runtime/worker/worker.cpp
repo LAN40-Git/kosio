@@ -28,6 +28,7 @@ void coruring::runtime::detail::Worker::stop() {
 
 void coruring::runtime::detail::Worker::event_loop() {
     while (is_running()) {
+        active_tasks_ = IoUring::data_set().size();
         // 1. 处理IO事件
         std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         for (std::size_t i = 0; i < count; ++i) {
@@ -44,23 +45,25 @@ void coruring::runtime::detail::Worker::event_loop() {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
+                local_queue_.enqueue(cb->handle_);
                 cb->result_ = cqes_[i]->res;
                 IoUring::data_set().erase(cb);
-                local_queue_.enqueue(std::move(cb->handle_));
             }
         }
         if (count > 0) {
             IoUring::instance().consume(count);
         } else {
-            constexpr long long NS_PER_MS = 1000000;
-            IoUring::instance().wait(0, 2*NS_PER_MS);
+            if (local_queue_.size_approx() == 0) {
+                constexpr long long NS_PER_MS = 1000000;
+                IoUring::instance().wait(0, 2*NS_PER_MS);
+            }
         }
 
         // 3. 推进时间轮
         timer_.tick();
 
         // 4. 尝试窃取任务（削峰窃取）
-        std::size_t size = local_queue_.size();
+        std::size_t size = tasks();
         // 首先窃取全局队列
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         local_queue_.enqueue_bulk(io_buf_.begin(), count);
@@ -72,7 +75,7 @@ void coruring::runtime::detail::Worker::event_loop() {
             if (worker->is_running()) [[likely]] {
                 auto& local_queue = worker->local_queue();
                 // 计算平均值
-                std::size_t average = (size + local_queue.size()) / 2;
+                std::size_t average = (size + worker->tasks()) / 2;
                 if (average > size + static_cast<std::size_t>(Config::STEAL_FACTOR*size)) {
                     count = local_queue.try_dequeue_bulk(io_buf_.begin(),
                                             std::min(io_buf_.size(), average - size));
@@ -109,7 +112,7 @@ void coruring::runtime::detail::Worker::clear() noexcept {
         }
     }
     // 2. 清除本地队列
-    while (!local_queue_.empty()) {
+    while (local_queue_.size_approx() != 0) {
         std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         for (std::size_t i = 0; i < count; ++i) {
             if (io_buf_[i]) {
