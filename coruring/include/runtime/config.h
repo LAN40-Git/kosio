@@ -20,7 +20,7 @@ public:
     // 工作线程每次循环尝试处理的IO事件数
     static constexpr std::size_t IO_INTERVAL = 64;
     // 窃取区间系数
-    static constexpr float STEAL_FACTOR = 0.05;
+    static constexpr float STEAL_FACTOR = 1.05;
 
     // ====== 成员变量 ======
     std::size_t entries{ENTRIES};

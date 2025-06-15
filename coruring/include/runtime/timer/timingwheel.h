@@ -6,7 +6,6 @@
 #include "common/util/time.h"
 #include "common/error.h"
 #include "entry.h"
-#include "log.h"
 
 namespace coruring::runtime::detail
 {
@@ -48,11 +47,15 @@ public:
         Entry* ret_entry = entry.get();
         wheels_[level][slot].push_back(std::move(entry));
         bitmaps_[level].set(slot);
+        entries_++;
         return ret_entry;
     }
 
     // 底层步进
     void tick() {
+        if (entries_ == 0) {
+            return;
+        }
         int64_t new_now_ms = util::current_ms();
         if (new_now_ms - now_ms < Config::TICK) {
             return;
@@ -68,6 +71,7 @@ public:
             auto entry = std::move(entries.front());
             entry->execute();
             entries.pop_front();
+            entries_--;
         }
         bitmaps_[0].reset(current_slots_[0]);
         // 3. 移动到下一槽位
@@ -104,6 +108,7 @@ private:
             int64_t remaining_ms = entry->expiration_ms_ - now_ms;
             if (remaining_ms <= 0) [[unlikely]] {
                 entry->execute();
+                entries_--;
                 continue;
             }
             // 确认层级和槽位
@@ -130,5 +135,6 @@ private:
     std::array<BITMAP, MAX_LEVEL> bitmaps_{0};
     // 当前时间缓存
     int64_t now_ms{util::current_ms()};
+    uint64_t entries_{0};
 };
 }
