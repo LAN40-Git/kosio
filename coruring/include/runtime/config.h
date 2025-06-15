@@ -22,7 +22,7 @@ public:
     // 工作线程最大批量收割的IO请求数量
     static constexpr std::size_t PEEK_BATCH_SIZE = 256;
     // 窃取区间系数
-    static constexpr float STEAL_FACTOR = 0.5;
+    static constexpr float STEAL_FACTOR = 1.06;
 
     // ====== 成员变量 ======
     std::size_t entries{ENTRIES};

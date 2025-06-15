@@ -20,4 +20,9 @@
    wget https://github.com/nlohmann/json/releases/latest/download/json.hpp
    sudo mv json.hpp /usr/local/include/nlohmann/json.hpp
    ```
+   
+3. **tbb**
 
+   ```shell
+   sudo apt-get install libtbb-dev
+   ```

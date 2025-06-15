@@ -53,12 +53,13 @@ int main() {
     server_addr.sin_port = htons(8080);
     bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
     listen(server_fd, SOMAXCONN);
-    for (std::size_t i = 0; i < 512; ++i) {
+    for (std::size_t i = 0; i < 256; ++i) {
         sched.spawn(server(server_fd));
     }
     sched.run();
     int opt;
     while (true) {
         std::cin >> opt;
+        sched.stop();
     }
 }

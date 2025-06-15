@@ -22,17 +22,15 @@ void coruring::scheduler::Scheduler::stop() {
     for (auto& worker : workers_) {
         worker->stop();
     }
-    clear();
-}
-
-void coruring::scheduler::Scheduler::clear() noexcept {
     workers_.clear();
-    for (auto& handle : handles_) {
-        if (handle) {
+    // 清理协程资源
+    for (auto& handle : handles_ | std::views::keys) {
+        if (handle && !handle.done()) {
             handle.destroy();
         }
     }
     handles_.clear();
+    // 清空全局队列
     while (global_queue_.size_approx() > 0) {
         global_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
     }

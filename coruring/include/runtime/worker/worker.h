@@ -30,18 +30,22 @@ public:
 public:
     [[nodiscard]]
     auto local_queue() -> TaskQueue & { return local_queue_; }
+    [[nodiscard]]
+    auto local_tasks() -> std::size_t { return local_tasks_.load(std::memory_order_relaxed); }
+    void add_tasks(std::size_t count) { local_tasks_.fetch_add(count, std::memory_order_relaxed); }
+    void remove_tasks(std::size_t count) { local_tasks_.fetch_sub(count, std::memory_order_relaxed); }
 
 private:
     void event_loop();
-    void clear() noexcept;
     
 private:
-    const Config&         config_;
-    std::atomic<bool>     is_running_{false};
-    std::mutex            mutex_;
-    std::thread           thread_;
-    TaskQueue             local_queue_;
-    scheduler::Scheduler& scheduler_;
-    IoBuf                 io_buf_;
+    const Config&            config_;
+    std::atomic<bool>        is_running_{false};
+    std::mutex               mutex_;
+    std::thread              thread_;
+    TaskQueue                local_queue_;
+    scheduler::Scheduler&    scheduler_;
+    IoBuf                    io_buf_;
+    std::atomic<std::size_t> local_tasks_{0};
 };
 }

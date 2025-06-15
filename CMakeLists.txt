@@ -10,6 +10,14 @@ pkg_check_modules(LIBURING REQUIRED liburing)
 # json
 find_package(nlohmann_json 3.5 REQUIRED)
 
+# tbb
+find_package(TBB REQUIRED)
+if(TARGET TBB::tbb)
+    add_library(TBB::TBB ALIAS TBB::tbb)
+elseif(NOT TARGET TBB::TBB)
+    message(FATAL_ERROR "TBB found but no valid target available")
+endif()
+
 set(SOURCE_FILES
         coruring/src/runtime/io/io_uring.cpp
         coruring/src/io/io.cpp
@@ -30,4 +38,6 @@ target_include_directories(main PUBLIC
 )
 target_link_libraries(main PRIVATE
         ${LIBURING_LIBRARIES}
+        nlohmann_json::nlohmann_json
+        TBB::TBB
 )

@@ -35,7 +35,7 @@ struct TaskPromiseBase {
                         #endif
                     }
                 }
-                callee.destroy();
+                // callee.destroy();
                 return std::noop_coroutine();
             }
         }
