@@ -3,8 +3,8 @@
 #include <cstring>
 #include <format>
 #include <liburing.h>
-#include <unordered_set>
 #include <stdexcept>
+#include <coroutine>
 #include <unordered_set>
 
 namespace coruring::runtime::detail
@@ -17,8 +17,6 @@ public:
 public:
     // 获取线程局部 io_uring 实例
     static IoUring& instance();
-    // 获取线程局部请求表
-    static std::unordered_set<void*>& data_set();
 
 public:
     [[nodiscard]]
@@ -46,8 +44,6 @@ public:
     void pend_submit_batch(std::size_t count);
     // 立即提交请求
     void submit();
-    // 取消所有请求
-    void cancle_all_request();
 
 private:
     explicit IoUring(const runtime::detail::Config& config);

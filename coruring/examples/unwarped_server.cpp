@@ -50,15 +50,21 @@ int main() {
     sockaddr_in server_addr{};
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(8080);
+    server_addr.sin_port = htons(9090);
     bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
     listen(server_fd, SOMAXCONN);
     for (std::size_t i = 0; i < 512; ++i) {
         sched.spawn(server(server_fd));
     }
-    sched.run();
     int opt;
     while (true) {
         std::cin >> opt;
+        if (opt == 0) sched.run();
+        if (opt == 1) sched.stop();
+        if (opt == 100) {
+            sched.stop();
+            break;
+        }
     }
+    close(server_fd);
 }

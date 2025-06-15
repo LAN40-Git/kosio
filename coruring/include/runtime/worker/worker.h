@@ -15,11 +15,11 @@ class Scheduler;
 namespace coruring::runtime::detail
 {
 class Worker : public util::Noncopyable {
-public:
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
-    using IoBuf = std::array<std::coroutine_handle<>, Config::IO_INTERVAL>;
+    using IoBuf = std::array<std::coroutine_handle<>, Config::IO_BATCH_SIZE>;
 public:
-    explicit Worker(scheduler::Scheduler& scheduler) : scheduler_(scheduler) {}
+    explicit Worker(const Config& config, scheduler::Scheduler& scheduler)
+        : config_(config), scheduler_(scheduler) {}
 
 public:
     void run();
@@ -36,13 +36,12 @@ private:
     void clear() noexcept;
     
 private:
+    const Config&         config_;
     std::atomic<bool>     is_running_{false};
     std::mutex            mutex_;
     std::thread           thread_;
     TaskQueue             local_queue_;
     scheduler::Scheduler& scheduler_;
     IoBuf                 io_buf_;
-    std::array<io_uring_cqe*, Config::IO_INTERVAL> cqes_{};
-    std::size_t           active_tasks_{0};
 };
 }

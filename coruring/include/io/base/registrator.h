@@ -15,12 +15,11 @@ class IoRegistrator {
 public:
     template<typename F, typename... Args>
         requires std::is_invocable_v<F, io_uring_sqe *, Args...>
-    IoRegistrator(F&& f, Args... args)
+    IoRegistrator(F&& f, Args&&... args)
         : sqe_{runtime::detail::IoUring::instance().get_sqe()} {
         if (sqe_ != nullptr) [[likely]] {
             std::invoke(std::forward<F>(f), sqe_, std::forward<Args>(args)...);
             io_uring_sqe_set_data(sqe_, &this->cb_);
-            runtime::detail::IoUring::data_set().emplace(&this->cb_);
         } else {
             cb_.result_ = -ENOMEM;
         }

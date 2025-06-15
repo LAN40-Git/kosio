@@ -24,31 +24,34 @@ void coruring::runtime::detail::Worker::stop() {
     if (thread_.joinable()) {
         thread_.join();
     }
+    std::cout << "stopping" << std::endl;
 }
 
 void coruring::runtime::detail::Worker::event_loop() {
+    std::array<io_uring_cqe*, Config::PEEK_BATCH_SIZE> cqes{};
+    auto& workers = scheduler_.workers();
     while (is_running()) {
         // 1. 处理IO事件
-        while (local_queue_.size_approx() != 0) {
-            std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
-            for (std::size_t i = 0; i < count; ++i) {
-                if (io_buf_[i]) {
-                    io_buf_[i].resume();
+        std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
+        for (std::size_t i = 0; i < count; ++i) {
+            if (auto handle = io_buf_[i]) {
+                handle.resume();
+                if (handle.done()) {
+                    scheduler_.erase(handle);
                 }
             }
         }
 
         // 2. 收割完成队列
-        std::size_t count = IoUring::instance().peek_batch(cqes_);
+        count = IoUring::instance().peek_batch(cqes);
         for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
+            auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
             if (cb != nullptr) [[likely]] {
                 if (cb->entry_ != nullptr) {
                     cb->entry_->data_ = nullptr;
                 }
                 local_queue_.enqueue(cb->handle_);
-                cb->result_ = cqes_[i]->res;
-                IoUring::data_set().erase(cb);
+                cb->result_ = cqes[i]->res;
             }
         }
         if (count > 0) {
@@ -63,44 +66,11 @@ void coruring::runtime::detail::Worker::event_loop() {
         Timer::instance().tick();
 
         // 4. 窃取任务
+        // 窃取全局队列
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
         local_queue_.enqueue_bulk(io_buf_.begin(), count);
 
         // 5. 立即提交请求
         IoUring::instance().submit();
     }
-    // 释放资源
-    clear();
-}
-
-void coruring::runtime::detail::Worker::clear() noexcept {
-    // 1. 清理所有请求
-    IoUring::instance().cancle_all_request();
-    while (!IoUring::data_set().empty()) {
-        std::size_t count = IoUring::instance().peek_batch(cqes_);
-        for (std::size_t i = 0; i < count; ++i) {
-            auto cb = reinterpret_cast<io::detail::Callback *>(cqes_[i]->user_data);
-            if (cb != nullptr) [[likely]] {
-                if (cb->entry_ != nullptr) {
-                    cb->entry_->data_ = nullptr;
-                }
-                cb->result_ = cqes_[i]->res;
-                if (cb->handle_) {
-                    cb->handle_.destroy();
-                }
-                IoUring::data_set().erase(cb);
-            }
-        }
-    }
-    // 2. 清除本地队列
-    while (local_queue_.size_approx() != 0) {
-        std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
-        for (std::size_t i = 0; i < count; ++i) {
-            if (io_buf_[i]) {
-                io_buf_[i].destroy();
-            }
-        }
-    }
-    // 3. 清理定时器
-    Timer::instance().clear();
 }

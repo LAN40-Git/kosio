@@ -7,9 +7,9 @@ void coruring::scheduler::Scheduler::run() {
     }
     is_running_.store(true, std::memory_order_release);
     for (std::size_t i = 0; i < worker_nums_; ++i) {
-        auto worker = std::make_unique<runtime::detail::Worker>(*this);
+        auto worker = std::make_unique<runtime::detail::Worker>(config_, *this);
         worker->run();
-        workers_.emplace(std::move(worker));
+        workers_.emplace_back(std::move(worker));
     }
 }
 
@@ -26,12 +26,14 @@ void coruring::scheduler::Scheduler::stop() {
 }
 
 void coruring::scheduler::Scheduler::clear() noexcept {
-    while (global_queue_.size_approx() != 0) {
-        std::size_t count = global_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
-        for (std::size_t i = 0; i < count; ++i) {
-            if (io_buf_[i]) {
-                io_buf_[i].destroy();
-            }
+    workers_.clear();
+    for (auto& handle : handles_) {
+        if (handle) {
+            handle.destroy();
         }
+    }
+    handles_.clear();
+    while (global_queue_.size_approx() > 0) {
+        global_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
     }
 }

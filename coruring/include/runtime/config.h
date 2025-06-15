@@ -17,10 +17,12 @@ public:
     static constexpr std::size_t SLOTS = 64;
     static constexpr std::size_t TICK = 1;
     // ====== worker ======
-    // 工作线程每次循环尝试处理的IO事件数
-    static constexpr std::size_t IO_INTERVAL = 64;
+    // 工作线程最大批量恢复的协程数量
+    static constexpr std::size_t IO_BATCH_SIZE = 64;
+    // 工作线程最大批量收割的IO请求数量
+    static constexpr std::size_t PEEK_BATCH_SIZE = 256;
     // 窃取区间系数
-    static constexpr float STEAL_FACTOR = 1.05;
+    static constexpr float STEAL_FACTOR = 0.5;
 
     // ====== 成员变量 ======
     std::size_t entries{ENTRIES};
