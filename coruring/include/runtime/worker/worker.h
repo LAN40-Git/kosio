@@ -16,7 +16,6 @@ namespace coruring::runtime::detail
 {
 class Worker : public util::Noncopyable {
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
-    using IoBuf = std::array<std::coroutine_handle<>, Config::IO_BATCH_SIZE>;
 public:
     explicit Worker(const Config& config, scheduler::Scheduler& scheduler)
         : config_(config), scheduler_(scheduler) {}
@@ -45,7 +44,6 @@ private:
     std::thread              thread_;
     TaskQueue                local_queue_;
     scheduler::Scheduler&    scheduler_;
-    IoBuf                    io_buf_;
     std::atomic<std::size_t> local_tasks_{0};
 };
 }

@@ -24,14 +24,13 @@ void coruring::scheduler::Scheduler::stop() {
     }
     workers_.clear();
     // 清理协程资源
-    for (auto& handle : handles_ | std::views::keys) {
-        if (handle && !handle.done()) {
-            handle.destroy();
-        }
+    std::array<std::coroutine_handle<>, runtime::detail::Config::IO_BATCH_SIZE> io_buf;
+    for (auto handle : handles_ | std::views::keys) {
+        handle.destroy();
     }
     handles_.clear();
     // 清空全局队列
     while (global_queue_.size_approx() > 0) {
-        global_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
+        global_queue_.try_dequeue_bulk(io_buf.begin(), io_buf.size());
     }
 }

@@ -34,7 +34,7 @@ struct TaskPromiseBase {
                         #endif
                     }
                 }
-                // callee.destroy();
+                // callee.destroy(); // 交给协程调度器管理
                 return std::noop_coroutine();
             }
         }
@@ -135,7 +135,7 @@ public:
     explicit Task(std::coroutine_handle<promise_type> handle) : handle_(handle) {}
 
     ~Task() {
-        // if(handle_) handle_.destroy();
+        if(handle_) handle_.destroy();
     }
 
     // 禁止拷贝

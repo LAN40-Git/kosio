@@ -29,17 +29,18 @@ void coruring::runtime::detail::Worker::stop() {
 
 void coruring::runtime::detail::Worker::event_loop() {
     std::array<io_uring_cqe*, Config::PEEK_BATCH_SIZE> cqes{};
+    std::array<std::coroutine_handle<>, Config::IO_BATCH_SIZE> io_buf;
     auto& workers = scheduler_.workers();
     int32_t worker_nums = scheduler_.worker_nums();
-    auto& handles_ = scheduler_.handle_set();
+    auto& handles = scheduler_.handles();
     while (is_running()) {
         // 1. 处理IO事件
-        std::size_t count = local_queue_.try_dequeue_bulk(io_buf_.begin(), io_buf_.size());
+        std::size_t count = local_queue_.try_dequeue_bulk(io_buf.begin(), io_buf.size());
         for (std::size_t i = 0; i < count; ++i) {
-            io_buf_[i].resume();
-            if (io_buf_[i].done()) {
-                handles_.erase(io_buf_[i]);
-                io_buf_[i].destroy();
+            io_buf[i].resume();
+            if (io_buf[i].done() && handles.erase(io_buf[i])) {
+                // 销毁管理的协程
+                io_buf[i].destroy();
                 remove_tasks(1);
             }
         }
@@ -72,16 +73,15 @@ void coruring::runtime::detail::Worker::event_loop() {
 
         // 5. 窃取任务
         // 从全局队列窃取
-        count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(),io_buf_.size());
-        local_queue_.enqueue_bulk(io_buf_.begin(), count);
-        add_tasks(count);
+        count = scheduler_.global_queue().try_dequeue_bulk(io_buf.begin(),io_buf.size());
+        local_queue_.enqueue_bulk(io_buf.begin(), count);
         // // 2. 从其它线程窃取（多线程时）
         if (worker_nums <= 1) {
             continue;
         }
+        add_tasks(count);
         auto tasks = local_tasks();
-        auto average_tasks = handles_.size()/worker_nums; // 计算平均任务
-        std::cout << average_tasks << std::endl;
+        auto average_tasks = handles.size()/worker_nums; // 计算平均任务
         if (tasks * Config::STEAL_FACTOR < average_tasks) {
             auto worker_idx = util::FastRand::instance().rand_range(0, worker_nums-1);
             auto& worker = workers[worker_idx];
@@ -92,9 +92,9 @@ void coruring::runtime::detail::Worker::event_loop() {
             auto peer_tasks = worker->local_tasks();
             if (peer_tasks > steal_threshold) {
                 auto& peer_queue = worker->local_queue();
-                count = peer_queue.try_dequeue_bulk(io_buf_.begin(), std::min(io_buf_.size(), average_tasks - tasks));
+                count = peer_queue.try_dequeue_bulk(io_buf.begin(), std::min(io_buf.size(), average_tasks - tasks));
                 worker->remove_tasks(count);
-                local_queue_.enqueue_bulk(io_buf_.begin(), count);
+                local_queue_.enqueue_bulk(io_buf.begin(), count);
                 add_tasks(count);
             }
         }
