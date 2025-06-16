@@ -27,8 +27,7 @@
 
 namespace coruring::io::detail
 {
-class FD
-{
+class FD {
 public:
     FD(const FD&) = delete;
     auto operator=(const FD&) -> FD& = delete;
@@ -53,7 +52,7 @@ public:
     [[nodiscard]]
     auto release() noexcept -> int;
     [[nodiscard]]
-    auto set_nonblocking(bool status) const noexcept -> std::error_code;
+    auto set_nonblocking(bool status) const noexcept -> std::expected<void, std::error_code>;
     [[nodiscard]]
     auto nonblocking() const noexcept -> std::expected<bool, std::error_code>;
 

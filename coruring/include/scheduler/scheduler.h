@@ -12,7 +12,7 @@ class Scheduler : public util::Noncopyable {
 public:
     explicit Scheduler(std::size_t worker_nums)
         : worker_nums_(worker_nums)
-        , config_(runtime::detail::Config::load()) { assert(worker_nums > 0); }
+        , config_(runtime::detail::Config::load()) { assert(worker_nums > 0); handles_.rehash(config_.entries); }
     ~Scheduler() { stop(); }
 
 public:
@@ -22,17 +22,20 @@ public:
     bool is_running() const { return is_running_; }
 
 public:
-    template <typename T>
-    void spawn(async::Task<T>&& task) noexcept {
+    void spawn(async::Task<void>&& task) noexcept {
         auto handle = task.take();
         handles_.emplace(handle, nullptr);
         global_queue_.enqueue(handle);
     }
 
 public:
+    [[nodiscard]]
     auto workers() -> std::vector<Worker>& { return workers_; }
+    [[nodiscard]]
     auto worker_nums() const -> std::size_t { return worker_nums_; }
+    [[nodiscard]]
     auto global_queue() -> TaskQueue& { return global_queue_; }
+    [[nodiscard]]
     auto handle_set() -> Handles& { return handles_; }
 
 private:

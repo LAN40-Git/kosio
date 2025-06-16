@@ -30,7 +30,7 @@ void coruring::runtime::detail::Worker::stop() {
 void coruring::runtime::detail::Worker::event_loop() {
     std::array<io_uring_cqe*, Config::PEEK_BATCH_SIZE> cqes{};
     auto& workers = scheduler_.workers();
-    auto worker_nums = scheduler_.worker_nums();
+    int32_t worker_nums = scheduler_.worker_nums();
     auto& handles_ = scheduler_.handle_set();
     while (is_running()) {
         // 1. 处理IO事件
@@ -38,7 +38,6 @@ void coruring::runtime::detail::Worker::event_loop() {
         for (std::size_t i = 0; i < count; ++i) {
             io_buf_[i].resume();
             if (io_buf_[i].done()) {
-                // TODO: 冲突条件：在此期间创建了一个新的协程且此协程的句柄与此句柄相同且被插入（感觉不太可能）
                 handles_.erase(io_buf_[i]);
                 remove_tasks(1);
             }
@@ -71,7 +70,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         Timer::instance().tick();
 
         // 5. 窃取任务
-        // 1. 从全局队列窃取
+        // 从全局队列窃取
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf_.begin(),io_buf_.size());
         local_queue_.enqueue_bulk(io_buf_.begin(), count);
         add_tasks(count);
@@ -81,6 +80,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         }
         auto tasks = local_tasks();
         auto average_tasks = handles_.size()/worker_nums; // 计算平均任务
+        std::cout << average_tasks << std::endl;
         if (tasks * Config::STEAL_FACTOR < average_tasks) {
             auto worker_idx = util::FastRand::instance().rand_range(0, worker_nums-1);
             auto& worker = workers[worker_idx];

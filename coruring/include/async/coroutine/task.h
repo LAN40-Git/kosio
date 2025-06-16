@@ -11,7 +11,6 @@ namespace coruring::async
 
 template <typename T>
 class Task;
-
 struct TaskPromiseBase {
     struct TaskFinalAwaiter {
         constexpr auto await_ready() const noexcept -> bool { return false; }
@@ -35,7 +34,7 @@ struct TaskPromiseBase {
                         #endif
                     }
                 }
-                // callee.destroy();
+                callee.destroy();
                 return std::noop_coroutine();
             }
         }

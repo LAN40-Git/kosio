@@ -6,21 +6,17 @@ namespace coruring::io::detail
 template<class T>
 struct ImplAsyncSend {
     [[REMEMBER_CO_AWAIT]]
-    auto write(std::span<const char> buf) noexcept {
-        // return Write{static_cast<T*>(this)->fd(),
-        //             buf.data(),
-        //             static_cast<unsigned int>(buf.size_bytes()),
-        //             static_cast<std::size_t>(-1)};
+    auto send(std::span<const char> buf) noexcept {
         return Send{static_cast<T*>(this)->fd(),
                     buf.data(), buf.size(), 0};
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto write_all(std::span<const char> buf) noexcept
+    auto send_all(std::span<const char> buf) noexcept
     -> async::Task<std::expected<void, std::error_code>> {
         std::expected<std::size_t, std::error_code> ret{0uz};
         while (!buf.empty()) {
-            ret = co_await this->write(buf);
+            ret = co_await this->send(buf);
             if (!ret) [[unlikely]] {
                 co_return std::unexpected{ret.error()};
             }

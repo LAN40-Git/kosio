@@ -5,7 +5,7 @@
 namespace coruring::socket::detail
 {
 template <class T>
-struct ImplStreamWrite : public io::detail::ImplAsyncSend<T> {
+struct ImplStreamSend : public io::detail::ImplAsyncSend<T> {
     [[REMEMBER_CO_AWAIT]]
     auto peek(std::span<char> buf) const noexcept {
         return io::detail::Write(static_cast<const T*>(this)->fd(),
