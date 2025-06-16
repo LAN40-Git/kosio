@@ -39,6 +39,7 @@ void coruring::runtime::detail::Worker::event_loop() {
             io_buf_[i].resume();
             if (io_buf_[i].done()) {
                 handles_.erase(io_buf_[i]);
+                io_buf_[i].destroy();
                 remove_tasks(1);
             }
         }
