@@ -17,7 +17,6 @@ public:
         if (data_) {
             // 若操作未完成则提交取消请求
             auto sqe = IoUring::instance().get_sqe();
-            // TODO: 去除检查
             if (sqe) [[likely]] {
                 io_uring_prep_cancel(sqe, data_, 0);
                 io_uring_sqe_set_data(sqe, nullptr);
