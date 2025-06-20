@@ -1,28 +1,27 @@
-## 环境依赖
+## Dependency
 
-1. **liburing**
+```shell
+sudo apt update
+sudo apt install -y build-essential cmake liburing-dev libtbb-dev nlohmann-json-dev
+```
 
-   ```shell
-   git clone https://github.com/axboe/liburing.git
-   cd liburing
-   ./configure
-   make
-   sudo make install
-   ```
 
-2. **json**
 
-   ```shell
-   sudo apt install nlohmann-json3-dev
-   ```
-   or
-   ```shell
-   wget https://github.com/nlohmann/json/releases/latest/download/json.hpp
-   sudo mv json.hpp /usr/local/include/nlohmann/json.hpp
-   ```
-   
-3. **tbb**
+## INSTALL
 
-   ```shell
-   sudo apt-get install libtbb-dev
-   ```
+```shell
+git clone 
+cd coruring
+mkdir build && cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+sudo make install
+sudo ldconfig
+```
+
+## USE
+Add the code to your CMakeLists.txt
+```cmake
+find_package(coruring REQUIRED)
+target_link_libraries(your_app PRIVATE coruring)
+```

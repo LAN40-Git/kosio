@@ -31,7 +31,21 @@ auto process(TcpStream stream) -> Task<void> {
     }
 }
 
-auto server(TcpListener& listener) -> Task<void> {
+auto server() -> Task<void> {
+    auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
+    if (!has_addr) {
+        console.error(has_addr.error().message());
+        co_return;
+    }
+    auto has_listener = TcpListener::bind(has_addr.value());
+    if (!has_listener) {
+        console.error(has_listener.error().message());
+        co_return;
+    }
+    auto listener = std::move(has_listener.value());
+    for (std::size_t i = 0; i < 512; ++i) {
+        sched.spawn(server());
+    }
 
     while (true) {
         auto has_stream = co_await listener.accept();
@@ -46,20 +60,6 @@ auto server(TcpListener& listener) -> Task<void> {
 }
 
 int main() {
-    auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
-    if (!has_addr) {
-        console.error(has_addr.error().message());
-        return 0;
-    }
-    auto has_listener = TcpListener::bind(has_addr.value());
-    if (!has_listener) {
-        console.error(has_listener.error().message());
-        return 0;
-    }
-    auto listener = std::move(has_listener.value());
-    for (std::size_t i = 0; i < 512; ++i) {
-        sched.spawn(server(listener));
-    }
     sched.run();
     int stop;
     while (true) {
