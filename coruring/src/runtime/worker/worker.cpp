@@ -33,6 +33,7 @@ void coruring::runtime::detail::Worker::event_loop() {
     auto& workers = scheduler_.workers();
     int32_t worker_nums = scheduler_.worker_nums();
     auto& handles = scheduler_.handles();
+    long long wait_ms = 1;
     while (is_running()) {
         // 1. 处理IO事件
         std::size_t count = local_queue_.try_dequeue_bulk(io_buf.begin(), io_buf.size());
@@ -62,9 +63,16 @@ void coruring::runtime::detail::Worker::event_loop() {
         }
         if (count > 0) {
             IoUring::instance().consume(count);
+            wait_ms = 1;
         } else {
-            if (local_queue_.size_approx() == 0) {
-                IoUring::instance().wait(0, 1000000);
+            if (local_queue_.size_approx() == 0 && scheduler_.global_queue().size_approx() == 0) {
+                constexpr long long NS_PER_MS = 1000000;
+                if (Timer::instance().is_idle()) {
+                    wait_ms = std::min(wait_ms*2, 100LL);
+                } else {
+                    wait_ms = 1;
+                }
+                IoUring::instance().wait(0, wait_ms*NS_PER_MS);
             }
         }
 
@@ -75,7 +83,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         // 从全局队列窃取
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf.begin(),io_buf.size());
         local_queue_.enqueue_bulk(io_buf.begin(), count);
-        // // 2. 从其它线程窃取（多线程时）
+        // 从其它线程窃取（多线程时）
         if (worker_nums <= 1) {
             continue;
         }

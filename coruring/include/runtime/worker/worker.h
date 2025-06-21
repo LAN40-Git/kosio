@@ -30,7 +30,7 @@ public:
     [[nodiscard]]
     auto local_queue() -> TaskQueue & { return local_queue_; }
     [[nodiscard]]
-    auto local_tasks() -> std::size_t { return local_tasks_.load(std::memory_order_relaxed); }
+    auto local_tasks() const noexcept -> std::size_t { return local_tasks_.load(std::memory_order_relaxed); }
     void add_tasks(std::size_t count) { local_tasks_.fetch_add(count, std::memory_order_relaxed); }
     void remove_tasks(std::size_t count) { local_tasks_.fetch_sub(count, std::memory_order_relaxed); }
 

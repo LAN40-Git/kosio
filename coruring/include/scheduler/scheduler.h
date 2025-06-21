@@ -9,7 +9,7 @@ class Scheduler : public util::Noncopyable {
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
     using Handles = tbb::concurrent_hash_map<std::coroutine_handle<>, void*>;
 public:
-    explicit Scheduler(std::size_t worker_nums)
+    explicit Scheduler(int32_t worker_nums)
         : worker_nums_(worker_nums)
         , config_(runtime::detail::Config::load()) {
         assert(worker_nums > 0);
@@ -34,7 +34,7 @@ public:
     [[nodiscard]]
     auto workers() -> std::vector<Worker>& { return workers_; }
     [[nodiscard]]
-    auto worker_nums() const -> std::size_t { return worker_nums_; }
+    auto worker_nums() const -> int32_t { return worker_nums_; }
     [[nodiscard]]
     auto global_queue() -> TaskQueue& { return global_queue_; }
     [[nodiscard]]
@@ -43,7 +43,7 @@ public:
 private:
     std::atomic<bool>              is_running_{false};
     std::mutex                     mutex_;
-    std::size_t                    worker_nums_;
+    int32_t                        worker_nums_;
     std::vector<Worker>            workers_;
     TaskQueue                      global_queue_;
     Handles                        handles_;

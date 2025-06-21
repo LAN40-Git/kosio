@@ -9,7 +9,7 @@ using namespace coruring::log;
 using namespace coruring::timer;
 using namespace coruring::scheduler;
 
-Scheduler sched{8};
+Scheduler sched{1};
 
 constexpr std::string_view response = R"(
 HTTP/1.1 200 OK
@@ -43,15 +43,12 @@ auto server() -> Task<void> {
         co_return;
     }
     auto listener = std::move(has_listener.value());
-    for (std::size_t i = 0; i < 512; ++i) {
-        sched.spawn(server());
-    }
-
     while (true) {
         auto has_stream = co_await listener.accept();
         if (has_stream) {
             auto &[stream, peer_addr] = has_stream.value();
             sched.spawn(process(std::move(stream)));
+            auto end = std::chrono::high_resolution_clock::now();
         } else {
             console.error("{}", has_stream.error().message());
             break;
@@ -60,6 +57,7 @@ auto server() -> Task<void> {
 }
 
 int main() {
+    sched.spawn(server());
     sched.run();
     int stop;
     while (true) {

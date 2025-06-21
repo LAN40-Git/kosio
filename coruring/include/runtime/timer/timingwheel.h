@@ -90,6 +90,8 @@ public:
         now_ms = util::current_ms();
     }
 
+    auto is_idle() const noexcept -> bool { return entries_ == 0; }
+
 private:
     // 上层步进
     void tick(std::size_t level) {

@@ -44,6 +44,8 @@ public:
         wheel_.clear();
     }
 
+    auto is_idle() const noexcept -> bool { return wheel_.is_idle(); }
+
 
 private:
     detail::TimingWheel<detail::Config::MAX_LEVEL, detail::Config::SLOTS> wheel_;
