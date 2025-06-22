@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+# 包含目标文件
+include("${CMAKE_CURRENT_LIST_DIR}/coruringTargets.cmake")
+
+# 检查依赖项（可选，如果你的库依赖其他库）
+include(CMakeFindDependencyMacro)
+find_dependency(PkgConfig REQUIRED)
+find_dependency(nlohmann_json 3.5 REQUIRED)
+find_dependency(TBB REQUIRED)
+pkg_check_modules(LIBURING REQUIRED liburing)

@@ -2,16 +2,16 @@
 #include <tbb/concurrent_hash_map.h>
 #include "runtime/worker/worker.h"
 
-namespace coruring::scheduler
+namespace coruring::runtime
 {
 class Scheduler : public util::Noncopyable {
-    using Worker = std::unique_ptr<runtime::detail::Worker>;
+    using Worker = std::unique_ptr<detail::Worker>;
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
     using Handles = tbb::concurrent_hash_map<std::coroutine_handle<>, void*>;
 public:
     explicit Scheduler(int32_t worker_nums)
         : worker_nums_(worker_nums)
-        , config_(runtime::detail::Config::load()) {
+        , config_(detail::Config::load()) {
         assert(worker_nums > 0);
         handles_.rehash(config_.entries);
     }
@@ -47,6 +47,6 @@ private:
     std::vector<Worker>            workers_;
     TaskQueue                      global_queue_;
     Handles                        handles_;
-    const runtime::detail::Config& config_;
+    const detail::Config&          config_;
 };
 }

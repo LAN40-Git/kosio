@@ -1,6 +1,6 @@
-#include "scheduler/scheduler.h"
+#include "runtime/scheduler.h"
 
-void coruring::scheduler::Scheduler::run() {
+void coruring::runtime::Scheduler::run() {
     std::lock_guard lock(mutex_);
     if (is_running_) {
         return;
@@ -13,7 +13,7 @@ void coruring::scheduler::Scheduler::run() {
     }
 }
 
-void coruring::scheduler::Scheduler::stop() {
+void coruring::runtime::Scheduler::stop() {
     std::lock_guard lock(mutex_);
     if (!is_running_) {
         return;

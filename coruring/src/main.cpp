@@ -7,7 +7,7 @@ using namespace coruring::async;
 using namespace coruring::socket::net;
 using namespace coruring::log;
 using namespace coruring::timer;
-using namespace coruring::scheduler;
+using namespace coruring::runtime;
 
 Scheduler sched{8};
 

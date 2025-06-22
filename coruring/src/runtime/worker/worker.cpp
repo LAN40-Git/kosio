@@ -2,7 +2,7 @@
 #include "runtime/worker/worker.h"
 #include "io/base/callback.h"
 #include "runtime/timer/entry.h"
-#include "scheduler/scheduler.h"
+#include "runtime/scheduler.h"
 #include "common/util/random.h"
 
 void coruring::runtime::detail::Worker::run() {

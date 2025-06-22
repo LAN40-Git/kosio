@@ -7,7 +7,7 @@
 #include "async/coroutine/task.h"
 #include "third_party/concurrentqueue.h"
 
-namespace coruring::scheduler
+namespace coruring::runtime
 {
 class Scheduler;
 }
@@ -17,7 +17,7 @@ namespace coruring::runtime::detail
 class Worker : public util::Noncopyable {
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
 public:
-    explicit Worker(const Config& config, scheduler::Scheduler& scheduler)
+    explicit Worker(const Config& config, Scheduler& scheduler)
         : config_(config), scheduler_(scheduler) {}
 
 public:
@@ -43,7 +43,7 @@ private:
     std::mutex               mutex_;
     std::thread              thread_;
     TaskQueue                local_queue_;
-    scheduler::Scheduler&    scheduler_;
+    Scheduler&               scheduler_;
     std::atomic<std::size_t> local_tasks_{0};
 };
 }
