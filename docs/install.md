@@ -22,5 +22,11 @@ sudo ldconfig
 Add the code to your CMakeLists.txt
 ```cmake
 find_package(coruring REQUIRED)
-target_link_libraries(your_app PRIVATE coruring)
+target_link_libraries(your_app PRIVATE coruring::coruring)
+```
+
+## UNINSTALL
+```shell
+# execute the clean.sh
+./clean.sh
 ```
