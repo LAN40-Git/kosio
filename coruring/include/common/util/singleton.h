@@ -5,6 +5,7 @@ namespace coruring::util
 {
 template <typename T>
 class Singleton {
+public:
     Singleton() = delete;
     ~Singleton() = delete;
     
@@ -16,4 +17,4 @@ public:
         return instance;
     }
 };
-} // namespace coruring::utils
+} // namespace coruring::util
