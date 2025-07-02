@@ -22,10 +22,10 @@ Hello, World!
 auto process(TcpStream stream) -> Task<void> {
     char buf[128];
     while (true) {
-        if (auto ret = co_await stream.recv(buf); !ret || ret.value() == 0) {
+        if (auto ret = co_await stream.read(buf); !ret || ret.value() == 0) {
             break;
         }
-        if (auto ret = co_await stream.send_all(response); !ret) {
+        if (auto ret = co_await stream.write_all(response); !ret) {
             break;
         }
     }
@@ -44,8 +44,7 @@ auto server() -> Task<void> {
     }
     auto listener = std::move(has_listener.value());
     while (true) {
-        auto has_stream = co_await listener.accept();
-        if (has_stream) {
+        if (auto has_stream = co_await listener.accept()) {
             auto &[stream, peer_addr] = has_stream.value();
             sched.spawn(process(std::move(stream)));
             auto end = std::chrono::high_resolution_clock::now();

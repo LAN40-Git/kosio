@@ -14,8 +14,6 @@ Inspired by [zedio](https://github.com/8sileus/zedio), I redesigned the **schedu
 - Achieved **92% lower P99 latency** (500ms → 40ms) under **10,000 concurrent connections**, with only a **4.2% throughput drop** (480k → 460k QPS).
 - Improved **low-concurrency throughput** by **4.3%** (460k → 480k QPS at 2,000 connections), demonstrating balanced efficiency.
 
-
-
 ## Features
 
 - Multithreaded scheduler with work-stealing load balancing. (reference [zedio](https://github.com/8sileus/zedio))

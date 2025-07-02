@@ -2,21 +2,21 @@
 #include "socket/split.h"
 #include "socket/impl/impl_local_addr.h"
 #include "socket/impl/impl_peer_addr.h"
-#include "socket/impl/impl_stream_recv.h"
-#include "socket/impl/impl_stream_send.h"
+#include "socket/impl/impl_stream_read.h"
+#include "socket/impl/impl_stream_write.h"
 
 namespace coruring::socket::detail
 {
 template<class Stream, class Addr>
-class BaseStream : public ImplStreamRecv<BaseStream<Stream, Addr>>,
-                   public ImplStreamSend<BaseStream<Stream, Addr>>,
+class BaseStream : public ImplStreamRead<BaseStream<Stream, Addr>>,
+                   public ImplStreamWrite<BaseStream<Stream, Addr>>,
                    public ImplLocalAddr<BaseStream<Stream, Addr>, Addr>,
                    public ImplPeerAddr<BaseStream<Stream, Addr>, Addr> {
 public:
-    using Reader = RecvHalf<Addr>;
-    using Writer = SendHalf<Addr>;
-    using OwnedReader = OwnedRecvHalf<Stream, Addr>;
-    using OwnedWriter = OwnedSendHalf<Stream, Addr>;
+    using Reader = ReadHalf<Addr>;
+    using Writer = WriteHalf<Addr>;
+    using OwnedReader = OwnedReadHalf<Stream, Addr>;
+    using OwnedWriter = OwnedWriteHalf<Stream, Addr>;
 
 protected:
     explicit BaseStream(Socket &&inner)

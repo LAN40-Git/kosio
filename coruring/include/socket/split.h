@@ -2,17 +2,17 @@
 #include "socket/socket.h"
 #include "socket/impl/impl_peer_addr.h"
 #include "socket/impl/impl_local_addr.h"
-#include "socket/impl/impl_stream_recv.h"
-#include "socket/impl/impl_stream_send.h"
+#include "socket/impl/impl_stream_read.h"
+#include "socket/impl/impl_stream_write.h"
 
 namespace coruring::socket::detail
 {
 template<class Addr>
-class RecvHalf : public ImplStreamRecv<RecvHalf<Addr>>,
-                 public ImplLocalAddr<RecvHalf<Addr>, Addr>,
-                 public ImplPeerAddr<RecvHalf<Addr>, Addr> {
+class ReadHalf : public ImplStreamRead<ReadHalf<Addr>>,
+                 public ImplLocalAddr<ReadHalf<Addr>, Addr>,
+                 public ImplPeerAddr<ReadHalf<Addr>, Addr> {
 public:
-    RecvHalf(Socket &inner)
+    ReadHalf(Socket &inner)
         : inner_(inner) {}
 
 public:
@@ -26,11 +26,11 @@ private:
 };
 
 template<class Addr>
-class SendHalf : public ImplStreamSend<SendHalf<Addr>>,
-                  public ImplLocalAddr<SendHalf<Addr>, Addr>,
-                  public ImplPeerAddr<SendHalf<Addr>, Addr> {
+class WriteHalf : public ImplStreamWrite<WriteHalf<Addr>>,
+                  public ImplLocalAddr<WriteHalf<Addr>, Addr>,
+                  public ImplPeerAddr<WriteHalf<Addr>, Addr> {
 public:
-    SendHalf(Socket &inner)
+    WriteHalf(Socket &inner)
         : inner_(inner) {}
 
 public:
@@ -70,12 +70,12 @@ protected:
 };
 
 template <class T, class Addr>
-class OwnedRecvHalf : public OwnedBase<T>
-                    , public ImplStreamRecv<OwnedRecvHalf<T, Addr>>
-                    , public ImplLocalAddr<OwnedRecvHalf<T, Addr>, Addr>
-                    , public ImplPeerAddr<OwnedRecvHalf<T, Addr>, Addr> {
+class OwnedReadHalf : public OwnedBase<T>
+                    , public ImplStreamRead<OwnedReadHalf<T, Addr>>
+                    , public ImplLocalAddr<OwnedReadHalf<T, Addr>, Addr>
+                    , public ImplPeerAddr<OwnedReadHalf<T, Addr>, Addr> {
 public:
-    OwnedRecvHalf(std::shared_ptr<T> stream)
+    OwnedReadHalf(std::shared_ptr<T> stream)
         : OwnedBase<T>(std::move(stream)) {}
 
     // ~OwnedReadHalf() {
@@ -86,12 +86,12 @@ public:
 };
 
 template <class T, class Addr>
-class OwnedSendHalf : public OwnedBase<T>,
-                       public ImplStreamSend<OwnedSendHalf<T, Addr>>,
-                       public ImplLocalAddr<OwnedSendHalf<T, Addr>, Addr>,
-                       public ImplPeerAddr<OwnedSendHalf<T, Addr>, Addr> {
+class OwnedWriteHalf : public OwnedBase<T>
+                     , public ImplStreamWrite<OwnedWriteHalf<T, Addr>>
+                     , public ImplLocalAddr<OwnedWriteHalf<T, Addr>, Addr>
+                     , public ImplPeerAddr<OwnedWriteHalf<T, Addr>, Addr> {
 public:
-    OwnedSendHalf(std::shared_ptr<T> stream)
+    OwnedWriteHalf(std::shared_ptr<T> stream)
         : OwnedBase<T>(std::move(stream)) {}
 
     // ~OwnedReadHalf() {

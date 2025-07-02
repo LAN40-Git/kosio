@@ -18,9 +18,9 @@ public:
     static constexpr std::size_t TICK = 1;
     // ====== worker ======
     // 工作线程最大批量恢复的协程数量
-    static constexpr std::size_t IO_BATCH_SIZE = 128;
+    static constexpr std::size_t IO_BATCH_SIZE = 64;
     // 工作线程最大批量收割的IO请求数量
-    static constexpr std::size_t PEEK_BATCH_SIZE = 192;
+    static constexpr std::size_t PEEK_BATCH_SIZE = 128;
     // 窃取区间系数
     static constexpr float STEAL_FACTOR = 1.05;
 

@@ -83,11 +83,11 @@ void coruring::runtime::detail::Worker::event_loop() {
         // 从全局队列窃取
         count = scheduler_.global_queue().try_dequeue_bulk(io_buf.begin(),io_buf.size());
         local_queue_.enqueue_bulk(io_buf.begin(), count);
+        add_tasks(count);
         // 从其它线程窃取（多线程时）
         if (worker_nums <= 1) {
             continue;
         }
-        add_tasks(count);
         auto tasks = local_tasks();
         auto average_tasks = handles.size()/worker_nums; // 计算平均任务
         if (tasks * Config::STEAL_FACTOR < average_tasks) {
