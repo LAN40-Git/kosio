@@ -10,7 +10,6 @@ using namespace coruring::timer;
 using namespace coruring::runtime;
 
 Scheduler sched{8};
-Scheduler accept_sched{1};
 
 constexpr std::string_view response = R"(
 HTTP/1.1 200 OK
@@ -20,50 +19,47 @@ Content-Length: 13
 Hello, World!
 )";
 
-auto process(TcpStream stream) -> Task<void> {
+auto handle_client(int fd) -> Task<> {
     char buf[128];
     while (true) {
-        if (auto ret = co_await stream.read(buf); !ret || ret.value() == 0) {
+        if (auto ret = co_await coruring::io::recv(fd, buf, sizeof(buf), 0); !ret || ret.value() == 0) {
             break;
         }
-        if (auto ret = co_await stream.write_all(response); !ret) {
+        if (auto ret = co_await coruring::io::send(fd, response.data(), response.size(), 0); !ret) {
             break;
         }
     }
+    close(fd);
 }
 
-auto server() -> Task<void> {
-    auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
-    if (!has_addr) {
-        console.error(has_addr.error().message());
-        co_return;
-    }
-    auto has_listener = TcpListener::bind(has_addr.value());
-    if (!has_listener) {
-        console.error(has_listener.error().message());
-        co_return;
-    }
-    auto listener = std::move(has_listener.value());
+auto server(int server_fd) -> Task<> {
+    sockaddr_in client_addr{};
+    socklen_t addr_len = sizeof(client_addr);
     while (true) {
-        if (auto has_stream = co_await listener.accept()) {
-            auto &[stream, peer_addr] = has_stream.value();
-            sched.spawn(process(std::move(stream)));
-            auto end = std::chrono::high_resolution_clock::now();
-        } else {
-            console.error("{}", has_stream.error().message());
-            break;
+        auto fd = co_await coruring::io::accept(server_fd, reinterpret_cast<sockaddr*>(&client_addr), &addr_len, 0);
+        if (!fd) {
+            console.error("Failed to accept connection");
+            continue;
         }
+        sched.spawn(handle_client(fd.value()));
     }
 }
 
 int main() {
-    accept_sched.spawn(server());
-    accept_sched.run();
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    sockaddr_in server_addr{};
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(8080);
+    bind(server_fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
+    listen(server_fd, SOMAXCONN);
+    for (std::size_t i = 0; i < 512000; ++i) {
+        sched.spawn(server(server_fd));
+    }
     sched.run();
-    int stop;
+    int opt;
     while (true) {
-        std::cin >> stop;
+        std::cin >> opt;
         sched.stop();
-        break;
     }
 }

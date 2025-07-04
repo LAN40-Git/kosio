@@ -93,7 +93,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         if (tasks * Config::STEAL_FACTOR < average_tasks) {
             auto worker_idx = util::FastRand::instance().rand_range(0, worker_nums-1);
             auto& worker = workers[worker_idx];
-            if (worker.get() == this) {
+            if (!worker || worker.get() == this) {
                 continue;
             }
             std::size_t steal_threshold = average_tasks * Config::STEAL_FACTOR; // 窃取阈值（窃取任务数大于此阈值的线程）
