@@ -9,7 +9,7 @@ sudo apt install -y build-essential cmake liburing-dev libtbb-dev nlohmann-json-
 ## INSTALL
 
 ```shell
-git clone 
+git clone git@github.com:LAN40-Git/coruring.git
 cd coruring
 mkdir build && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
