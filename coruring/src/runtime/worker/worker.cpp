@@ -31,7 +31,6 @@ void coruring::runtime::detail::Worker::event_loop() {
     std::array<io_uring_cqe*, Config::PEEK_BATCH_SIZE> cqes{};
     std::array<std::coroutine_handle<>, Config::IO_BATCH_SIZE> io_buf;
     auto& workers = scheduler_.workers();
-    int32_t worker_nums = scheduler_.worker_nums();
     auto& handles = scheduler_.handles();
     long long wait_ms = 1;
     while (is_running()) {
@@ -85,6 +84,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         local_queue_.enqueue_bulk(io_buf.begin(), count);
         add_tasks(count);
         // 从其它线程窃取（多线程时）
+        auto worker_nums = scheduler_.workers().size();
         if (worker_nums <= 1) {
             continue;
         }
@@ -93,7 +93,7 @@ void coruring::runtime::detail::Worker::event_loop() {
         if (tasks * Config::STEAL_FACTOR < average_tasks) {
             auto worker_idx = util::FastRand::instance().rand_range(0, worker_nums-1);
             auto& worker = workers[worker_idx];
-            if (!worker || worker.get() == this) {
+            if (worker.get() == this) {
                 continue;
             }
             std::size_t steal_threshold = average_tasks * Config::STEAL_FACTOR; // 窃取阈值（窃取任务数大于此阈值的线程）
