@@ -15,7 +15,6 @@ mkdir build && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
 make -j$(nproc)
 sudo make install
-sudo ldconfig
 ```
 
 ## USE
