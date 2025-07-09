@@ -2,7 +2,7 @@
 
 ```shell
 sudo apt update
-sudo apt install -y build-essential cmake liburing-dev libtbb-dev nlohmann-json-dev
+sudo apt install -y build-essential cmake liburing-dev libtbb-dev nlohmann-json3-dev
 ```
 
 
