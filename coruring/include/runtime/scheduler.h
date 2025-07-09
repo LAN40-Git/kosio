@@ -41,12 +41,12 @@ public:
     auto handles() -> Handles& { return handles_; }
 
 private:
-    std::atomic<bool>              is_running_{false};
-    std::mutex                     mutex_;
-    int32_t                        worker_nums_;
-    std::vector<Worker>            workers_;
-    TaskQueue                      global_queue_;
-    Handles                        handles_;
-    const detail::Config&          config_;
+    std::atomic<bool>     is_running_{false};
+    std::mutex            mutex_;
+    int32_t               worker_nums_;
+    std::vector<Worker>   workers_;
+    TaskQueue             global_queue_;
+    Handles               handles_;
+    const detail::Config& config_;
 };
-}
+} // namespace coruring::runtime
