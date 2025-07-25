@@ -1,17 +1,17 @@
 #pragma once
 #include <tbb/concurrent_hash_map.h>
-#include "runtime/worker/worker.h"
+#include "multi_thread/worker.h"
 
-namespace coruring::runtime
+namespace coruring::runtime::detail
 {
 class Scheduler : public util::Noncopyable {
-    using Worker = std::unique_ptr<detail::Worker>;
+    using Worker = std::unique_ptr<multi_thread::detail::Worker>;
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
     using Handles = tbb::concurrent_hash_map<std::coroutine_handle<>, void*>;
 public:
     explicit Scheduler(int32_t worker_nums)
         : worker_nums_(worker_nums)
-        , config_(detail::Config::load()) {
+        , config_(Config::load()) {
         assert(worker_nums > 0);
         handles_.rehash(config_.entries);
     }
@@ -41,12 +41,12 @@ public:
     auto handles() -> Handles& { return handles_; }
 
 private:
-    std::atomic<bool>     is_running_{false};
-    std::mutex            mutex_;
-    int32_t               worker_nums_;
-    std::vector<Worker>   workers_;
-    TaskQueue             global_queue_;
-    Handles               handles_;
-    const detail::Config& config_;
+    std::atomic<bool>   is_running_{false};
+    std::mutex          mutex_;
+    int32_t             worker_nums_;
+    std::vector<Worker> workers_;
+    TaskQueue           global_queue_;
+    Handles             handles_;
+    const Config&       config_;
 };
-} // namespace coruring::runtime
+} // namespace coruring::runtime::detail

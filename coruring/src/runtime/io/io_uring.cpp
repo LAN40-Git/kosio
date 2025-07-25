@@ -2,7 +2,7 @@
 #include <iostream>
 
 coruring::runtime::detail::IoUring& coruring::runtime::detail::IoUring::instance() {
-    thread_local IoUring inst{Config::load()};
+    thread_local IoUring inst{detail::Config::load()};
     return inst;
 }
 
@@ -46,7 +46,7 @@ void coruring::runtime::detail::IoUring::submit() {
     }
 }
 
-coruring::runtime::detail::IoUring::IoUring(const Config& config)
+coruring::runtime::detail::IoUring::IoUring(const detail::Config& config)
     : submit_interval_{static_cast<uint32_t>(config.submit_interval)} {
     if (auto ret = io_uring_queue_init(config.entries, &ring_, 0); ret < 0) [[unlikely]] {
         throw std::runtime_error(std::format("io_uring_queue_init failed: {}", strerror(-ret)));

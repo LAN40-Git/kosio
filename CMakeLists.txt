@@ -34,8 +34,8 @@ add_library(coruring STATIC
     coruring/src/io/io.cpp
     coruring/src/socket/net/socket.cpp
     coruring/src/socket/socket.cpp
-    coruring/src/runtime/scheduler.cpp
-    coruring/src/runtime/worker/worker.cpp
+        coruring/src/runtime/scheduler/scheduler.cpp
+        coruring/src/runtime/scheduler/multi_thread/worker.cpp
 )
 
 target_include_directories(coruring PUBLIC
