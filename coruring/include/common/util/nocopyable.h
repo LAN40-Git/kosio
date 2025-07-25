@@ -11,4 +11,4 @@ protected:
     Noncopyable() = default;
     ~Noncopyable() noexcept = default;
 };
-}
+} // namespace coruring::util

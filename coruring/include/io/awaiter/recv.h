@@ -18,7 +18,7 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto recv(int sockfd, void *buf, size_t len, int flags) {

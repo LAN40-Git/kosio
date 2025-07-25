@@ -18,4 +18,4 @@ struct ImplPeerAddr {
         return addr;
     }
 };
-}
+} // namespace coruring::socket::detail

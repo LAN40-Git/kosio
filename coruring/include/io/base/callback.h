@@ -5,7 +5,7 @@
 namespace coruring::runtime::detail
 {
 class Entry;
-}
+} // namespace coruring::runtime::detail
 
 namespace coruring::io::detail
 {
@@ -15,4 +15,4 @@ struct Callback {
     int64_t deadline_;
     runtime::detail::Entry* entry_{nullptr};
 };
-}
+} // namespace coruring::io::detail

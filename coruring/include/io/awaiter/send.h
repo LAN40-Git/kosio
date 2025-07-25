@@ -18,10 +18,10 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto send(int sockfd, const void *buf, size_t len, int flags) {
     return detail::Send{sockfd, buf, len, flags};
 }
-}
+} // namespace coruring::io

@@ -18,7 +18,7 @@ namespace detail
             std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto getxattr(const char *name, char *value, const char *path, unsigned int len) {

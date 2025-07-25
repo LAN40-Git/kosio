@@ -18,10 +18,10 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto connect(int fd, sockaddr *addr, socklen_t addrlen) {
     return detail::Connect {fd, addr, addrlen};
 }
-}
+} // namespace coruring::io

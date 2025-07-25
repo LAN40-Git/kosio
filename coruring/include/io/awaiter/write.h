@@ -18,10 +18,10 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto write(int fd, const void* buf, unsigned nbytes, __u64 offse) {
     return detail::Write(fd, buf, nbytes, offse);
 }
-}
+} // namespace coruring::io

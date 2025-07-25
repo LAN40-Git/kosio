@@ -38,7 +38,7 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto open(const char *path, int flags, mode_t mode) {
@@ -59,4 +59,4 @@ static inline auto openat(int dfd, const char *path, int flags, mode_t mode) {
 static inline auto openat2(int dfd, const char *path, struct open_how *how) {
     return detail::Open2{dfd, path, how};
 }
-}
+} // namespace coruring::io

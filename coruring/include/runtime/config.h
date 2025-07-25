@@ -4,7 +4,8 @@
 #include <nlohmann/json.hpp>
 #include "common/util/nocopyable.h"
 
-namespace coruring::runtime::detail {
+namespace coruring::runtime::detail
+{
 class Config : public util::Noncopyable {
     static constexpr std::string CONFIG_PATH = "config.json";
 public:

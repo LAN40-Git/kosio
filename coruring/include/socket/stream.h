@@ -95,4 +95,4 @@ public:
 private:
     Socket inner_;
 };
-}
+} // namespace coruring::socket::detail

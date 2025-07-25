@@ -18,10 +18,10 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto shutdown(int fd, int how) {
     return detail::Shutdown(fd, how);
 }
-}
+} // namespace coruring::io

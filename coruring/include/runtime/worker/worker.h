@@ -10,7 +10,7 @@
 namespace coruring::runtime
 {
 class Scheduler;
-}
+} // namespace coruring::runtime
 
 namespace coruring::runtime::detail
 {
@@ -46,4 +46,4 @@ private:
     Scheduler&               scheduler_;
     std::atomic<std::size_t> local_tasks_{0};
 };
-}
+} // namespace coruring::runtime::detail

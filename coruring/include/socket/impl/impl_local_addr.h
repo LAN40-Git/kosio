@@ -18,4 +18,4 @@ struct ImplLocalAddr {
         return addr;
     }
 };
-}
+} // namespace coruring::socket::detail

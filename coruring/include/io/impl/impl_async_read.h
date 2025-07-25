@@ -31,4 +31,4 @@ struct ImplAsyncRead {
         co_return std::expected<void, std::error_code>{};
     }
 };
-}
+} // namespace coruring::io::detail

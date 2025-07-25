@@ -9,4 +9,4 @@ public:
     explicit TcpListener(detail::Socket &&inner)
         : BaseListener(std::move(inner)) {}
 };
-}
+} // namespace coruring::socket::net

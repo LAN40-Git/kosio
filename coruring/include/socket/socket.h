@@ -45,4 +45,4 @@ public:
         return T{Socket{fd}};
     }
 };
-}
+} // namespace coruring::socket::detail

@@ -100,5 +100,4 @@ public:
     //     }
     // }
 };
-
-}
+} // namespace coruring::socket::detail

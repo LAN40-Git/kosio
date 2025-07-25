@@ -9,4 +9,4 @@ public:
     explicit TcpStream(detail::Socket &&inner)
         : BaseStream(std::move(inner)) {}
 };
-}
+} // namespace coruring::socket::net

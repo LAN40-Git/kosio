@@ -5,4 +5,4 @@
 namespace coruring::log
 {
 inline auto& console = util::Singleton<ConsoleLogger>::instance();
-}
+} // namespace coruring::log

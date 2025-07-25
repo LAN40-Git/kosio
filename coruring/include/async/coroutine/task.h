@@ -212,5 +212,4 @@ inline auto TaskPromise<T>::get_return_object() noexcept -> Task<T> {
 inline auto TaskPromise<void>::get_return_object() noexcept -> Task<void> {
     return Task<void> { std::coroutine_handle<TaskPromise>::from_promise(*this) };
 }
-
 } // namespace coruring::async

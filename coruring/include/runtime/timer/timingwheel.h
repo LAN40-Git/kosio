@@ -139,4 +139,4 @@ private:
     int64_t now_ms{util::current_ms()};
     uint64_t entries_{0};
 };
-}
+} // namespace coruring::runtime::detail

@@ -21,7 +21,7 @@ namespace detail
                                                    std::generic_category())};
         }
     };
-}
+} // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
 static inline auto unlinkat(int dfd, const char *path, int flags) {

@@ -229,7 +229,7 @@ private:
         sockaddr_in6 in6;
     } addr_;
 };
-}
+} // namespace coruring::socket::net
 
 namespace std
 {
@@ -295,4 +295,4 @@ public:
         return format_to(context.out(), "{}", addr.to_string());
     }
 };
-}
+} // namespace std

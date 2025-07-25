@@ -67,4 +67,4 @@ protected:
     Callback      cb_{};
     io_uring_sqe *sqe_;
 };
-}
+} // namespace coruring::io::detail

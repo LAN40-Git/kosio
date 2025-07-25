@@ -56,4 +56,4 @@ private:
     uint32_t submit_tick_{0};
     uint32_t submit_interval_;
 };
-}
+} // namespace coruring::runtime::detail

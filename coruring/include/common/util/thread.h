@@ -20,4 +20,4 @@ static inline auto set_current_thread_name(std::string_view name) {
 static inline auto get_current_thread_name() -> std::string_view {
     return t_name;
 }
-}
+} // namespace coruring::util

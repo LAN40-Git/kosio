@@ -14,4 +14,4 @@ struct ImplStreamWrite : public io::detail::ImplAsyncWrite<T> {
                                 MSG_PEEK);
     }
 };
-}
+} // namespace coruring::socket::detail

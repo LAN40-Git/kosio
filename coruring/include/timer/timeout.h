@@ -4,7 +4,7 @@
 namespace coruring::io::detail {
 template <class T>
 class IoRegistrator;
-}
+} // namespace coruring::io::detail
 
 namespace coruring::timer
 {
@@ -33,7 +33,7 @@ class Timeout : public T {
             }
         }
     };
-}
+} // namespace detail
 
 template <class T>
     requires std::derived_from<T, io::detail::IoRegistrator<T>>
@@ -46,5 +46,4 @@ template <class T>
 auto timeout(T &&io, uint64_t timeout_ms) {
     return io.set_timeout(timeout_ms);
 }
-}
-// namespace coruring::time::detail
+} // namespace coruring::time::detail

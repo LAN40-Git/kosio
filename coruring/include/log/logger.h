@@ -123,7 +123,7 @@ private:
 private:
     LogLevel level_{LogLevel::Debug};
 };
-}
+} // namespace detail
 
 class ConsoleLogger : public detail::BaseLogger<ConsoleLogger> {
 public:
