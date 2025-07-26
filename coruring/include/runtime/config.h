@@ -14,10 +14,12 @@ static inline constexpr std::size_t ENTRIES = 2048;
 static inline constexpr std::size_t SUBMIT_INTERVAL = 64;
 
 // 分层时间轮最大层数
-static inline constexpr std::size_t MAX_LEVEL = 6;
+static inline constexpr std::size_t NUM_LEVELS = 6;
+static_assert(NUM_LEVELS > 0, "MAX_LEVEL must be greater than 0");
 
 // 分层时间轮每层槽位数
-static inline constexpr std::size_t SLOTS = 64;
+static inline constexpr std::size_t LEVEL_MULT = 64;
+static_assert((LEVEL_MULT & (LEVEL_MULT - 1)) == 0, "SLOTS must be a power of 2");
 
 // 分层时间轮精度（毫秒）
 static inline constexpr std::size_t TICK_MS = 1;

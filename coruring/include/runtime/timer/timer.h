@@ -3,7 +3,6 @@
 #include "runtime/config.h"
 
 namespace coruring::runtime {
-// 线程不安全
 class Timer;
 
 inline thread_local Timer *t_timer{nullptr};
@@ -15,10 +14,12 @@ public:
 
 public:
     [[nodiscard]]
-    auto add_entry(io::detail::Callback *data, uint64_t expiration_ms)
+    auto add_entry(io::detail::Callback *data, uint64_t expiration_ms) noexcept
     -> std::expected<detail::Entry*, std::error_code>;
+    void remove_entry(detail::Entry* entry) noexcept;
 
 private:
-    detail::Wheel<detail::MAX_LEVEL, detail::SLOTS> wheel_;
+    uint64_t      start_{util::current_ms()};
+    detail::Wheel wheel_;
 };
 } // namespace coruring::runtime
