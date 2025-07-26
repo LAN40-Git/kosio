@@ -2,8 +2,7 @@
 #include "socket/impl/impl_local_addr.h"
 #include "socket/socket.h"
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 template <class Listener, class Stream, class Addr>
 class BaseListener : public ImplLocalAddr<BaseListener<Listener, Stream, Addr>, Addr> {
 protected:

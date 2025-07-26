@@ -1,8 +1,7 @@
 #pragma once
 #include <utility>
 
-namespace coruring::util
-{
+namespace coruring::util {
 template <typename T>
 class Singleton {
 public:

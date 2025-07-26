@@ -2,8 +2,7 @@
 #include <tbb/concurrent_hash_map.h>
 #include "multi_thread/worker.h"
 
-namespace coruring::runtime::detail
-{
+namespace coruring::runtime::detail {
 class Scheduler : public util::Noncopyable {
     using Worker = std::unique_ptr<multi_thread::detail::Worker>;
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;

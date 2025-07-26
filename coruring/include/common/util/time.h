@@ -4,11 +4,10 @@
 #include <chrono>
 #include <stdexcept>
 
-namespace coruring::util
-{
+namespace coruring::util {
 constexpr auto CACHE_THRESHOLD = std::chrono::milliseconds(1);
 
-static inline int64_t current_ms() noexcept {
+static inline uint64_t current_ms() noexcept {
     struct alignas(64) Cache {
         timespec last_ts {};
         int64_t cached_ms = 0;

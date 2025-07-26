@@ -6,9 +6,7 @@
 #include <iostream>
 #include <format>
 
-namespace coruring::async
-{
-
+namespace coruring::async {
 template <typename T>
 class Task;
 struct TaskPromiseBase {

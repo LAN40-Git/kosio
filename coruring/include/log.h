@@ -2,7 +2,6 @@
 #include "log/logger.h"
 #include "common/util/singleton.h"
 
-namespace coruring::log
-{
+namespace coruring::log {
 inline auto& console = util::Singleton<ConsoleLogger>::instance();
 } // namespace coruring::log

@@ -3,8 +3,7 @@
 #include <system_error>
 #include <sys/socket.h>
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 template<class T, class Addr>
 struct ImplLocalAddr {
     [[nodiscard]]

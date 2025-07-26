@@ -1,7 +1,6 @@
 #pragma once
 
-namespace coruring::util
-{
+namespace coruring::util {
 class Noncopyable {
 public:
     Noncopyable(const Noncopyable &) = delete;

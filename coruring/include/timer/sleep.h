@@ -1,10 +1,8 @@
 #pragma once
 #include "io/base/registrator.h"
 
-namespace coruring::timer
-{
-namespace detail
-{
+namespace coruring::timer {
+namespace detail {
 class Sleep : public io::detail::IoRegistrator<Sleep> {
 public:
     Sleep(long long tv_sec, long long tv_nsec, unsigned count, unsigned flags)

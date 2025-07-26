@@ -2,8 +2,7 @@
 #include "io/io.h"
 #include "common/error.h"
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 /**Support
  * IPv4
  * -----END

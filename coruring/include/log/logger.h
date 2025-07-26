@@ -10,12 +10,9 @@
 #include <condition_variable>
 #include <source_location>
 
-namespace coruring::log
-{
-namespace detail
-{
-class FmtWithSourceLocation
-{
+namespace coruring::log {
+namespace detail {
+class FmtWithSourceLocation {
 public:
     template <typename T>
         requires std::constructible_from<std::string_view, T>

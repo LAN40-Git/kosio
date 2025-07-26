@@ -3,8 +3,7 @@
 #include <unistd.h>
 #include <thread>
 
-namespace coruring::util
-{
+namespace coruring::util {
 static inline auto get_tid() noexcept -> pid_t {
     thread_local pid_t t_id = ::gettid();
     return t_id;

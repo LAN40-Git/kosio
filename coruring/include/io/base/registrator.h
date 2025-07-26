@@ -8,15 +8,14 @@
 #include "timer/timeout.h"
 #include <functional>
 
-namespace coruring::io::detail
-{
+namespace coruring::io::detail {
 template <class IO>
 class IoRegistrator {
 public:
     template<typename F, typename... Args>
         requires std::is_invocable_v<F, io_uring_sqe *, Args...>
     IoRegistrator(F&& f, Args&&... args)
-        : sqe_{runtime::detail::IoUring::instance().get_sqe()} {
+        : sqe_{runtime::detail::t_ring->get_sqe()} {
         if (sqe_ != nullptr) [[likely]] {
             std::invoke(std::forward<F>(f), sqe_, std::forward<Args>(args)...);
             io_uring_sqe_set_data(sqe_, &this->cb_);
@@ -49,12 +48,12 @@ public:
     auto await_suspend(std::coroutine_handle<> handle) {
         assert(sqe_);
         cb_.handle_ = handle;
-        runtime::detail::IoUring::instance().pend_submit();
+        runtime::detail::t_ring->pend_submit();
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto set_timeout_at(uint64_t deadline) noexcept {
-        cb_.deadline_ = static_cast<int64_t>(deadline);
+    auto set_timeout_at(uint64_t deadline_ms) noexcept {
+        cb_.deadline_ = static_cast<int64_t>(deadline_ms);
         return timer::detail::Timeout{std::move(*static_cast<IO*>(this))};
     }
 

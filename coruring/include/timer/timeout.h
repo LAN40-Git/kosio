@@ -6,10 +6,8 @@ template <class T>
 class IoRegistrator;
 } // namespace coruring::io::detail
 
-namespace coruring::timer
-{
-namespace detail
-{
+namespace coruring::timer {
+namespace detail {
 template <class T>
     requires std::derived_from<T, io::detail::IoRegistrator<T>>
 class Timeout : public T {
@@ -20,8 +18,7 @@ class Timeout : public T {
     public:
         auto await_suspend(std::coroutine_handle<> handle) -> bool {
             // 尝试创建定时任务
-            auto ret = runtime::Timer::instance().add_entry(&this->cb_, this->cb_.deadline_);
-            if (ret) [[likely]] {
+            if (auto ret = runtime::t_timer->add_entry(&this->cb_, this->cb_.deadline_)) [[likely]] {
                 this->cb_.entry_ = ret.value();
                 T::await_suspend(handle);
                 return true;
@@ -37,8 +34,8 @@ class Timeout : public T {
 
 template <class T>
     requires std::derived_from<T, io::detail::IoRegistrator<T>>
-auto timeout_at(T &&io, uint64_t deadline) {
-    return io.set_timeout_at(deadline);
+auto timeout_at(T &&io, uint64_t deadline_ms) {
+    return io.set_timeout_at(deadline_ms);
 }
 
 template <class T>

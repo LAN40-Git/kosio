@@ -7,13 +7,11 @@
 #include "async/coroutine/task.h"
 #include "third_party/concurrentqueue.h"
 
-namespace coruring::runtime::detail
-{
+namespace coruring::runtime::detail {
 class Scheduler;
 } // namespace coruring::runtime::detail
 
-namespace coruring::runtime::multi_thread::detail
-{
+namespace coruring::runtime::multi_thread::detail {
 class Worker : public util::Noncopyable {
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
 public:

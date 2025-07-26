@@ -5,8 +5,7 @@
 #include <string>
 #include <string_view>
 
-namespace coruring::log::detail
-{
+namespace coruring::log::detail {
 class LogFile {
 public:
     explicit LogFile(std::string_view file_base_name)

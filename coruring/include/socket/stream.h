@@ -5,8 +5,7 @@
 #include "socket/impl/impl_stream_read.h"
 #include "socket/impl/impl_stream_write.h"
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 template<class Stream, class Addr>
 class BaseStream : public ImplStreamRead<BaseStream<Stream, Addr>>,
                    public ImplStreamWrite<BaseStream<Stream, Addr>>,

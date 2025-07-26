@@ -6,8 +6,7 @@
 namespace coruring::log::detail
 {
 template <std::size_t SIZE>
-class LogBuffer
-{
+class LogBuffer {
 public:
     LogBuffer() noexcept
         : cur_(data_.begin()) {}

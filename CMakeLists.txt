@@ -30,12 +30,13 @@ endif()
 # ====== INSTALL ======
 
 add_library(coruring STATIC
-    coruring/src/runtime/io/io_uring.cpp
-    coruring/src/io/io.cpp
-    coruring/src/socket/net/socket.cpp
-    coruring/src/socket/socket.cpp
-        coruring/src/runtime/scheduler/scheduler.cpp
-        coruring/src/runtime/scheduler/multi_thread/worker.cpp
+        coruring/lib/runtime/io/io_uring.cpp
+        coruring/lib/io/io.cpp
+        coruring/lib/socket/net/socket.cpp
+        coruring/lib/socket/socket.cpp
+        coruring/lib/runtime/scheduler/scheduler.cpp
+        coruring/lib/runtime/scheduler/multi_thread/worker.cpp
+        coruring/lib/runtime/timer/entry.cpp
 )
 
 target_include_directories(coruring PUBLIC

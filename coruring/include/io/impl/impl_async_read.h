@@ -1,8 +1,7 @@
 #pragma once
 #include "io/io.h"
 
-namespace coruring::io::detail
-{
+namespace coruring::io::detail {
 template<class T>
 struct ImplAsyncRead {
     [[REMEMBER_CO_AWAIT]]

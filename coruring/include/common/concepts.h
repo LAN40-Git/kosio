@@ -5,8 +5,7 @@
 #include <span>
 #include <sys/socket.h>
 
-namespace coruring
-{
+namespace coruring {
 template <typename Addr>
 concept is_socket_address = requires(Addr addr) {
     { addr.sockaddr() } noexcept -> std::same_as<struct sockaddr *>;

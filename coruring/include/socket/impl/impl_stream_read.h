@@ -1,8 +1,7 @@
 #pragma once
 #include "io/impl/impl_async_read.h"
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 template <class T>
 struct ImplStreamRead : public io::detail::ImplAsyncRead<T> {
     [[REMEMBER_CO_AWAIT]]

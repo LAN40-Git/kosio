@@ -2,8 +2,7 @@
 #include "io/awaiter/send.h"
 #include "io/impl/impl_async_write.h"
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 template <class T>
 struct ImplStreamWrite : public io::detail::ImplAsyncWrite<T> {
     [[REMEMBER_CO_AWAIT]]

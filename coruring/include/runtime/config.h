@@ -4,64 +4,38 @@
 #include <nlohmann/json.hpp>
 #include "common/util/nocopyable.h"
 
-namespace coruring::runtime::detail
-{
-class Config : public util::Noncopyable {
-    static constexpr std::string CONFIG_PATH = "config.json";
-public:
-    // ====== 默认配置 ======
-    // ====== io ======
-    static constexpr std::size_t ENTRIES = 2048;
-    static constexpr std::size_t SUBMIT_INTERVAL = 64;
-    // ====== timer ======
-    static constexpr std::size_t MAX_LEVEL = 6;
-    static constexpr std::size_t SLOTS = 64;
-    static constexpr std::size_t TICK = 1;
-    // ====== worker ======
-    // 工作线程最大批量恢复的协程数量
-    static constexpr std::size_t IO_BATCH_SIZE = 64;
-    // 工作线程最大批量收割的IO请求数量
-    static constexpr std::size_t PEEK_BATCH_SIZE = 128;
-    // 窃取区间系数
-    static constexpr float STEAL_FACTOR = 1.05;
+namespace coruring::runtime::detail {
+// 默认配置
 
-    // ====== 成员变量 ======
+// io_uring 队列纵深
+static inline constexpr std::size_t ENTRIES = 2048;
+
+// io_uring 事件提交间隔
+static inline constexpr std::size_t SUBMIT_INTERVAL = 64;
+
+// 分层时间轮最大层数
+static inline constexpr std::size_t MAX_LEVEL = 6;
+
+// 分层时间轮每层槽位数
+static inline constexpr std::size_t SLOTS = 64;
+
+// 分层时间轮精度（毫秒）
+static inline constexpr std::size_t TICK_MS = 1;
+
+// 工作线程每次从本地队列中恢复的 io 事件的最大数量
+static inline constexpr std::size_t IO_BATCH_SIZE = 64;
+
+// 工作线程每次从 io_uring 完成队列中收割的完成事件的最大数量
+static inline constexpr std::size_t PEEK_BATCH_SIZE = 128;
+
+// 窃取因子，以平均任务为基准计算窃取区间，当且仅当工作线程的任务数量在此区间时窃取任务
+static inline constexpr float STEAL_FACTOR = 1.05;
+
+struct Config {
+    // io_uring 队列纵深
     std::size_t entries{ENTRIES};
+
+    // io_uring 事件提交间隔
     std::size_t submit_interval{SUBMIT_INTERVAL};
-
-    // 从文件加载配置 TODO：添加错误处理
-    static const Config& load() {
-        static Config instance;
-        static std::once_flag flag;
-        std::call_once(flag, [&] {
-            std::ifstream file(CONFIG_PATH);
-            if (file.good()) {
-                nlohmann::json j;
-                file >> j;
-                instance.entries = j.value("entries", instance.entries);
-                instance.submit_interval = j.value("submit_interval", instance.submit_interval);
-            } else {
-                save(instance);
-            }
-        });
-        return instance;
-    }
-
-private:
-    Config() = default;
-
-private:
-    // 保存配置到文件
-    static void save(const Config& config) {
-        nlohmann::json j;
-        j["entries"] = config.entries;
-        j["submit_interval"] = config.submit_interval;
-
-        std::ofstream file(CONFIG_PATH);
-        if (!file.good()) {
-            throw std::runtime_error("Failed to open config file");
-        }
-        file << j.dump(4);
-    }
 };
 } // namespace coruring::runtime::detail

@@ -7,16 +7,15 @@
 #include <coroutine>
 #include <unordered_set>
 
-namespace coruring::runtime::detail
-{
+namespace coruring::runtime::detail {
+class IoUring;
+
+inline thread_local IoUring* t_ring{nullptr};
+
 class IoUring {
 public:
     IoUring(const IoUring&) = delete;
     IoUring& operator=(const IoUring&) = delete;
-
-public:
-    // 获取线程局部 io_uring 实例
-    static IoUring& instance();
 
 public:
     [[nodiscard]]
@@ -46,7 +45,7 @@ public:
     void submit();
 
 private:
-    explicit IoUring(const runtime::detail::Config& config);
+    explicit IoUring(Config config);
     ~IoUring() {
         io_uring_queue_exit(&ring_);
     }

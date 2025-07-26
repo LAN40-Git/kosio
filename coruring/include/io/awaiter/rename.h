@@ -1,10 +1,8 @@
 #pragma once
 #include "io/base/registrator.h"
 
-namespace coruring::io
-{
-namespace detail
-{
+namespace coruring::io {
+namespace detail {
 class Rename : public IoRegistrator<Rename> {
 public:
     Rename(int olddfd, const char *oldpath, int newdfd, const char *newpath, int flags)

@@ -25,8 +25,7 @@
 #include <string>
 #include <fcntl.h>
 
-namespace coruring::io::detail
-{
+namespace coruring::io::detail {
 class FD {
 public:
     FD(const FD&) = delete;

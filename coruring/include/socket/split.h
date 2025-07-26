@@ -5,8 +5,7 @@
 #include "socket/impl/impl_stream_read.h"
 #include "socket/impl/impl_stream_write.h"
 
-namespace coruring::socket::detail
-{
+namespace coruring::socket::detail {
 template<class Addr>
 class ReadHalf : public ImplStreamRead<ReadHalf<Addr>>,
                  public ImplLocalAddr<ReadHalf<Addr>, Addr>,
