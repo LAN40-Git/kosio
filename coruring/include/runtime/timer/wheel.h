@@ -19,10 +19,29 @@ public:
         return precision;
     }
 
+    // 时间轮最大时间跨度
     static constexpr uint64_t MAX_DURATION = (1 << (6 * NUM_LEVELS)) - 1;
+
+    // 时间轮每层时间跨度
     static constexpr auto PRECISION = make_precision();
+
+    // 掩码，X & MASK = X % LEVEL_MULT
     static constexpr std::size_t MASK = LEVEL_MULT - 1;
+
+    // 位移数，X >> SHIFT = X / LEVEL_MULT
     static constexpr std::size_t SHIFT = std::countr_zero(LEVEL_MULT);
+
+public:
+    [[nodiscard]]
+    auto add_entry(std::unique_ptr<Entry> entry, uint64_t when) noexcept -> std::expected<Entry*, std::error_code>;
+    void remove_entry(Entry* entry, uint64_t when) noexcept;
+    [[nodiscard]]
+    auto next_expiration() const noexcept -> std::optional<uint64_t>;
+    void poll() noexcept;
+
+private:
+    void handle_expired_entries() noexcept;
+    void cascade_entries(std::size_t level) noexcept;
 
 private:
     using EntryList = std::list<std::unique_ptr<Entry>>;
@@ -35,18 +54,6 @@ private:
         // 槽位，用于存储任务队列
         std::array<EntryList, LEVEL_MULT> slots{};
     };
-
-public:
-    [[nodiscard]]
-    auto add_entry(std::unique_ptr<Entry> entry, uint64_t remaining_ms) noexcept -> std::expected<Entry*, std::error_code>;
-    void remove_entry(Entry* entry, uint64_t remaining_ms) noexcept;
-    [[nodiscard]]
-    auto next_expiration() const noexcept -> std::optional<uint64_t>;
-    void poll() noexcept;
-
-private:
-    void handle_expired_entries() noexcept;
-    void cascade_entries(std::size_t level) noexcept;
 
 private:
     uint64_t                      elapsed_{0}; // 自时间轮创建起过去的时间（ms）

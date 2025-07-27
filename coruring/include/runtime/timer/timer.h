@@ -14,7 +14,7 @@ public:
 
 public:
     [[nodiscard]]
-    auto add_entry(io::detail::Callback *data, uint64_t expiration_ms) noexcept
+    auto add_entry(io::detail::Callback *data, uint64_t expiration_time) noexcept
     -> std::expected<detail::Entry*, std::error_code>;
     void remove_entry(detail::Entry* entry) noexcept;
 

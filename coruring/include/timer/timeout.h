@@ -34,13 +34,13 @@ class Timeout : public T {
 
 template <class T>
     requires std::derived_from<T, io::detail::IoRegistrator<T>>
-auto timeout_at(T &&io, uint64_t deadline_ms) {
-    return io.set_timeout_at(deadline_ms);
+auto timeout_at(T &&io, uint64_t deadline) {
+    return io.set_timeout_at(deadline);
 }
 
 template <class T>
     requires std::derived_from<T, io::detail::IoRegistrator<T>>
-auto timeout(T &&io, uint64_t timeout_ms) {
-    return io.set_timeout(timeout_ms);
+auto timeout(T &&io, uint64_t timeout) {
+    return io.set_timeout(timeout);
 }
 } // namespace coruring::time::detail

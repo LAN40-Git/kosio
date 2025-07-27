@@ -7,15 +7,15 @@
 namespace coruring::runtime::detail {
 class Entry {
 public:
-    explicit Entry(io::detail::Callback *data, uint64_t expiration_ms)
+    explicit Entry(io::detail::Callback *data, uint64_t expiration_time)
         : data_{data}
-        , expiration_ms_{expiration_ms} {}
+        , expiration_time_{expiration_time} {}
 
 public:
     void execute();
 
 public:
-    io::detail::Callback *data_{};          // 提交到 io_uring 的数据
-    uint64_t              expiration_ms_{}; // 绝对超时时间（毫秒）
+    io::detail::Callback *data_{};            // 提交到 io_uring 的数据
+    uint64_t              expiration_time_{}; // 绝对超时时间（毫秒）
 };
 } // namespace coruring::runtime::detail
