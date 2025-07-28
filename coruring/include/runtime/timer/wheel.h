@@ -20,7 +20,7 @@ public:
     }
 
     // 时间轮最大时间跨度
-    static constexpr uint64_t MAX_DURATION = (1 << (6 * NUM_LEVELS)) - 1;
+    static constexpr uint64_t MAX_DURATION = (1ULL << (6 * NUM_LEVELS)) - 1;
 
     // 时间轮每层时间跨度
     static constexpr auto PRECISION = make_precision();

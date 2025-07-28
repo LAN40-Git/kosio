@@ -1,7 +1,6 @@
 #pragma once
 #include <expected>
 #include <string_view>
-#include <cassert>
 #include <cstring>
 #include <format>
 
@@ -11,12 +10,14 @@ namespace detail {
 static inline constexpr int ErrorCodeBase = 6000;
 // 错误码间隔值
 static inline constexpr int ErrorCodeInterval = 1000;
+// 常规错误码起始值
+static inline constexpr int CommonErrorCodeBase = ErrorCodeBase;
 // 定时器错误码起始值
-static inline constexpr int TimerErrorCodeBase = ErrorCodeBase + ErrorCodeInterval;
+static inline constexpr int TimerErrorCodeBase = CommonErrorCodeBase + ErrorCodeInterval;
 // Io 错误码起始值
 static inline constexpr int IoErrorCodeBase = TimerErrorCodeBase + ErrorCodeInterval;
 
-template <class ErrorType>
+template <class DeriverError>
 class ErrorBase {
 public:
     explicit ErrorBase(int error_code)
@@ -28,7 +29,7 @@ public:
 
     [[nodiscard]]
     auto message() const noexcept -> std::string_view {
-        return static_cast<ErrorType*>(this)->error_message(error_code_);
+        return static_cast<const DeriverError*>(this)->error_message();
     }
 
 protected:
@@ -36,58 +37,107 @@ protected:
 };
 } // namespace detail
 
-enum class TimerErrorCode : int {
-    PassedTime = detail::TimerErrorCodeBase,
-};
-
-enum class IoErrorCode : int {
-    Example = detail::IoErrorCodeBase,
-};
-
-namespace detail {
-class TimerError : public ErrorBase<TimerError> {
+/* Template of DriverError
+class Fixme : public detail::ErrorBase<Fixme> {
 public:
-    explicit TimerError(TimerErrorCode error_code)
+    enum Code {
+        kUnknown = Fixme,
+    };
+
+public:
+    explicit Fixme(int error_code)
+        : ErrorBase<Fixme>(error_code) {}
+
+public:
+    [[nodiscard]]
+    auto error_message() const noexcept -> std::string_view {
+        switch (static_cast<Code>(error_code_)) {
+            case kUnknown:
+                return "Unknown Fixme error.";
+            default:
+                return strerror(error_code_);
+        }
+    }
+};
+*/
+
+// ========== 常规错误 ==========
+class CommonError : public detail::ErrorBase<CommonError> {
+public:
+    enum Code {
+        kUnknown = detail::CommonErrorCodeBase,
+    };
+
+public:
+    explicit CommonError(int error_code)
+        : ErrorBase<CommonError>(error_code) {}
+
+public:
+    [[nodiscard]]
+    auto error_message() const noexcept -> std::string_view {
+        switch (static_cast<Code>(error_code_)) {
+            case kUnknown:
+                return "Unknown common error.";
+            default:
+                return strerror(error_code_);
+        }
+    }
+};
+
+// ========== 定时器错误 ==========
+class TimerError : public detail::ErrorBase<TimerError> {
+public:
+    enum Code {
+        kUnknown = detail::TimerErrorCodeBase,
+        kPassedTime,
+    };
+
+public:
+    explicit TimerError(Code error_code)
         : ErrorBase<TimerError>(static_cast<int>(error_code)) {}
 
 public:
     [[nodiscard]]
     auto error_message() const noexcept -> std::string_view {
-        switch (error_code_) {
-            case TimerErrorCode::PassedTime:
-                return "Time has passed";
+        switch (static_cast<Code>(error_code_)) {
+            case kUnknown:
+                return "Unknown timer error.";
+            case kPassedTime:
+                return "Time has passed.";
             default:
                 return strerror(error_code_);
         }
     }
 };
 
-class IoError : public ErrorBase<IoError> {
+// ========== 输入输出错误 ==========
+class IoError : public detail::ErrorBase<IoError> {
 public:
-    explicit IoError(IoErrorCode error_code)
+    enum Code {
+        kUnknown = detail::IoErrorCodeBase,
+    };
+public:
+    explicit IoError(Code error_code)
         : ErrorBase<IoError>(static_cast<int>(error_code)) {}
 
 public:
     [[nodiscard]]
     auto error_message() const noexcept -> std::string_view {
-        switch (error_code_) {
-            case IoErrorCode::Example:
-                return "This is a example";
+        switch (static_cast<Code>(error_code_)) {
+            case kUnknown:
+                return "Unknown io error.";
             default:
                 return strerror(error_code_);
         }
     }
 };
-} // namespace detail
 
-static inline auto make_timer_error(TimerErrorCode error_code) -> detail::TimerError {
-    return detail::TimerError(error_code);
+template <class ErrorType>
+[[nodiscard]]
+static inline auto make_error(int error_code) -> detail::ErrorBase<ErrorType> {
+    return detail::ErrorBase<ErrorType>(error_code);
 }
 
-static inline auto make_io_error(IoErrorCode error_code) -> detail::IoError {
-    return detail::IoError(error_code);
-}
-
-template <class T, class ErrorType>
-using Result = std::expected<T, detail::ErrorBase<ErrorType>>;
+template <typename ResultType, class ErrorType>
+using Result = std::expected<ResultType, detail::ErrorBase<ErrorType>>;
 } // namespace coruring
