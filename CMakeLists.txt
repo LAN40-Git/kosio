@@ -38,6 +38,8 @@ add_library(coruring STATIC
         coruring/lib/runtime/scheduler/multi_thread/worker.cpp
         coruring/lib/runtime/timer/entry.cpp
         coruring/lib/runtime/timer/timer.cpp
+        coruring/lib/runtime/timer/wheel/level.cpp
+        coruring/lib/runtime/timer/wheel/wheel.cpp
 )
 
 target_include_directories(coruring PUBLIC

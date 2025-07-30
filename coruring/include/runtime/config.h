@@ -41,3 +41,5 @@ struct Config {
     std::size_t submit_interval{SUBMIT_INTERVAL};
 };
 } // namespace coruring::runtime::detail
+
+// TODO: 添加对Config的格式化特化以支持读取配置文件
