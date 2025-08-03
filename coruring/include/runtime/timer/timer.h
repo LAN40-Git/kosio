@@ -16,11 +16,11 @@ public:
 public:
     // Add a timeout entry
     [[nodiscard]]
-    auto add_entry(io::detail::Callback *data, uint64_t expiration_time) noexcept
+    auto insert(io::detail::Callback *data, uint64_t expiration_time) noexcept
     -> std::expected<Entry*, std::error_code>;
 
     // Remove a timeout entry
-    void remove_entry(Entry* entry) noexcept;
+    void remove(Entry* entry) noexcept;
 
     //
 

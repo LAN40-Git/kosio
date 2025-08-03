@@ -1,6 +1,6 @@
 #include "runtime/timer/timer.h"
 
-auto coruring::runtime::timer::Timer::add_entry(io::detail::Callback* data,
+auto coruring::runtime::timer::Timer::insert(io::detail::Callback* data,
     uint64_t expiration_time) noexcept -> std::expected<Entry*, std::error_code> {
     if (expiration_time <= start_) [[unlikely]] {
         return std::unexpected{std::error_code{static_cast<int>(std::errc::invalid_argument),
@@ -12,13 +12,13 @@ auto coruring::runtime::timer::Timer::add_entry(io::detail::Callback* data,
                  std::system_category()}};
     }
     auto entry = std::make_unique<Entry>(Entry{data, expiration_time});
-    return wheel_.add_entry(std::move(entry), remaining_ms);
+    return wheel_.insert(std::move(entry), remaining_ms);
 }
 
-void coruring::runtime::timer::Timer::remove_entry(Entry* entry) noexcept {
+void coruring::runtime::timer::Timer::remove(Entry* entry) noexcept {
     if (entry->expiration_time_ <= start_) [[unlikely]] {
         return;
     }
 
-    wheel_.remove_entry(entry, entry->expiration_time_ - start_);
+    wheel_.remove(entry, entry->expiration_time_ - start_);
 }
