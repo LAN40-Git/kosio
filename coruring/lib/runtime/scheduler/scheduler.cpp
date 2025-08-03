@@ -24,7 +24,7 @@ void coruring::runtime::detail::Scheduler::stop() {
     }
     workers_.clear();
     // 清理协程资源
-    std::array<std::coroutine_handle<>, runtime::detail::Config::IO_BATCH_SIZE> event_buf;
+    std::array<std::coroutine_handle<>, IO_BATCH_SIZE> event_buf;
     for (auto handle : handles_ | std::views::keys) {
         handle.destroy();
     }

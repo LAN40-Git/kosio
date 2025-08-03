@@ -4,7 +4,8 @@
 namespace coruring::runtime::timer::wheel::detail {
 class Level {
 public:
-
+    explicit Level(std::size_t level)
+        : level_(level) {}
 
 private:
     std::size_t level_;

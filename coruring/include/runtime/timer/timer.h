@@ -1,8 +1,9 @@
 #pragma once
+#include "common/util/time.h"
 #include "wheel/wheel.h"
 #include "runtime/config.h"
 
-namespace coruring::runtime::detail {
+namespace coruring::runtime::timer {
 class Timer;
 
 inline thread_local Timer *t_timer{nullptr};
@@ -24,7 +25,7 @@ public:
     //
 
 private:
-    uint64_t      start_{util::current_ms()};
-    Wheel wheel_;
+    uint64_t     start_{util::current_ms()};
+    wheel::Wheel wheel_;
 };
-} // namespace coruring::runtime
+} // namespace coruring::runtime::timer

@@ -1,12 +1,10 @@
 #pragma once
 #include <array>
-#include <bitset>
 #include <list>
 #include "runtime/config.h"
-#include "common/util/time.h"
 #include "common/error.h"
 #include "runtime/timer/entry.h"
-#include "runtime/timer/wheel/level..h"
+#include "runtime/timer/wheel/level.h"
 
 namespace coruring::runtime::timer::wheel {
 class Wheel : util::Noncopyable {
@@ -49,9 +47,9 @@ private:
     void cascade_entries(std::size_t level) noexcept;
 
 private:
-    using Level = std::array<wheel::detail::Level, runtime::detail::NUM_LEVELS>;
-    uint64_t  elapsed_{0}; // 自时间轮创建起过去的时间（ms）
-    Level     levels_;     // 分层时间轮的各个层级
-    EntryList pending_;    // 到期的事件
+    using Level = std::array<detail::Level, runtime::detail::NUM_LEVELS>;
+    uint64_t                 elapsed_{0}; // 自时间轮创建起过去的时间（ms）
+    Level                    levels_;     // 分层时间轮的各个层级
+    timer::detail::EntryList pending_;    // 到期的事件
 };
 } // namespace coruring::runtime::timer::wheel

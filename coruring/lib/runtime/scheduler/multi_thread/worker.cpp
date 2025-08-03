@@ -28,8 +28,8 @@ void coruring::runtime::multi_thread::detail::Worker::stop() {
 }
 
 void coruring::runtime::multi_thread::detail::Worker::event_loop() {
-    std::array<io_uring_cqe*, runtime::detail::Config::PEEK_BATCH_SIZE> cqes{};
-    std::array<std::coroutine_handle<>, runtime::detail::Config::IO_BATCH_SIZE> event_buf;
+    std::array<io_uring_cqe*, runtime::detail::PEEK_BATCH_SIZE> cqes{};
+    std::array<std::coroutine_handle<>, runtime::detail::IO_BATCH_SIZE> event_buf;
     auto& workers = scheduler_.workers();
     auto& handles = scheduler_.handles();
     long long wait_ms = 1;
@@ -46,10 +46,10 @@ void coruring::runtime::multi_thread::detail::Worker::event_loop() {
         }
 
         // 2. 立即提交请求
-        runtime::detail::IoUring::instance().submit();
+        runtime::detail::t_ring->submit();
 
         // 3. 收割完成队列
-        count = runtime::detail::IoUring::instance().peek_batch(cqes);
+        count = runtime::detail::t_ring->peek_batch(cqes);
         for (std::size_t i = 0; i < count; ++i) {
             auto cb = reinterpret_cast<io::detail::Callback *>(cqes[i]->user_data);
             if (cb != nullptr) [[likely]] {
@@ -61,12 +61,12 @@ void coruring::runtime::multi_thread::detail::Worker::event_loop() {
             }
         }
         if (count > 0) {
-            runtime::detail::IoUring::instance().consume(count);
+            runtime::detail::t_ring->consume(count);
             wait_ms = 1;
         } else {
             if (local_queue_.size_approx() == 0 && scheduler_.global_queue().size_approx() == 0) {
                 constexpr long long NS_PER_MS = 1000000;
-                if (Timer::instance().is_idle()) {
+                if (timer::t_timer->is_idle()) {
                     wait_ms = std::min(wait_ms*2, 100LL);
                 } else {
                     wait_ms = 1;
@@ -76,7 +76,7 @@ void coruring::runtime::multi_thread::detail::Worker::event_loop() {
         }
 
         // 4. 推进分层时间轮
-        Timer::instance().tick();
+        timer::t_timer->tick();
 
         // 5. 窃取任务
         // 从全局队列窃取
@@ -90,13 +90,13 @@ void coruring::runtime::multi_thread::detail::Worker::event_loop() {
         }
         auto tasks = local_tasks();
         auto average_tasks = handles.size()/worker_nums; // 计算平均任务
-        if (tasks * runtime::detail::Config::STEAL_FACTOR < average_tasks) {
+        if (tasks * runtime::detail::STEAL_FACTOR < average_tasks) {
             auto worker_idx = util::FastRand::instance().rand_range(0, worker_nums-1);
             auto& worker = workers[worker_idx];
             if (worker.get() == this) {
                 continue;
             }
-            std::size_t steal_threshold = average_tasks * runtime::detail::Config::STEAL_FACTOR; // 窃取阈值（窃取任务数大于此阈值的线程）
+            std::size_t steal_threshold = average_tasks * runtime::detail::STEAL_FACTOR; // 窃取阈值（窃取任务数大于此阈值的线程）
             auto peer_tasks = worker->local_tasks();
             if (peer_tasks > steal_threshold) {
                 auto& peer_queue = worker->local_queue();
