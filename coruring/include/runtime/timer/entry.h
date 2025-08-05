@@ -3,35 +3,29 @@
 #include "runtime/io/io_uring.h"
 #include "io/base/callback.h"
 #include <optional>
+#include <list>
 
 namespace coruring::runtime::timer {
 namespace detail {
-
-class TimerShared {
-public:
-    explicit TimerShared(uint64_t when, uint64_t register_when) noexcept
-        : when_(when), register_when_(register_when) {}
-
-public:
-    auto when() const noexcept -> uint64_t { return when_; }
-    void set_expiration(uint64_t expiration) noexcept { when_ = expiration; }
-    auto register_when() const noexcept -> uint64_t { return register_when_; }
-    void set_register_when(uint64_t register_when) noexcept { register_when_ = register_when; }
-
-
-private:
-    uint64_t when_;
-    uint64_t register_when_;
-};
-
-class TimerHandle {
-public:
-    explicit TimerHandle(TimerShared inner);
-
-private:
-    TimerShared inner_;
-};
+// 编译期计算出每层时间轮的时间跨度
+static constexpr auto compute_precision() {
+    std::array<std::size_t, runtime::detail::NUM_LEVELS> precision{};
+    precision[0] = 64;
+    for (std::size_t i = 1; i < runtime::detail::NUM_LEVELS; i++) {
+        precision[i] = precision[i - 1] * runtime::detail::LEVEL_MULT;
+    }
+    return precision;
+}
 } // namespace detail
+
+// 时间轮最大时间跨度
+static constexpr uint64_t MAX_DURATION = (1ULL << (6 * runtime::detail::NUM_LEVELS)) - 1;
+
+// 掩码，X & MASK = X % LEVEL_MULT
+static constexpr std::size_t SLOT_MASK = runtime::detail::LEVEL_MULT - 1;
+
+// 位移数，X >> SHIFT = X / LEVEL_MULT
+static constexpr std::size_t SHIFT = std::countr_zero(runtime::detail::LEVEL_MULT);
 
 class Entry {
 public:
@@ -50,6 +44,7 @@ public:
 
 namespace detail {
 // Only used in wheel
-using EntryList = std::array<Entry, runtime::detail::LEVEL_MULT>;
+using EntryList = std::list<std::unique_ptr<Entry>>;
+using Slots = std::array<EntryList, runtime::detail::LEVEL_MULT>;
 } // namespace detail
 } // namespace coruring::runtime::timer

@@ -17,12 +17,9 @@ public:
     // Add a timeout entry
     [[nodiscard]]
     auto insert(io::detail::Callback *data, uint64_t expiration_time) noexcept
-    -> std::expected<Entry*, std::error_code>;
-
+    -> Result<Entry*, TimerError>;
     // Remove a timeout entry
     void remove(Entry* entry) noexcept;
-
-    //
 
 private:
     uint64_t     start_{util::current_ms()};

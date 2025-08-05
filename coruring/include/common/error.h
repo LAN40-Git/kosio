@@ -90,6 +90,7 @@ public:
     enum Code {
         kUnknown = detail::TimerErrorCodeBase,
         kPassedTime,
+        kTooLongTime,
     };
 
 public:
@@ -104,6 +105,8 @@ public:
                 return "Unknown timer error.";
             case kPassedTime:
                 return "Time has passed.";
+            case kTooLongTime:
+                return "Time is too long.";
             default:
                 return strerror(error_code_);
         }
