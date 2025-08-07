@@ -21,10 +21,10 @@ public:
     }
 
 public:
-    void wait()
+    void wait();
 
 private:
-    IoUring ring_;
-    Timer   timer_;
+    IoUring      ring_;
+    timer::Timer timer_;
 };
 } // namespace coruring::runtime::detail

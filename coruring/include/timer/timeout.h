@@ -18,7 +18,7 @@ class Timeout : public T {
     public:
         auto await_suspend(std::coroutine_handle<> handle) -> bool {
             // 尝试创建定时任务
-            if (auto ret = runtime::timer::t_timer->add_entry(&this->cb_, this->cb_.deadline_)) [[likely]] {
+            if (auto ret = runtime::timer::t_timer->insert(&this->cb_, this->cb_.deadline_)) [[likely]] {
                 this->cb_.entry_ = ret.value();
                 T::await_suspend(handle);
                 return true;

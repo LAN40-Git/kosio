@@ -10,8 +10,12 @@ inline thread_local Timer *t_timer{nullptr};
 
 class Timer : public util::Noncopyable {
 public:
-    Timer() = default;
-    ~Timer() = default;
+    Timer() {
+        t_timer = this;
+    }
+    ~Timer() {
+        t_timer = nullptr;
+    }
 
 public:
     // Add a timeout entry

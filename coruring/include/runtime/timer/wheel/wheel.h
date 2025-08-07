@@ -17,6 +17,7 @@ public:
     auto insert(std::unique_ptr<Entry> entry, uint64_t when) const noexcept
     -> Result<Entry*, TimerError>;
     static void remove(Entry* entry) noexcept;
+    auto next_expiration_time() -> std::optional<uint64_t>;
 
 private:
     [[nodiscard]]

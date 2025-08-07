@@ -14,6 +14,10 @@ inline thread_local IoUring* t_ring{nullptr};
 
 class IoUring {
 public:
+    explicit IoUring(const Config& config);
+    ~IoUring() {
+        io_uring_queue_exit(&ring_);
+    }
     IoUring(const IoUring&) = delete;
     IoUring& operator=(const IoUring&) = delete;
 
@@ -43,12 +47,6 @@ public:
     void pend_submit_batch(std::size_t count);
     // 立即提交请求
     void submit();
-
-private:
-    explicit IoUring(Config config);
-    ~IoUring() {
-        io_uring_queue_exit(&ring_);
-    }
 
 private:
     struct io_uring ring_{};
