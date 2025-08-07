@@ -21,6 +21,9 @@ static constexpr auto compute_precision() {
 // 时间轮最大时间跨度
 static constexpr uint64_t MAX_DURATION = (1ULL << (6 * runtime::detail::NUM_LEVELS)) - 1;
 
+// 时间轮每层时间跨度
+static constexpr auto PRECISION = timer::detail::compute_precision();
+
 // 掩码，X & MASK = X % LEVEL_MULT
 static constexpr std::size_t SLOT_MASK = runtime::detail::LEVEL_MULT - 1;
 

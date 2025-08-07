@@ -1,9 +1,7 @@
 #include "runtime/timer/entry.h"
 
-
-
 void coruring::runtime::timer::Entry::execute() const {
-    // 操作完成时，data_ 会被设置为 nullptr
+    // 操作完成或被取消时，data_ 会被设置为 nullptr
     // 若操作未完成则提交取消请求
     if (data_) {
         if (auto sqe = runtime::detail::t_ring->get_sqe()) [[likely]] {
