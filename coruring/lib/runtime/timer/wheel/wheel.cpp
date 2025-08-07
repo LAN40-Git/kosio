@@ -6,8 +6,8 @@ coruring::runtime::timer::wheel::Wheel::Wheel() {
     }
 }
 
-auto coruring::runtime::timer::wheel::Wheel::insert(std::unique_ptr<Entry> entry,
-                                                    uint64_t when) const noexcept -> Result<Entry *, TimerError> {
+auto coruring::runtime::timer::wheel::Wheel::insert(std::unique_ptr<Entry> entry, uint64_t when)
+const noexcept -> Result<Entry *, TimerError> {
     if (when <= elapsed_) {
         return std::unexpected{make_error<TimerError>(TimerError::kPassedTime)};
     }
@@ -20,14 +20,16 @@ auto coruring::runtime::timer::wheel::Wheel::insert(std::unique_ptr<Entry> entry
     return entry_ptr;
 }
 
-void coruring::runtime::timer::wheel::Wheel::remove(Entry *entry) noexcept {
-    // 标记为已完成
-    if (entry) {
-        entry->data_ = nullptr;
+auto coruring::runtime::timer::wheel::Wheel::next_expiration_time(uint64_t start_ms)
+const noexcept -> std::optional<uint64_t> {
+    auto expiration_time = levels_[0]->next_expiration_time(start_ms + elapsed_);
+    if (expiration_time) {
+
     }
 }
 
-auto coruring::runtime::timer::wheel::Wheel::level_for(uint64_t remaining_ms) const noexcept -> std::size_t {
+auto coruring::runtime::timer::wheel::Wheel::level_for(uint64_t remaining_ms)
+    noexcept -> std::size_t {
     std::size_t level = 0;
     while (remaining_ms >= PRECISION[level]) {
         level++;

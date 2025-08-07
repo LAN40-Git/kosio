@@ -16,14 +16,12 @@ public:
     [[nodiscard]]
     auto insert(std::unique_ptr<Entry> entry, uint64_t when) const noexcept
     -> Result<Entry*, TimerError>;
-    static void remove(Entry* entry) noexcept;
-    auto next_expiration_time() -> std::optional<uint64_t>;
+    [[nodiscard]]
+    auto next_expiration_time(uint64_t start_ms) const noexcept -> std::optional<uint64_t>;
 
 private:
     [[nodiscard]]
-    auto level_for(uint64_t remaining_ms) const noexcept -> std::size_t;
-    void handle_expired_entries() noexcept;
-    void cascade_entries(std::size_t level) noexcept;
+    static auto level_for(uint64_t remaining_ms) noexcept -> std::size_t;
 
 private:
     using Level = std::array<std::unique_ptr<detail::Level>, runtime::detail::NUM_LEVELS>;

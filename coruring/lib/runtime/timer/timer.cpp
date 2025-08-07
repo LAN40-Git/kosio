@@ -14,5 +14,11 @@ auto coruring::runtime::timer::Timer::insert(io::detail::Callback* data,
 }
 
 void coruring::runtime::timer::Timer::remove(Entry* entry) noexcept {
-    wheel::Wheel::remove(entry);
+    if (entry) {
+        entry->data_ = nullptr;
+    }
+}
+
+auto coruring::runtime::timer::Timer::next_expiration_time() const noexcept -> std::optional<uint64_t> {
+    return wheel_.next_expiration_time(start_);
 }

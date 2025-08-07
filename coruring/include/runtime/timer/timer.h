@@ -24,6 +24,8 @@ public:
     -> Result<Entry*, TimerError>;
     // Remove a timeout entry
     static void remove(Entry* entry) noexcept;
+    [[nodiscard]]
+    auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
 
 private:
     uint64_t     start_{util::current_ms()};
