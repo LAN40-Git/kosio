@@ -10,13 +10,8 @@ inline thread_local Timer *t_timer{nullptr};
 
 class Timer : public util::Noncopyable {
 public:
-    Timer() {
-        t_timer = this;
-    }
-    ~Timer() {
-        t_timer = nullptr;
-    }
-
+    Timer() noexcept;
+    ~Timer();
     Timer(Timer &&) = delete;
     auto operator=(Timer &&) -> Timer& = delete;
 

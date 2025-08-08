@@ -1,5 +1,13 @@
 #include "runtime/timer/timer.h"
 
+coruring::runtime::timer::Timer::Timer() noexcept {
+    t_timer = this;
+}
+
+coruring::runtime::timer::Timer::~Timer() {
+    t_timer = nullptr;
+}
+
 auto coruring::runtime::timer::Timer::insert(coruring::io::detail::Callback* data
                                              , uint64_t expiration_time)
 const noexcept -> Result<Entry*, TimerError> {
