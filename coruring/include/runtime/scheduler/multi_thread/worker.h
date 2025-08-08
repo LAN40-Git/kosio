@@ -11,7 +11,7 @@ namespace coruring::runtime::detail {
 class Scheduler;
 } // namespace coruring::runtime::detail
 
-namespace coruring::runtime::multi_thread::detail {
+namespace coruring::runtime::scheduler::multi_thread::detail {
 class Worker : public util::Noncopyable {
     using TaskQueue = moodycamel::ConcurrentQueue<std::coroutine_handle<>>;
 public:
@@ -44,4 +44,4 @@ private:
     runtime::detail::Scheduler&    scheduler_;
     std::atomic<std::size_t>       local_tasks_{0};
 };
-} // namespace coruring::runtime::multi_thread::detail
+} // namespace coruring::runtime::scheduler::multi_thread::detail

@@ -10,7 +10,7 @@ public:
 public:
     void add_entry(std::unique_ptr<Entry> entry, uint64_t remaining_ms);
     [[nodiscard]]
-    auto next_expiration_time(uint64_t now_ms) const noexcept -> std::optional<uint64_t>;
+    auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
 
 private:
     [[nodiscard]]

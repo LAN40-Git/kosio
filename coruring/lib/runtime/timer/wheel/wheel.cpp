@@ -20,12 +20,14 @@ const noexcept -> Result<Entry *, TimerError> {
     return entry_ptr;
 }
 
-auto coruring::runtime::timer::wheel::Wheel::next_expiration_time(uint64_t start_ms)
+auto coruring::runtime::timer::wheel::Wheel::next_expiration_time()
 const noexcept -> std::optional<uint64_t> {
-    auto expiration_time = levels_[0]->next_expiration_time(start_ms + elapsed_);
-    if (expiration_time) {
-
+    for (auto level = 0; level < runtime::detail::NUM_LEVELS; ++level) {
+        if (auto expiration_time = levels_[level]->next_expiration_time()) {
+            return expiration_time;
+        }
     }
+    return std::nullopt;
 }
 
 auto coruring::runtime::timer::wheel::Wheel::level_for(uint64_t remaining_ms)

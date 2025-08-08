@@ -33,7 +33,7 @@ static constexpr std::size_t SHIFT = std::countr_zero(runtime::detail::LEVEL_MUL
 class Entry {
 public:
     Entry() = default;
-    explicit Entry(io::detail::Callback *data, uint64_t expiration_time)
+    explicit Entry(coruring::io::detail::Callback *data, uint64_t expiration_time)
         : data_{data}
         , expiration_time_{expiration_time} {}
 
@@ -41,8 +41,8 @@ public:
     void execute() const;
 
 public:
-    io::detail::Callback *data_{};            // 提交到 io_uring 的数据
-    uint64_t              expiration_time_{}; // 绝对超时时间（毫秒）
+    coruring::io::detail::Callback *data_{};            // 提交到 io_uring 的数据
+    uint64_t                        expiration_time_{}; // 绝对超时时间（毫秒）
 };
 
 namespace detail {

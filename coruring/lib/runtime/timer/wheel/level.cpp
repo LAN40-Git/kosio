@@ -6,7 +6,7 @@ void coruring::runtime::timer::wheel::detail::Level::add_entry(std::unique_ptr<E
     occupied_ |= (1ULL << slot);
 }
 
-auto coruring::runtime::timer::wheel::detail::Level::next_expiration_time(uint64_t now_ms)
+auto coruring::runtime::timer::wheel::detail::Level::next_expiration_time()
 const noexcept -> std::optional<uint64_t> {
     if (occupied_ == 0) return std::nullopt;
 
@@ -15,7 +15,7 @@ const noexcept -> std::optional<uint64_t> {
 
     std::size_t next_slot = __builtin_ctzll(masked);
     auto ticks = (next_slot - current_slot) & SLOT_MASK;
-    return now_ms + ticks * PRECISION[level_];
+    return ticks * PRECISION[level_];
 }
 
 auto coruring::runtime::timer::wheel::detail::Level::slot_for(uint64_t remaining_ms)

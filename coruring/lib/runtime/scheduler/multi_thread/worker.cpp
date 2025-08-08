@@ -5,7 +5,7 @@
 #include "runtime/scheduler/scheduler.h"
 #include "common/util/random.h"
 
-void coruring::runtime::multi_thread::detail::Worker::run() {
+void coruring::runtime::scheduler::multi_thread::detail::Worker::run() {
     std::lock_guard lock(mutex_);
     if (is_running_) {
         return;
@@ -16,7 +16,7 @@ void coruring::runtime::multi_thread::detail::Worker::run() {
     });
 }
 
-void coruring::runtime::multi_thread::detail::Worker::stop() {
+void coruring::runtime::scheduler::multi_thread::detail::Worker::stop() {
     std::lock_guard lock(mutex_);
     if (!is_running_) {
         return;
@@ -27,7 +27,7 @@ void coruring::runtime::multi_thread::detail::Worker::stop() {
     }
 }
 
-void coruring::runtime::multi_thread::detail::Worker::event_loop() {
+void coruring::runtime::scheduler::multi_thread::detail::Worker::event_loop() {
     std::array<io_uring_cqe*, runtime::detail::PEEK_BATCH_SIZE> cqes{};
     std::array<std::coroutine_handle<>, runtime::detail::IO_BATCH_SIZE> event_buf;
     auto& workers = scheduler_.workers();
@@ -71,7 +71,7 @@ void coruring::runtime::multi_thread::detail::Worker::event_loop() {
                 } else {
                     wait_ms = 1;
                 }
-                runtime::detail::IoUring::instance().wait(0, wait_ms*NS_PER_MS);
+                runtime::io::IoUring::instance().wait(0, wait_ms*NS_PER_MS);
             }
         }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "runtime/config.h"
+#include "common/util/nocopyable.h"
 #include <cstring>
 #include <format>
 #include <liburing.h>
@@ -7,19 +8,15 @@
 #include <coroutine>
 #include <unordered_set>
 
-namespace coruring::runtime::detail {
+namespace coruring::runtime::io {
 class IoUring;
 
 inline thread_local IoUring* t_ring{nullptr};
 
-class IoUring {
+class IoUring : util::Noncopyable {
 public:
-    explicit IoUring(const Config& config);
-    ~IoUring() {
-        io_uring_queue_exit(&ring_);
-    }
-    IoUring(const IoUring&) = delete;
-    IoUring& operator=(const IoUring&) = delete;
+    explicit IoUring(const detail::Config& config);
+    ~IoUring();
 
 public:
     [[nodiscard]]
@@ -33,10 +30,8 @@ public:
     [[nodiscard]]
     auto peek_cqe(io_uring_cqe **cqe) -> int;
 
-    // 阻塞等待一个请求完成（无限等待）
-    void wait();
-    // 阻塞等待一个请求完成（超时等待）
-    void wait(long long tv_sec, long long tv_nsec);
+    // 阻塞等待一个请求完成
+    void wait(std::optional<time_t> timeout_ms);
     // 收割多个请求
     void consume(std::size_t count) { io_uring_cq_advance(&ring_, count); }
     // 收割一个请求
@@ -49,8 +44,8 @@ public:
     void submit();
 
 private:
-    struct io_uring ring_{};
+    io_uring ring_{};
     uint32_t submit_tick_{0};
     uint32_t submit_interval_;
 };
-} // namespace coruring::runtime::detail
+} // namespace coruring::runtime::io

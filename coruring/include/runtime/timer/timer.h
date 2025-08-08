@@ -17,10 +17,13 @@ public:
         t_timer = nullptr;
     }
 
+    Timer(Timer &&) = delete;
+    auto operator=(Timer &&) -> Timer& = delete;
+
 public:
     // Add a timeout entry
     [[nodiscard]]
-    auto insert(io::detail::Callback *data, uint64_t expiration_time) const noexcept
+    auto insert(coruring::io::detail::Callback *data, uint64_t expiration_time) const noexcept
     -> Result<Entry*, TimerError>;
     // Remove a timeout entry
     static void remove(Entry* entry) noexcept;

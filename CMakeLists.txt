@@ -40,6 +40,8 @@ add_library(coruring STATIC
         coruring/lib/runtime/timer/timer.cpp
         coruring/lib/runtime/timer/wheel/level.cpp
         coruring/lib/runtime/timer/wheel/wheel.cpp
+        coruring/lib/runtime/task/waker.cpp
+        coruring/lib/runtime/driver.cpp
 )
 
 target_include_directories(coruring PUBLIC
