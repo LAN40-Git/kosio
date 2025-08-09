@@ -1,8 +1,7 @@
 #pragma once
-#include "runtime/driver.h"
 
 namespace coruring::runtime::scheduler::multi_thread {
-class Handle {
-    
+class Shared {
+
 };
 } // namespace coruring::runtime::scheduler::multi_thread
