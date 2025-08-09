@@ -7,28 +7,33 @@
 
 namespace coruring::runtime::timer {
 namespace detail {
-// 编译期计算出每层时间轮的时间跨度
-static constexpr auto compute_precision() {
-    std::array<std::size_t, runtime::detail::NUM_LEVELS> precision{};
-    precision[0] = 64;
-    for (std::size_t i = 1; i < runtime::detail::NUM_LEVELS; i++) {
-        precision[i] = precision[i - 1] * runtime::detail::LEVEL_MULT;
+static constexpr auto compute_slot_range() -> std::array<uint64_t, runtime::detail::NUM_LEVELS> {
+    std::array<uint64_t, runtime::detail::NUM_LEVELS> slot_range{};
+    slot_range[0] = 1;
+    for (auto i = 1; i < runtime::detail::NUM_LEVELS; i++) {
+        slot_range[i] = slot_range[i - 1] * runtime::detail::LEVEL_MULT;
     }
-    return precision;
+    return slot_range;
+}
+
+static constexpr auto compute_level_range() -> std::array<uint64_t, runtime::detail::NUM_LEVELS> {
+    std::array<uint64_t, runtime::detail::NUM_LEVELS> level_range{};
+    level_range[0] = 64;
+    for (auto i = 1; i < runtime::detail::NUM_LEVELS; i++) {
+        level_range[i] = level_range[i - 1] * runtime::detail::LEVEL_MULT;
+    }
+    return level_range;
 }
 } // namespace detail
 
 // 时间轮最大时间跨度
 static constexpr uint64_t MAX_DURATION = (1ULL << (6 * runtime::detail::NUM_LEVELS)) - 1;
 
-// 时间轮每层时间跨度
-static constexpr auto PRECISION = timer::detail::compute_precision();
+// 每层槽位对应的时间跨度
+static constexpr auto SLOT_RANGE = detail::compute_slot_range();
 
-// 掩码，X & MASK = X % LEVEL_MULT
-static constexpr std::size_t SLOT_MASK = runtime::detail::LEVEL_MULT - 1;
-
-// 位移数，X >> SHIFT = X / LEVEL_MULT
-static constexpr std::size_t SHIFT = std::countr_zero(runtime::detail::LEVEL_MULT);
+// 每层对应的时间跨度
+static constexpr auto LEVEL_RANGE = detail::compute_level_range();
 
 class Entry {
 public:

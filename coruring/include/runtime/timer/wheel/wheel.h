@@ -2,7 +2,6 @@
 #include <array>
 #include <list>
 #include "runtime/config.h"
-#include "runtime/timer/entry.h"
 #include "runtime/timer/wheel/level.h"
 #include "common/error.h"
 
@@ -18,10 +17,12 @@ public:
     -> Result<Entry*, TimerError>;
     [[nodiscard]]
     auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
+    [[nodiscard]]
+    auto handle_expired_entries(uint64_t now);
 
 private:
     [[nodiscard]]
-    static auto level_for(uint64_t remaining_ms) noexcept -> std::size_t;
+    static auto level_for(uint64_t when) noexcept -> std::size_t;
 
 private:
     using Level = std::array<std::unique_ptr<detail::Level>, runtime::detail::NUM_LEVELS>;

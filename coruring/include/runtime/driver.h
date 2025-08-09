@@ -15,7 +15,34 @@ public:
     ~Driver();
 
 public:
-    void wait();
+    template <typename LocalQueue>
+    void wait(LocalQueue &local_queue) {
+        ring_.wait(timer_.next_expiration_time());
+        poll(local_queue);
+    }
+
+    template <typename LocalQueue>
+    auto poll(LocalQueue &local_queue) {
+        std::array<io_uring_cqe *, PEEK_BATCH_SIZE> cqes;
+        auto count = ring_.peek_batch(cqes);
+        for (auto i = 0; i < count; ++i) {
+            auto cb = reinterpret_cast<coruring::io::detail::Callback *>(cqes[i]->user_data);
+            if (cb) [[likely]] {
+                // 若 cb->entry_ != nullptr，说明事件还未被 timer 取消
+                // 将事件放入本地或全局队列
+                if (cb->entry_) {
+                    // 将事件标从分层时间轮中移除（本质是将 entry_->data_ 设置为 nullptr）
+                    timer_.remove(cb->entry_);
+                }
+                cb->result_ = cqes[i]->res;
+                local_queue.enqueue(std::move(cb->handle_));
+            }
+        }
+
+        ring_.consume(count);
+
+
+    }
 
 private:
     io::IoUring        ring_;

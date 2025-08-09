@@ -21,11 +21,8 @@ static_assert(NUM_LEVELS > 0, "MAX_LEVEL must be greater than 0");
 static inline constexpr std::size_t LEVEL_MULT = 64;
 static_assert((LEVEL_MULT & (LEVEL_MULT - 1)) == 0, "SLOTS must be a power of 2");
 
-// 分层时间轮精度（毫秒）
-static inline constexpr std::size_t TICK_MS = 1;
-
 // 工作线程每次从本地队列中恢复的 io 事件的最大数量
-static inline constexpr std::size_t IO_BATCH_SIZE = 64;
+static inline constexpr std::size_t IO_INTERVAL = 64;
 
 // 工作线程每次从 io_uring 完成队列中收割的完成事件的最大数量
 static inline constexpr std::size_t PEEK_BATCH_SIZE = 128;

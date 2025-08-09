@@ -8,13 +8,15 @@ public:
         : level_(level) {}
 
 public:
-    void add_entry(std::unique_ptr<Entry> entry, uint64_t remaining_ms);
+    void add_entry(std::unique_ptr<Entry> entry, uint64_t when);
     [[nodiscard]]
-    auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
+    auto next_expiration_time(uint64_t now) const noexcept -> std::optional<uint64_t>;
+    [[nodiscard]]
+    auto next_occupied_slot(uint64_t now) const noexcept -> std::optional<uint64_t>;
 
 private:
     [[nodiscard]]
-    auto slot_for(uint64_t remaining_ms) const noexcept -> std::size_t;
+    auto slot_for(uint64_t duration) const noexcept -> std::size_t;
 
 private:
     // 当前层级

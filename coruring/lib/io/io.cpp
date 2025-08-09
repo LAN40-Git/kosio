@@ -43,12 +43,12 @@ auto coruring::io::detail::FD::nonblocking() const noexcept -> std::expected<boo
 }
 
 void coruring::io::detail::FD::do_close() noexcept {
-    auto sqe = runtime::detail::t_ring->get_sqe();
+    auto sqe = runtime::io::t_ring->get_sqe();
     if (sqe) [[likely]] {
         // async close
         io_uring_prep_close(sqe, fd_);
         io_uring_sqe_set_data(sqe, nullptr);
-        runtime::detail::t_ring->pend_submit();
+        runtime::io::t_ring->pend_submit();
     } else {
         // sync close
         for (auto i = 0; i < 3; ++i) {

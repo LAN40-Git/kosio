@@ -23,7 +23,14 @@ public:
     // Remove a timeout entry
     static void remove(Entry* entry) noexcept;
     [[nodiscard]]
+    // 这里返回的是相对时间，即当前时间距离下一个事件到期的时间间隔（ms）
     auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
+
+public:
+    [[nodiscard]]
+    auto handle_expired_entries() {
+        return wheel_.handle_expired_entries(util::current_ms() - start_);
+    }
 
 private:
     uint64_t     start_{util::current_ms()};
