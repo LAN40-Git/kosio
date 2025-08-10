@@ -30,6 +30,7 @@ const noexcept -> std::optional<uint64_t> {
 }
 
 auto coruring::runtime::timer::wheel::Wheel::handle_expired_entries(uint64_t now) {
+    elapsed_ = now;
 
 }
 

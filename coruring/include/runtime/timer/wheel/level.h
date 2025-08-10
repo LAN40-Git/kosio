@@ -12,7 +12,9 @@ public:
     [[nodiscard]]
     auto next_expiration_time(uint64_t now) const noexcept -> std::optional<uint64_t>;
     [[nodiscard]]
-    auto next_occupied_slot(uint64_t now) const noexcept -> std::optional<uint64_t>;
+    auto next_occupied_slot(uint64_t now) const noexcept -> std::optional<std::size_t>;
+    [[nodiscard]]
+    auto take_slot(std::size_t slot) -> timer::detail::EntryList;
 
 private:
     [[nodiscard]]
@@ -23,8 +25,6 @@ private:
     std::size_t          level_;
     // 最低有效位表示时隙零
     uint64_t             occupied_{};
-    // 层级时间轮当前所在槽位
-    std::size_t          current_slot{0};
     // 槽位，用于存储任务队列
     timer::detail::Slots slots_{};
 };

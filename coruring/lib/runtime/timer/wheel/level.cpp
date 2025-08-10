@@ -30,17 +30,24 @@ const noexcept -> std::optional<uint64_t> {
 }
 
 auto coruring::runtime::timer::wheel::detail::Level::next_occupied_slot(uint64_t now)
-const noexcept -> std::optional<uint64_t> {
+const noexcept -> std::optional<std::size_t> {
     if (occupied_ == 0) {
         return std::nullopt;
     }
 
     auto now_slot = now / SLOT_RANGE[level_];
-    auto occupied = std::rotr(occupied_, now_slot);
+    auto occupied = std::rotr(occupied_, static_cast<int>(now_slot));
     auto zeros = std::countr_zero(occupied);
     auto slot = (zeros + now_slot) % runtime::detail::LEVEL_MULT;
 
     return slot;
+}
+
+auto coruring::runtime::timer::wheel::detail::Level::take_slot(std::size_t slot) -> timer::detail::EntryList {
+    timer::detail::EntryList entries;
+    std::swap(entries, slots_[slot]);
+    occupied_ &= ~(1ULL << slot);
+    return entries;
 }
 
 auto coruring::runtime::timer::wheel::detail::Level::slot_for(uint64_t duration)
