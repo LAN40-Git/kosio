@@ -50,9 +50,12 @@ public:
     uint64_t                        expiration_time_{}; // 绝对超时时间（毫秒）
 };
 
-namespace detail {
-// Only used in wheel
+struct Expiration {
+    std::size_t level;
+    std::size_t slot;
+    uint64_t deadline;
+};
+
 using EntryList = std::list<std::unique_ptr<Entry>>;
 using Slots = std::array<EntryList, runtime::detail::LEVEL_MULT>;
-} // namespace detail
 } // namespace coruring::runtime::timer

@@ -32,3 +32,7 @@ auto coruring::runtime::timer::Timer::next_expiration_time()
 const noexcept -> std::optional<uint64_t> {
     return wheel_.next_expiration_time();
 }
+
+void coruring::runtime::timer::Timer::handle_expired_entries() {
+    wheel_.handle_expired_entries(util::current_ms() - start_);
+}

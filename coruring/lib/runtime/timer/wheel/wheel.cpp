@@ -19,26 +19,37 @@ const noexcept -> Result<Entry *, TimerError> {
     return entry_ptr;
 }
 
-auto coruring::runtime::timer::wheel::Wheel::next_expiration_time()
-const noexcept -> std::optional<uint64_t> {
+auto coruring::runtime::timer::wheel::Wheel::next_expiration()
+const noexcept -> std::optional<Expiration> {
     // 如果有需要到期的事件，则返回 0 表示有事件需要立即处理
     if (!pending_.empty()) {
-        return 0;
+        return Expiration{0, 0, elapsed_};
     }
 
     // 否则从第 0 层开始遍历获取到 最近一个非空事件所在位置
     for (auto level = 0; level < runtime::detail::NUM_LEVELS; ++level) {
-        if (auto expiration_time = levels_[level]->next_expiration_time(elapsed_)) {
-            return expiration_time;
+        if (auto expiration = levels_[level]->next_expiration(elapsed_)) {
+            return expiration;
         }
     }
     // 返回空表示可以无限睡眠直到被唤醒
     return std::nullopt;
 }
 
-auto coruring::runtime::timer::wheel::Wheel::handle_expired_entries(uint64_t now) {
+void coruring::runtime::timer::wheel::Wheel::handle_expired_entries(uint64_t now) {
     elapsed_ = now;
 
+    auto max_level = level_for(now);
+    auto expiration = this->next_expiration();
+    while (expiration) {
+        auto entries = take_entries(expiration.value());
+
+    }
+}
+
+auto coruring::runtime::timer::wheel::Wheel::take_entries(Expiration expiration)
+const noexcept -> EntryList {
+    return levels_[expiration.level]->take_slot(expiration.slot);
 }
 
 auto coruring::runtime::timer::wheel::Wheel::level_for(uint64_t when)

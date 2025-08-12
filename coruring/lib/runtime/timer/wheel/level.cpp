@@ -7,8 +7,8 @@ void coruring::runtime::timer::wheel::detail::Level::add_entry(std::unique_ptr<E
     occupied_ |= (1ULL << slot);
 }
 
-auto coruring::runtime::timer::wheel::detail::Level::next_expiration_time(uint64_t now)
-const noexcept -> std::optional<uint64_t> {
+auto coruring::runtime::timer::wheel::detail::Level::next_expiration(uint64_t now)
+const noexcept -> std::optional<Expiration> {
     auto slot = next_occupied_slot(now);
     if (!slot) {
         return std::nullopt;
@@ -26,7 +26,7 @@ const noexcept -> std::optional<uint64_t> {
         deadline += LEVEL_RANGE[level_];
     }
 
-    return deadline;
+    return Expiration{ level_, slot.value(), deadline};
 }
 
 auto coruring::runtime::timer::wheel::detail::Level::next_occupied_slot(uint64_t now)
@@ -43,8 +43,8 @@ const noexcept -> std::optional<std::size_t> {
     return slot;
 }
 
-auto coruring::runtime::timer::wheel::detail::Level::take_slot(std::size_t slot) -> timer::detail::EntryList {
-    timer::detail::EntryList entries;
+auto coruring::runtime::timer::wheel::detail::Level::take_slot(std::size_t slot) -> EntryList {
+    EntryList entries;
     std::swap(entries, slots_[slot]);
     occupied_ &= ~(1ULL << slot);
     return entries;

@@ -27,10 +27,7 @@ public:
     auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
 
 public:
-    [[nodiscard]]
-    auto handle_expired_entries() {
-        return wheel_.handle_expired_entries(util::current_ms() - start_);
-    }
+    void handle_expired_entries();
 
 private:
     uint64_t     start_{util::current_ms()};

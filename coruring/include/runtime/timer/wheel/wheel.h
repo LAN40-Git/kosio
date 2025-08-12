@@ -16,11 +16,10 @@ public:
     auto insert(std::unique_ptr<Entry> entry, uint64_t when) const noexcept
     -> Result<Entry*, TimerError>;
     [[nodiscard]]
-    auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
+    auto next_expiration() const noexcept -> std::optional<Expiration>;
+    void handle_expired_entries(uint64_t now);
     [[nodiscard]]
-    auto handle_expired_entries(uint64_t now);
-    [[nodiscard]]
-    auto take_entries();
+    auto take_entries(Expiration expiration) const noexcept -> EntryList;
 
 private:
     [[nodiscard]]
