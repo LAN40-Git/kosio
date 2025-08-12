@@ -21,11 +21,18 @@ const noexcept -> Result<Entry *, TimerError> {
 
 auto coruring::runtime::timer::wheel::Wheel::next_expiration_time()
 const noexcept -> std::optional<uint64_t> {
+    // 如果有需要到期的事件，则返回 0 表示有事件需要立即处理
+    if (!pending_.empty()) {
+        return 0;
+    }
+
+    // 否则从第 0 层开始遍历获取到 最近一个非空事件所在位置
     for (auto level = 0; level < runtime::detail::NUM_LEVELS; ++level) {
         if (auto expiration_time = levels_[level]->next_expiration_time(elapsed_)) {
             return expiration_time;
         }
     }
+    // 返回空表示可以无限睡眠直到被唤醒
     return std::nullopt;
 }
 

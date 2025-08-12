@@ -53,5 +53,5 @@ auto coruring::runtime::timer::wheel::detail::Level::take_slot(std::size_t slot)
 auto coruring::runtime::timer::wheel::detail::Level::slot_for(uint64_t duration)
 const noexcept -> std::size_t {
     // 这里不需要取模，因为 wheel 保证 duration 一定在当前层级的时间跨度内
-    return duration >> level_ * runtime::detail::NUM_LEVELS;
+    return (duration >> (level_ * runtime::detail::NUM_LEVELS));
 }

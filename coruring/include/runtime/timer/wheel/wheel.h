@@ -19,6 +19,8 @@ public:
     auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
     [[nodiscard]]
     auto handle_expired_entries(uint64_t now);
+    [[nodiscard]]
+    auto take_entries();
 
 private:
     [[nodiscard]]
