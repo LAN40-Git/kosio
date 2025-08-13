@@ -28,11 +28,11 @@ void coruring::runtime::timer::Timer::remove(Entry* entry) noexcept {
     }
 }
 
-auto coruring::runtime::timer::Timer::next_expiration_time()
-const noexcept -> std::optional<uint64_t> {
-    return wheel_.next_expiration_time();
+auto coruring::runtime::timer::Timer::next_expiration()
+const noexcept -> std::optional<Expiration> {
+    return wheel_.next_expiration();
 }
 
-void coruring::runtime::timer::Timer::handle_expired_entries() {
-    wheel_.handle_expired_entries(util::current_ms() - start_);
+void coruring::runtime::timer::Timer::poll() {
+    wheel_.poll(util::current_ms() - start_);
 }

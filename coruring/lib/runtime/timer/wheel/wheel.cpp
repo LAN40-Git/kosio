@@ -36,20 +36,34 @@ const noexcept -> std::optional<Expiration> {
     return std::nullopt;
 }
 
-void coruring::runtime::timer::wheel::Wheel::handle_expired_entries(uint64_t now) {
+void coruring::runtime::timer::wheel::Wheel::poll(uint64_t now) {
     elapsed_ = now;
 
-    auto max_level = level_for(now);
-    auto expiration = this->next_expiration();
+    auto expiration = next_expiration();
     while (expiration) {
-        auto entries = take_entries(expiration.value());
-
+        process_expiration(expiration.value());
+        expiration = next_expiration();
     }
 }
 
 auto coruring::runtime::timer::wheel::Wheel::take_entries(Expiration expiration)
 const noexcept -> EntryList {
     return levels_[expiration.level]->take_slot(expiration.slot);
+}
+
+void coruring::runtime::timer::wheel::Wheel::process_expiration(const Expiration &expiration) {
+    auto entries = take_entries(expiration);
+
+    if (expiration.level == 0) {
+        pending_.splice(pending_.end(), entries);
+        return;
+    }
+
+    while (!entries.empty()) {
+        auto entry = std::move(entries.front());
+        entries.pop_front();
+
+    }
 }
 
 auto coruring::runtime::timer::wheel::Wheel::level_for(uint64_t when)

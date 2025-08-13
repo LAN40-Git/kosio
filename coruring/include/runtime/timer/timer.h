@@ -24,10 +24,10 @@ public:
     static void remove(Entry* entry) noexcept;
     [[nodiscard]]
     // 这里返回的是相对时间，即当前时间距离下一个事件到期的时间间隔（ms）
-    auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
+    auto next_expiration() const noexcept -> std::optional<Expiration>;
 
 public:
-    void handle_expired_entries();
+    void poll();
 
 private:
     uint64_t     start_{util::current_ms()};

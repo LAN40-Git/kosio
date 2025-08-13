@@ -17,18 +17,19 @@ public:
     -> Result<Entry*, TimerError>;
     [[nodiscard]]
     auto next_expiration() const noexcept -> std::optional<Expiration>;
-    void handle_expired_entries(uint64_t now);
-    [[nodiscard]]
-    auto take_entries(Expiration expiration) const noexcept -> EntryList;
+    void poll(uint64_t now);
 
 private:
     [[nodiscard]]
     static auto level_for(uint64_t when) noexcept -> std::size_t;
+    [[nodiscard]]
+    auto take_entries(Expiration expiration) const noexcept -> EntryList;
+    void process_expiration(const Expiration& expiration);
 
 private:
     using Level = std::array<std::unique_ptr<detail::Level>, runtime::detail::NUM_LEVELS>;
-    uint64_t                 elapsed_{0}; // 自时间轮创建起过去的时间（ms）
-    Level                    levels_{};   // 分层时间轮的各个层级
-    timer::detail::EntryList pending_{};  // 到期的事件
+    uint64_t  elapsed_{0}; // 自时间轮创建起过去的时间（ms）
+    Level     levels_{};   // 分层时间轮的各个层级
+    EntryList pending_{};  // 到期的事件
 };
 } // namespace coruring::runtime::timer::wheel
