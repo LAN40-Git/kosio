@@ -17,13 +17,13 @@ public:
     -> Result<Entry*, TimerError>;
     [[nodiscard]]
     auto next_expiration() const noexcept -> std::optional<Expiration>;
-    void poll(uint64_t now);
+    void handle_expired_entries(uint64_t now);
 
 private:
     [[nodiscard]]
     static auto level_for(uint64_t when) noexcept -> std::size_t;
     [[nodiscard]]
-    auto take_entries(Expiration expiration) const noexcept -> EntryList;
+    auto take_entries(const Expiration& expiration) const noexcept -> EntryList;
     void process_expiration(const Expiration& expiration);
 
 private:

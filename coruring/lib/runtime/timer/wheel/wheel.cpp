@@ -36,17 +36,19 @@ const noexcept -> std::optional<Expiration> {
     return std::nullopt;
 }
 
-void coruring::runtime::timer::wheel::Wheel::poll(uint64_t now) {
-    elapsed_ = now;
+void coruring::runtime::timer::wheel::Wheel::handle_expired_entries(uint64_t now) {
+    while (auto expiration = next_expiration()) {
+        if (expiration.value().deadline > now) {
+            break;
+        }
 
-    auto expiration = next_expiration();
-    while (expiration) {
         process_expiration(expiration.value());
+
         expiration = next_expiration();
     }
 }
 
-auto coruring::runtime::timer::wheel::Wheel::take_entries(Expiration expiration)
+auto coruring::runtime::timer::wheel::Wheel::take_entries(const Expiration& expiration)
 const noexcept -> EntryList {
     return levels_[expiration.level]->take_slot(expiration.slot);
 }
