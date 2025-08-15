@@ -1,36 +1,48 @@
 #pragma once
-#include "common/util/time.h"
-#include "wheel/wheel.h"
+#include <array>
+#include <list>
 #include "runtime/config.h"
+#include "level.h"
+#include "common/error.h"
+#include "common/util/time.h"
 
 namespace coruring::runtime::timer {
 class Timer;
 
 inline thread_local Timer *t_timer{nullptr};
 
-class Timer : public util::Noncopyable {
+class Timer : util::Noncopyable {
 public:
-    Timer() noexcept;
-    ~Timer();
+    Timer();
+    ~Timer() = default;
+    // Delete move
     Timer(Timer &&) = delete;
     auto operator=(Timer &&) -> Timer& = delete;
 
 public:
     // Add a timeout entry
     [[nodiscard]]
-    auto insert(coruring::io::detail::Callback *data, uint64_t expiration_time) const noexcept
-    -> Result<Entry*, TimerError>;
+    auto insert(coruring::io::detail::Callback *data, uint64_t expiration_time)
+    const noexcept -> Result<Entry*, TimerError>;
     // Remove a timeout entry
     static void remove(Entry* entry) noexcept;
     [[nodiscard]]
-    // 这里返回的是相对时间，即当前时间距离下一个事件到期的时间间隔（ms）
     auto next_expiration() const noexcept -> std::optional<Expiration>;
-
-public:
-    void poll();
+    void handle_expired_entries(uint64_t now);
 
 private:
-    uint64_t     start_{util::current_ms()};
-    wheel::Wheel wheel_;
+    [[nodiscard]]
+    static auto level_for(uint64_t when) noexcept -> std::size_t;
+    [[nodiscard]]
+    auto take_entries(const Expiration& expiration) const noexcept -> EntryList;
+    void process_expiration(const Expiration& expiration);
+    void handle_pending_entries();
+
+private:
+    using Level = std::array<std::unique_ptr<detail::Level>, runtime::detail::NUM_LEVELS>;
+    uint64_t  start_time_; // 分层时间轮启动时间
+    uint64_t  elapsed_;    // 自时间轮创建起过去的时间（ms）
+    Level     levels_{};   // 分层时间轮的各个层级
+    EntryList pending_{};  // 到期的事件
 };
 } // namespace coruring::runtime::timer

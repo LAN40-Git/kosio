@@ -10,7 +10,7 @@ namespace coruring::io::detail {
 struct Callback {
     std::coroutine_handle<> handle_{nullptr};
     int                     result_;
-    int64_t                 deadline_;
+    uint64_t                deadline_;
     runtime::timer::Entry  *entry_{nullptr};
 };
 } // namespace coruring::io::detail

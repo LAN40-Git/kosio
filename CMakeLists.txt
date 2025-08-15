@@ -36,9 +36,8 @@ add_library(coruring STATIC
         coruring/lib/socket/socket.cpp
         coruring/lib/runtime/scheduler/multi_thread/worker.cpp
         coruring/lib/runtime/timer/entry.cpp
+        coruring/lib/runtime/timer/level.cpp
         coruring/lib/runtime/timer/timer.cpp
-        coruring/lib/runtime/timer/wheel/level.cpp
-        coruring/lib/runtime/timer/wheel/wheel.cpp
         coruring/lib/runtime/task/waker.cpp
         coruring/lib/runtime/driver.cpp
 )

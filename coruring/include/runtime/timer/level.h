@@ -1,7 +1,7 @@
 #pragma once
 #include "runtime/timer/entry.h"
 
-namespace coruring::runtime::timer::wheel::detail {
+namespace coruring::runtime::timer::detail {
 class Level {
 public:
     explicit Level(std::size_t level)
@@ -28,4 +28,4 @@ private:
     // 槽位，用于存储任务队列
     Slots       slots_{};
 };
-} // namespace coruring::runtime::timer::wheel::detail
+} // namespace coruring::runtime::timer::detail

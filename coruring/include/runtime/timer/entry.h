@@ -47,7 +47,7 @@ public:
 
 public:
     coruring::io::detail::Callback *data_{};            // 提交到 io_uring 的数据
-    uint64_t                        expiration_time_{}; // 绝对超时时间（毫秒）
+    uint64_t                        expiration_time_{}; // 到期时间（毫秒）
 };
 
 struct Expiration {
