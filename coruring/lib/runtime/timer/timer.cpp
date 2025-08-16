@@ -14,10 +14,8 @@ const noexcept -> Result<Entry *, TimerError> {
     if (expiration_time <= start_time_ + elapsed_) [[unlikely]] {
         return std::unexpected{make_error<TimerError>(TimerError::kPassedTime)};
     }
+    // 事件到期的时间
     auto when = expiration_time - start_time_;
-    if (when > MAX_DURATION) [[unlikely]] {
-        return std::unexpected{make_error<TimerError>(TimerError::kTooLongTime)};
-    }
     auto entry = std::make_unique<Entry>(Entry{data, expiration_time});
 
     auto level = level_for(when);
@@ -47,6 +45,14 @@ const noexcept -> std::optional<Expiration> {
     return std::nullopt;
 }
 
+auto coruring::runtime::timer::Timer::next_expiration_time() const noexcept -> std::optional<uint64_t> {
+    if (auto expiration = next_expiration()) {
+        return expiration->deadline;
+    } else {
+        return std::nullopt;
+    }
+}
+
 void coruring::runtime::timer::Timer::handle_expired_entries(uint64_t now) {
     while (true) {
         // 首先处理到期事件
@@ -71,6 +77,10 @@ void coruring::runtime::timer::Timer::handle_expired_entries(uint64_t now) {
     elapsed_ = now;
 }
 
+auto coruring::runtime::timer::Timer::elapsed() const noexcept -> uint64_t {
+    return elapsed_;
+}
+
 auto coruring::runtime::timer::Timer::take_entries(const Expiration& expiration)
 const noexcept -> EntryList {
     return levels_[expiration.level]->take_slot(expiration.slot);
@@ -92,9 +102,15 @@ void coruring::runtime::timer::Timer::process_expiration(const Expiration &expir
         auto entry = std::move(entries.front());
         entries.pop_front();
 
-        // 若事件到期，则加入 pending_
-        if (entry->expiration_time_ <= start_time_ + expiration.deadline) {
+        if (entry->expiration_time_ <= expiration.deadline) {
+            // 若事件到期，则加入 pending_
             pending_.push_back(std::move(entry));
+        } else {
+            // 若事件未到期，则以 expiration.deadline 为
+            // 分层时间轮当前时间，重新计算事件所在层级并插入
+            auto when = entry->expiration_time_ - start_time_;
+            auto level = level_for(expiration.deadline, when);
+            levels_[level]->add_entry(std::move(entry), when);
         }
     }
 }
@@ -108,11 +124,33 @@ void coruring::runtime::timer::Timer::handle_pending_entries() {
 }
 
 auto coruring::runtime::timer::Timer::level_for(uint64_t when)
+const noexcept -> std::size_t {
+    return level_for(elapsed_, when);
+}
+
+auto coruring::runtime::timer::Timer::level_for(uint64_t elapsed, uint64_t when)
     noexcept -> std::size_t {
-    std::size_t level = 0;
-    while (when >= LEVEL_RANGE[level]) {
-        level++;
+    constexpr uint64_t SLOT_MASK = (1ULL << 6) - 1;
+
+    // 使用异或计算出差值，同时将低 6 位置 1 以使 when - elapsed < 64
+    // 的定时器事件能够进入最底层，masked 对应的是事件剩余的时间
+    auto masked = elapsed ^ when | SLOT_MASK;
+    if (masked >= MAX_DURATION) {
+        // TODO: 理解 tokio 中对 MAX_DURATION - 1 的作用
+        masked = MAX_DURATION - 1;
     }
 
-    return level;
+    // 从最高位开始计算 0 的个数 leading_zeros
+    // 计算此值实际是为了计算 masked 的最高非零位所在位数
+    auto leading_zeros = std::countl_zero(masked);
+    // significant 对应的层级
+    // 0-5:  0 层
+    // 6-10: 1 层
+    // ...
+    // 可以发现每 6 位对应一个层级
+    // 由于从下标 0 开始计算，因此用 63 - leading_zeros
+    // 计算出事件剩余事件所在的层级范围
+    auto significant = 63 - leading_zeros;
+    // 计算确切的层级数
+    return significant / runtime::detail::NUM_LEVELS;
 }

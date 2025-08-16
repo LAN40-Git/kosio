@@ -9,6 +9,7 @@ public:
 
 public:
     void add_entry(std::unique_ptr<Entry> entry, uint64_t when);
+    void add_entry_to_slot(std::unique_ptr<Entry> entry, std::size_t slot);
     [[nodiscard]]
     auto next_expiration(uint64_t now) const noexcept -> std::optional<Expiration>;
     [[nodiscard]]

@@ -28,11 +28,19 @@ public:
     static void remove(Entry* entry) noexcept;
     [[nodiscard]]
     auto next_expiration() const noexcept -> std::optional<Expiration>;
+    [[nodiscard]]
+    auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
     void handle_expired_entries(uint64_t now);
+
+public:
+    [[nodiscard]]
+    auto elapsed() const noexcept -> uint64_t;
 
 private:
     [[nodiscard]]
-    static auto level_for(uint64_t when) noexcept -> std::size_t;
+    auto level_for(uint64_t when) const noexcept -> std::size_t;
+    [[nodiscard]]
+    static auto level_for(uint64_t elapsed, uint64_t when) noexcept -> std::size_t;
     [[nodiscard]]
     auto take_entries(const Expiration& expiration) const noexcept -> EntryList;
     void process_expiration(const Expiration& expiration);

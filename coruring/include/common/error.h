@@ -90,7 +90,6 @@ public:
     enum Code {
         kUnknown = detail::TimerErrorCodeBase,
         kPassedTime,
-        kTooLongTime,
     };
 
 public:
@@ -105,8 +104,6 @@ public:
                 return "Unknown timer error.";
             case kPassedTime:
                 return "Time has passed.";
-            case kTooLongTime:
-                return "Time is too long.";
             default:
                 return strerror(error_code_);
         }
@@ -136,6 +133,7 @@ public:
 };
 
 template <class ErrorType>
+    requires std::derived_from<ErrorType, detail::ErrorBase<ErrorType>>
 [[nodiscard]]
 static inline auto make_error(int error_code) -> detail::ErrorBase<ErrorType> {
     return detail::ErrorBase<ErrorType>(error_code);

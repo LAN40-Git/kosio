@@ -26,7 +26,7 @@ static constexpr auto compute_level_range() -> std::array<uint64_t, runtime::det
 }
 } // namespace detail
 
-// 时间轮最大时间跨度
+// 分层时间轮支持的
 static constexpr uint64_t MAX_DURATION = (1ULL << (6 * runtime::detail::NUM_LEVELS)) - 1;
 
 // 每层槽位对应的时间跨度

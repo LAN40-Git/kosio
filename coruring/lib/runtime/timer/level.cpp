@@ -7,6 +7,10 @@ void coruring::runtime::timer::detail::Level::add_entry(std::unique_ptr<Entry> e
     occupied_ |= (1ULL << slot);
 }
 
+void coruring::runtime::timer::detail::Level::add_entry_to_slot(std::unique_ptr<Entry> entry, std::size_t slot) {
+    slots_[slot].push_back(std::move(entry));
+}
+
 auto coruring::runtime::timer::detail::Level::next_expiration(uint64_t now)
 const noexcept -> std::optional<Expiration> {
     auto slot = next_occupied_slot(now);
@@ -23,6 +27,10 @@ const noexcept -> std::optional<Expiration> {
     // 分层时间轮自启动算起，经过 deadline 时间后，第 1 层的 第 1 槽位中
     // 可能有事件到期（注意并非全部）
     auto deadline = level_start + slot.value() * SLOT_RANGE[level_];
+    if (deadline <= now) {
+        // 这种情况可能在最高层回绕发生
+        deadline += LEVEL_RANGE[level_];
+    }
 
     return Expiration{ level_, slot.value(), deadline};
 }
@@ -58,6 +66,5 @@ auto coruring::runtime::timer::detail::Level::take_slot(std::size_t slot) -> Ent
 
 auto coruring::runtime::timer::detail::Level::slot_for(uint64_t duration)
 const noexcept -> std::size_t {
-    // 这里不需要取模，因为 wheel 保证 duration 一定在当前层级的时间跨度内
-    return (duration >> (level_ * runtime::detail::NUM_LEVELS));
+    return (duration >> (level_ * 6)) % runtime::detail::LEVEL_MULT;
 }
