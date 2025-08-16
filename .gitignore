@@ -1,3 +1,4 @@
 /build
 .idea
 /coruring/lib/main.cpp
+/docs/design/*.bkp
