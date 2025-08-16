@@ -11,7 +11,7 @@ inline thread_local Driver* t_driver{nullptr};
 
 class Driver {
 public:
-    Driver(const Config& config);
+    explicit Driver(const Config& config);
     ~Driver();
 
 public:
@@ -22,8 +22,8 @@ public:
     }
 
     template <typename LocalQueue>
-    auto poll(LocalQueue &local_queue) {
-        std::array<io_uring_cqe *, PEEK_BATCH_SIZE> cqes;
+    auto poll(LocalQueue &local_queue) -> bool {
+        std::array<io_uring_cqe *, PEEK_BATCH_SIZE> cqes{};
         auto count = ring_.peek_batch(cqes);
         for (auto i = 0; i < count; ++i) {
             auto cb = reinterpret_cast<coruring::io::detail::Callback *>(cqes[i]->user_data);
@@ -31,8 +31,8 @@ public:
                 // 若 cb->entry_ != nullptr，说明事件还未被 timer 取消
                 // 将事件放入本地或全局队列
                 if (cb->entry_) {
-                    // 将事件标从分层时间轮中移除（本质是将 entry_->data_ 设置为 nullptr）
-                    timer_.remove(cb->entry_);
+                    // 将事件标从分层时间轮中移除
+                    timer::Timer::remove(cb->entry_);
                 }
                 cb->result_ = cqes[i]->res;
                 local_queue.enqueue(std::move(cb->handle_));
@@ -41,7 +41,17 @@ public:
 
         ring_.consume(count);
 
+        count += timer_.handle_expired_entries(util::current_ms() - timer_.start_time());
 
+        waker_.turn_on();
+
+        ring_.submit();
+
+        return count > 0;
+    }
+
+    void wake_up() const {
+        waker_.wake_up();
     }
 
 private:

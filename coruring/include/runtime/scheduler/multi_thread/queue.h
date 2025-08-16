@@ -56,8 +56,5 @@ public:
     }
 };
 
-class GlobalQueue : public detail::BaseQueue {
-public:
-
-};
+class GlobalQueue : public detail::BaseQueue {};
 } // namespace coruring::runtime::scheduler::multi_thread

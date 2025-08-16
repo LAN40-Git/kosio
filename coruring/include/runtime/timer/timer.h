@@ -30,9 +30,12 @@ public:
     auto next_expiration() const noexcept -> std::optional<Expiration>;
     [[nodiscard]]
     auto next_expiration_time() const noexcept -> std::optional<uint64_t>;
-    void handle_expired_entries(uint64_t now);
+    [[nodiscard]]
+    auto handle_expired_entries(uint64_t now) noexcept -> std::size_t;
 
 public:
+    [[nodiscard]]
+    auto start_time() const noexcept -> uint64_t;
     [[nodiscard]]
     auto elapsed() const noexcept -> uint64_t;
 
@@ -43,8 +46,10 @@ private:
     static auto level_for(uint64_t elapsed, uint64_t when) noexcept -> std::size_t;
     [[nodiscard]]
     auto take_entries(const Expiration& expiration) const noexcept -> EntryList;
-    void process_expiration(const Expiration& expiration);
-    void handle_pending_entries();
+    [[nodiscard]]
+    auto process_expiration(const Expiration& expiration) noexcept -> std::size_t;
+    [[nodiscard]]
+    auto handle_pending_entries() noexcept -> std::size_t;;
 
 private:
     using Level = std::array<std::unique_ptr<detail::Level>, runtime::detail::NUM_LEVELS>;

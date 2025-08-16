@@ -1,6 +1,6 @@
 #pragma once
 #include "io/base/callback.h"
-#include "common/concepts.h"
+#include "common/macros.h"
 #include "runtime/timer/timer.h"
 
 namespace coruring::timer {

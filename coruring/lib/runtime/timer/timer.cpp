@@ -53,21 +53,23 @@ auto coruring::runtime::timer::Timer::next_expiration_time() const noexcept -> s
     }
 }
 
-void coruring::runtime::timer::Timer::handle_expired_entries(uint64_t now) {
+auto coruring::runtime::timer::Timer::handle_expired_entries(uint64_t now)
+noexcept -> std::size_t {
+    std::size_t count = 0;
     while (true) {
         // 首先处理到期事件
-        handle_pending_entries();
+        count += handle_pending_entries();
 
         // 获取下一个到期信息
         auto expiration = next_expiration();
         // 若到期信息中的最小到期时间 deadline（具体含义可见 level.cpp 中的注释）
         // 大于当前分层时间轮运行的时间，则说明当前已经没有到期事件了，直接退出循环即可
-        if (expiration.value().deadline > now) {
+        if (!expiration || expiration.value().deadline > now) {
             break;
         }
 
         // 处理到期信息
-        process_expiration(expiration.value());
+        count += process_expiration(expiration.value());
 
         // 推进分层时间轮时间
         elapsed_ = expiration.value().deadline;
@@ -75,6 +77,11 @@ void coruring::runtime::timer::Timer::handle_expired_entries(uint64_t now) {
 
     // 推进分层时间轮时间
     elapsed_ = now;
+    return count;
+}
+
+auto coruring::runtime::timer::Timer::start_time() const noexcept -> uint64_t {
+    return start_time_;
 }
 
 auto coruring::runtime::timer::Timer::elapsed() const noexcept -> uint64_t {
@@ -86,14 +93,16 @@ const noexcept -> EntryList {
     return levels_[expiration.level]->take_slot(expiration.slot);
 }
 
-void coruring::runtime::timer::Timer::process_expiration(const Expiration &expiration) {
+auto coruring::runtime::timer::Timer::process_expiration(const Expiration &expiration)
+noexcept -> std::size_t {
     auto entries = take_entries(expiration);
+    auto count = entries.size();
 
     // 若槽位位于第 0 层，说明此槽位中的所有时间都到期
     // 直接放入 pending_ 中等待立即处理
     if (expiration.level == 0) {
         pending_.splice(pending_.end(), entries);
-        return;
+        return count;
     }
 
     // 若槽位不在第 0 层，则说明此槽位中可能有未到期的事件
@@ -113,14 +122,19 @@ void coruring::runtime::timer::Timer::process_expiration(const Expiration &expir
             levels_[level]->add_entry(std::move(entry), when);
         }
     }
+
+    return count;
 }
 
-void coruring::runtime::timer::Timer::handle_pending_entries() {
+auto coruring::runtime::timer::Timer::handle_pending_entries()
+noexcept -> std::size_t {
+    auto count = pending_.size();
     while (!pending_.empty()) {
         auto entry = std::move(pending_.front());
         pending_.pop_front();
         entry->execute();
     }
+    return count;
 }
 
 auto coruring::runtime::timer::Timer::level_for(uint64_t when)

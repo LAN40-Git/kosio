@@ -1,5 +1,6 @@
 #pragma once
 #include "queue.h"
+#include "common/util/thread.h"
 #include "runtime/driver.h"
 
 namespace coruring::runtime::scheduler::multi_thread {

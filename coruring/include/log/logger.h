@@ -2,6 +2,8 @@
 #include "file.h"
 #include "level.h"
 #include "buffer.h"
+#include "common/util/thread.h"
+#include "common/util/nocopyable.h"
 #include <list>
 #include <thread>
 #include <string>
@@ -36,15 +38,17 @@ private:
 };
 
 struct LogRecord {
-    const char *datetime;
-    const char *filename;
-    size_t      line;
-    std::string log;
+    const char      *datetime;
+    int64_t          millisecond;
+    int              thread_id;
+    std::string_view thread_name;
+    const char      *file_name;
+    size_t           line;
+    std::string      log;
 };
 
 template <class LoggerType>
-class BaseLogger
-{
+class BaseLogger : util::Noncopyable {
 public:
     BaseLogger() = default;
     ~BaseLogger() noexcept = default;
@@ -90,26 +94,32 @@ public:
 private:
     template <LogLevel LEVEL, typename... Args>
     void format(const FmtWithSourceLocation& fwsl, const Args& ...args) {
-        thread_local std::array<char, 64> buffer_{};
+        thread_local std::array<char, 64> buffer{};
         thread_local time_t               last_second{0};
 
         if (LEVEL < level_) {
             return;
         }
 
-        time_t current_second = ::time(nullptr);
-        if (current_second != last_second) {
-            tm tm_time{};
-            ::localtime_r(&current_second, &tm_time);
-            ::strftime(buffer_.data(), buffer_.size(), "%Y-%m-%d %H:%M:%S", &tm_time);
-            last_second = current_second;
+        timeval tv_time;
+        ::gettimeofday(&tv_time, nullptr);
+        auto cur_second = tv_time.tv_sec;
+        auto cur_millisecond = tv_time.tv_usec / 1000;
+        if (cur_second != last_second) {
+            struct tm tm_time;
+            ::localtime_r(&cur_second, &tm_time);
+            constexpr auto format = "%Y-%m-%d %H:%M:%S";
+            ::strftime(buffer.data(), buffer.size(), format, &tm_time);
         }
 
         const auto &fmt = fwsl.fmt();
         const auto &sl  = fwsl.source_location();
         static_cast<LoggerType*>(this)->template log<LEVEL>(
             LogRecord{
-                buffer_.data(),
+                buffer.data(),
+                cur_millisecond,
+                util::get_tid(),
+                util::get_current_thread_name(),
                 sl.file_name(),
                 sl.line(),
                 std::vformat(fmt, std::make_format_args(args...))
@@ -126,12 +136,17 @@ class ConsoleLogger : public detail::BaseLogger<ConsoleLogger> {
 public:
     template <detail::LogLevel level>
     void log(const detail::LogRecord& record) {
-        std::cout << std::format("{} {} {}:{} {}\n",
-                                    record.datetime,
-                                    level_to_string(level),
-                                    record.filename,
-                                    record.line,
-                                    record.log);
+        std::cout << std::format("{}.{:03} [{}{}{}] {} {} {}:{} {}\n",
+                                 record.datetime,
+                                 record.millisecond,
+                                 level_to_color(level),
+                                 level_to_string(level),
+                                 detail::reset_format(),
+                                 record.thread_id,
+                                 record.thread_name,
+                                 record.file_name,
+                                 record.line,
+                                 record.log);
     }
 };
 
@@ -157,9 +172,14 @@ public:
         if (!running_) [[unlikely]] {
             return;
         }
-        std::string msg{std::format("{} {} {}\n",
+        std::string msg{std::format("{}.{:03} {} {} {} {}:{} {}\n",
                                     record.datetime,
+                                    record.millisecond,
                                     level_to_string(level),
+                                    record.thread_id,
+                                    record.thread_name,
+                                    record.file_name,
+                                    record.line,
                                     record.log)};
 
         {
