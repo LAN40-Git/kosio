@@ -1,9 +1,12 @@
 #pragma once
+#include "queue.h"
 #include "runtime/config.h"
-#include "runtime/scheduler/multi_thread/worker.h"
 
 namespace coruring::runtime::scheduler::multi_thread {
+class Worker;
+
 class Shared {
+    friend class Worker;
 public:
     Shared();
     ~Shared();

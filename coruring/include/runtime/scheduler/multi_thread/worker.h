@@ -2,11 +2,13 @@
 #include "queue.h"
 #include "common/util/thread.h"
 #include "runtime/driver.h"
+#include "runtime/scheduler/multi_thread/shared.h"
 
 namespace coruring::runtime::scheduler::multi_thread {
-class Worker {
+class Worker : util::Noncopyable {
+    friend class Shared;
 public:
-    Worker();
+    Worker(Shared& shared, std::size_t index);
     ~Worker();
 
 public:
@@ -14,7 +16,8 @@ public:
 
 private:
     std::size_t             index_;
-    LocalQueue              local_queue_;
+    Shared&                 shared_;
     runtime::detail::Driver driver_;
+    LocalQueue              local_queue_;
 };
 } // namespace coruring::runtime::scheduler::multi_thread

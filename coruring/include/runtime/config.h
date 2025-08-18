@@ -36,6 +36,9 @@ struct Config {
 
     // io_uring 事件提交间隔
     std::size_t submit_interval{SUBMIT_INTERVAL};
+
+    // 工作线程数量
+    std::size_t num_threads;
 };
 } // namespace coruring::runtime::detail
 
