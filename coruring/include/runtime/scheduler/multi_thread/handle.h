@@ -10,6 +10,9 @@ public:
     explicit Handle(const runtime::detail::Config& config);
     ~Handle();
 
+public:
+
+
 private:
     Shared                   shared_;
     std::vector<std::thread> threads_;
