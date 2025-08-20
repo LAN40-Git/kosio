@@ -42,6 +42,7 @@ add_library(coruring STATIC
         coruring/lib/runtime/driver.cpp
         coruring/lib/runtime/scheduler/multi_thread/handle.cpp
         coruring/lib/runtime/scheduler/multi_thread/shared.cpp
+        coruring/lib/runtime/scheduler/scheduler.cpp
 )
 
 target_include_directories(coruring PUBLIC

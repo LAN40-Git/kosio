@@ -1,3 +1,13 @@
 #pragma once
-#include "multi_thread/worker.h"
-#include <tbb/concurrent_hash_map.h>
+#include "runtime/scheduler/multi_thread/worker.h"
+
+namespace coruring::runtime::scheduler {
+class Scheduler {
+public:
+    Scheduler();
+    ~Scheduler();
+
+private:
+    multi_thread::Handle handle_;
+};
+} // namespace coruring::runtime::scheduler

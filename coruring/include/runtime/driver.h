@@ -50,9 +50,7 @@ public:
         return count > 0;
     }
 
-    void wake_up() const {
-        waker_.wake_up();
-    }
+    void wake_up() const;
 
 private:
     io::IoUring        ring_;

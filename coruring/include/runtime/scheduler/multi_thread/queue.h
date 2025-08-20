@@ -7,13 +7,11 @@ namespace coruring::runtime::scheduler::multi_thread {
 namespace detail {
 class BaseQueue {
 public:
-    [[nodiscard]]
     auto enqueue(std::coroutine_handle<>&& task) -> bool {
         return tasks_.enqueue(std::move(task));
     }
 
     template <typename It>
-    [[nodiscard]]
     auto enqueue_bulk(It itemFirst, std::size_t count) -> bool {
         return tasks_.enqueue_bulk(itemFirst, count);
     }
@@ -56,5 +54,7 @@ public:
     }
 };
 
-class GlobalQueue : public detail::BaseQueue {};
+class GlobalQueue : public detail::BaseQueue {
+
+};
 } // namespace coruring::runtime::scheduler::multi_thread

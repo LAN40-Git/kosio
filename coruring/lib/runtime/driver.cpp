@@ -9,3 +9,7 @@ coruring::runtime::detail::Driver::Driver(const Config &config)
 coruring::runtime::detail::Driver::~Driver() {
     t_driver = nullptr;
 }
+
+void coruring::runtime::detail::Driver::wake_up() const {
+    waker_.wake_up();
+}

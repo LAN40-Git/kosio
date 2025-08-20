@@ -1,13 +1,14 @@
 #include "runtime/scheduler/multi_thread/handle.h"
-#include <latch>
+#include "runtime/scheduler/multi_thread/worker.h"
+#include "common/util/thread.h"
 
 coruring::runtime::scheduler::multi_thread::Handle::Handle(const runtime::detail::Config &config)
     : shared_(config) {
     for (std::size_t i = 0; i < config.num_threads; i++) {
         std::latch sync{2};
         auto thread_name = std::format("{}-{}", "CORURING-WORKER", i);
-        threads_.emplace_back([this, i, &thread_name, &sync]() {
-            Worker worker{shared_, i};
+        threads_.emplace_back([i, this, config, &thread_name, &sync]() {
+            Worker worker{i, this, config};
 
             util::set_current_thread_name(thread_name);
 
@@ -16,5 +17,28 @@ coruring::runtime::scheduler::multi_thread::Handle::Handle(const runtime::detail
             worker.run();
         });
         sync.arrive_and_wait();
+    }
+}
+
+coruring::runtime::scheduler::multi_thread::Handle::~Handle() {
+    for (auto &thread : threads_) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+}
+
+void coruring::runtime::scheduler::multi_thread::Handle::schedule_task(std::coroutine_handle<> task) {
+    tasks_.insert({task, 0});
+    shared_.schedule_remote(task);
+}
+
+void coruring::runtime::scheduler::multi_thread::Handle::close() {
+    shared_.close();
+}
+
+void coruring::runtime::scheduler::multi_thread::Handle::wait() {
+    for (auto &thread : threads_) {
+        thread.join();
     }
 }
