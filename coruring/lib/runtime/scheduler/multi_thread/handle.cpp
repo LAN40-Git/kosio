@@ -4,7 +4,7 @@
 
 coruring::runtime::scheduler::multi_thread::Handle::Handle(const runtime::detail::Config &config)
     : shared_(config) {
-    for (std::size_t i = 0; i < config.num_threads; i++) {
+    for (std::size_t i = 0; i < config.num_workers; i++) {
         std::latch sync{2};
         auto thread_name = std::format("{}-{}", "CORURING-WORKER", i);
         threads_.emplace_back([i, this, config, &thread_name, &sync]() {

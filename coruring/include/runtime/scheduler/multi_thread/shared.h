@@ -1,7 +1,7 @@
 #pragma once
 #include "queue.h"
 #include "runtime/config.h"
-#include "runtime/scheduler/multi_thread/idel.h"
+#include "runtime/scheduler/multi_thread/idle.h"
 #include <latch>
 
 namespace coruring::runtime::scheduler::multi_thread {
@@ -19,16 +19,19 @@ public:
 public:
     void wake_up_one();
     void wake_up_all() const;
+    void wake_up_if_work_pending();
     void close() const;
-    void schedule_remote(std::coroutine_handle<> task);
-    void schedule_remote_batch();
-
+    auto schedule_remote(std::coroutine_handle<> task) -> bool;
+    template <typename It>
+    auto schedule_remote_batch(It itemFirst, std::size_t count) -> bool {
+        return global_queue_.enqueue_bulk(itemFirst, count);
+    }
 
 private:
     const runtime::detail::Config config_;
-    Idel                          idel_;
+    Idle                          idle_;
     GlobalQueue                   global_queue_;
     std::latch                    shutdown_;
-    std::vector<Worker*> workers_;
+    std::vector<Worker*>          workers_;
 };
 } // namespace coruring::runtime::scheduler::multi_thread

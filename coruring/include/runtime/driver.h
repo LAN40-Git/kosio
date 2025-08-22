@@ -28,8 +28,8 @@ public:
         for (auto i = 0; i < count; ++i) {
             auto cb = reinterpret_cast<coruring::io::detail::Callback *>(cqes[i]->user_data);
             if (cb) [[likely]] {
-                // 若 cb->entry_ != nullptr，说明事件还未被 timer 取消
-                // 将事件放入本地或全局队列
+                // 若 cb->entry_ != nullptr，说明事件还未被 timer 取消，
+                // 那么将事件放入本地队列
                 if (cb->entry_) {
                     // 将事件标从分层时间轮中移除
                     timer::Timer::remove(cb->entry_);

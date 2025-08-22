@@ -59,8 +59,8 @@ private:
     }
 
 private:
-    constexpr static std::size_t SECONDS_PER_DAY{60 * 60 * 24};
-    constexpr static std::size_t BUFFER_SIZE{64 * 1024};
+    static constexpr std::size_t SECONDS_PER_DAY{60 * 60 * 24};
+    static constexpr std::size_t BUFFER_SIZE{64 * 1024};
 
 private:
     std::ofstream                 ofs_{};
