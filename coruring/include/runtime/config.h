@@ -22,14 +22,8 @@ static_assert((LEVEL_MULT & (LEVEL_MULT - 1)) == 0, "SLOTS must be a power of 2"
 // 工作线程每次执行的任务的最大数量
 static inline constexpr std::size_t HANDLE_BATCH_SIZE = 128;
 
-// 工作线程每次从 io_uring 完成队列中收割的完成事件的最大数量
+// 工作线程每次尝试收割的 IO 事件的最大数量
 static inline constexpr std::size_t PEEK_BATCH_SIZE = 128;
-
-// 工作线程每次窃取任务数量的最大数量
-static inline constexpr std::size_t STEAL_BATCH_SIZE = 128;
-
-// 窃取因子，以平均任务为基准计算窃取区间，当且仅当工作线程的任务数量在此区间时窃取任务
-static inline constexpr float STEAL_FACTOR = 1.05;
 
 struct Config {
     // io_uring 队列纵深

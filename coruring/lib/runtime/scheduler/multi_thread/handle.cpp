@@ -21,6 +21,7 @@ coruring::runtime::scheduler::multi_thread::Handle::Handle(const runtime::detail
 }
 
 coruring::runtime::scheduler::multi_thread::Handle::~Handle() {
+    shared_.close();
     for (auto &thread : threads_) {
         if (thread.joinable()) {
             thread.join();

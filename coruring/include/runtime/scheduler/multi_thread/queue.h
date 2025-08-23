@@ -36,9 +36,7 @@ private:
 } // namespace detail
 
 class LocalQueue : public detail::BaseQueue {
-public:
-    [[nodiscard]]
-    auto steal_into(LocalQueue& dst, std::size_t count) -> bool;
+
 };
 
 class GlobalQueue : public detail::BaseQueue {

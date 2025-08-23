@@ -22,41 +22,53 @@ void coruring::runtime::scheduler::multi_thread::Worker::run() {
     while (!is_shutdown_) [[likely]] {
         tick();
 
+        // 在必要时轮询完成的 IO 事件
         maintenance();
 
+        // 取出本地任务
+        take_tasks();
+
+        // 窃取任务
+        steal_tasks();
+
+        // 处理任务
         handle_tasks();
 
+        // 轮询 IO 事件
         if (poll()) {
             continue;
         }
 
+        // 睡眠
         sleep();
     }
-}
-
-void coruring::runtime::scheduler::multi_thread::Worker::wake_up() const {
-    driver_.wake_up();
 }
 
 void coruring::runtime::scheduler::multi_thread::Worker::shutdown() {
     is_shutdown_ = true;
 }
 
-void coruring::runtime::scheduler::multi_thread::Worker::handle_tasks() {
-    static std::array<std::coroutine_handle<>, runtime::detail::HANDLE_BATCH_SIZE> io_buf;
-    auto count = local_queue_.try_dequeue_bulk(io_buf.data(), io_buf.size());
-    for (std::size_t i = 0; i < count; ++i) {
-        io_buf[i].resume();
+void coruring::runtime::scheduler::multi_thread::Worker::wake_up() const {
+    driver_.wake_up();
+}
+
+auto coruring::runtime::scheduler::multi_thread::Worker::local_queue() -> LocalQueue & {
+    return local_queue_;
+}
+
+void coruring::runtime::scheduler::multi_thread::Worker::handle_tasks() const {
+    auto& tasks = task_remain_.tasks;
+    for (std::size_t i = 0; i < task_remain_.index; ++i) {
+        tasks[i].resume();
         // 最外层的协程完成了（tasks_ 成功移除），说明任务完成，销毁协程
-        if (io_buf[i].done() && handle_->tasks_.erase(io_buf[i])) {
-            io_buf[i].destroy();
-            owned_tasks_.fetch_sub(1);
+        if (tasks[i].done() && handle_->tasks_.erase(tasks[i])) {
+            tasks[i].destroy();
         }
     }
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::transition_to_sleepling() -> bool {
-    if (owned_tasks_.load(std::memory_order_relaxed) > 0) {
+    if (local_queue_.size_approx() > 0) {
         return false;
     }
 
@@ -70,7 +82,7 @@ auto coruring::runtime::scheduler::multi_thread::Worker::transition_to_sleepling
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::transition_from_sleepling() -> bool {
-    if (owned_tasks_.load(std::memory_order_relaxed) > 0) {
+    if (local_queue_.size_approx() > 0) {
         is_searching_ = !handle_->shared_.idle_.remove(index_);
     }
 
@@ -109,12 +121,46 @@ auto coruring::runtime::scheduler::multi_thread::Worker::should_notify_others() 
 
 void coruring::runtime::scheduler::multi_thread::Worker::tick() {
     tick_ += 1;
-    // Update the average_tasks_
-    average_tasks_ = handle_->tasks_.size() / handle_->shared_.workers_.size();
 }
 
-auto coruring::runtime::scheduler::multi_thread::Worker::steal_work() -> std::size_t {
-    auto target_index = util::FastRand::instance().rand_range(0, handle_->shared_.workers_.size());
+void coruring::runtime::scheduler::multi_thread::Worker::take_tasks() {
+    auto count = local_queue_.try_dequeue_bulk(
+        task_remain_.tasks.data(), task_remain_.size);
+    task_remain_.size -= count;
+    task_remain_.index += count;
+}
+
+void coruring::runtime::scheduler::multi_thread::Worker::steal_tasks() {
+    // 当本轮已经完成足够任务时，不进行窃取
+    // 当太多线程在窃取时，不进行窃取
+    if (task_remain_.size == 0 || !transition_to_searching()) {
+        return;
+    }
+
+    auto& global_queue = handle_->shared_.global_queue_;
+    // 先从全局队列窃取
+    auto steal_count = global_queue.try_dequeue_bulk(
+        task_remain_.tasks.data() + task_remain_.index, task_remain_.size);
+    task_remain_.size -= steal_count;
+    task_remain_.index += steal_count;
+
+    // 若还未拿到足够的任务，则再从其它线程窃取
+    if (task_remain_.size == 0) {
+        return;
+    }
+    auto target_index =
+        util::FastRand::instance().fastrand_n(handle_->shared_.workers_.size());
+
+    if (target_index == index_) {
+        return;
+    }
+
+    auto& target_worker = handle_->shared_.workers_[target_index];
+
+    steal_count = target_worker->local_queue().try_dequeue_bulk(
+        task_remain_.tasks.data() + task_remain_.index, task_remain_.size);
+    task_remain_.size -= steal_count;
+    task_remain_.index += steal_count;
 }
 
 void coruring::runtime::scheduler::multi_thread::Worker::maintenance() {

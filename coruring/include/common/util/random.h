@@ -1,6 +1,5 @@
 #pragma once
 #include <random>
-#include <cinttypes>
 
 namespace coruring::util {
 class FastRand {
