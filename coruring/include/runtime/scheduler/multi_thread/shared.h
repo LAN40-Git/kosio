@@ -1,6 +1,6 @@
 #pragma once
-#include "queue.h"
 #include "runtime/config.h"
+#include "runtime/scheduler/queue.h"
 #include "runtime/scheduler/multi_thread/idle.h"
 #include <latch>
 
@@ -30,7 +30,7 @@ public:
 private:
     const runtime::detail::Config config_;
     Idle                          idle_;
-    GlobalQueue                   global_queue_;
+    detail::TaskQueue             global_queue_;
     std::latch                    shutdown_;
     std::vector<Worker*>          workers_;
 };

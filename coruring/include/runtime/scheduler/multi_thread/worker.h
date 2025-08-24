@@ -1,6 +1,5 @@
 #pragma once
-#include "queue.h"
-#include "async/coroutine/task.h"
+#include "runtime/scheduler/fired_tasks.h"
 #include "runtime/scheduler/multi_thread/handle.h"
 #include "common/util/random.h"
 
@@ -17,7 +16,7 @@ public:
     void run();
     void shutdown();
     void wake_up() const;
-    auto local_queue() -> LocalQueue&;
+    auto local_queue() -> detail::TaskQueue&;
 
 private:
     [[nodiscard]]
@@ -32,30 +31,22 @@ private:
     void take_tasks();
     /// 返回窃取并完成的任务数量
     void steal_tasks();
-    void handle_tasks() const;
+    void handle_tasks();
     void maintenance();
     [[nodiscard]]
     auto poll() -> bool;
     void sleep();
 
 private:
-    // 这个结构体封装了每轮循环需要处理的任务
-    struct TaskRemain {
-        std::array<std::coroutine_handle<>,
-                   runtime::detail::HANDLE_BATCH_SIZE> tasks{};
-        // 剩余需要处理的任务数量
-        std::size_t size{runtime::detail::HANDLE_BATCH_SIZE};
-        // 下次取任务时 tasks 对应的下标
-        std::size_t index{0};
-    };
 
-    std::size_t              index_;
-    uint32_t                 tick_{0};
-    TaskRemain               task_remain_;
-    Handle*                  handle_;
-    runtime::detail::Driver  driver_;
-    LocalQueue               local_queue_;
-    bool                     is_shutdown_{false};
-    bool                     is_searching_{false};
+private:
+    std::size_t        index_;
+    uint32_t           tick_{0};
+    detail::FiredTasks fired_tasks_;
+    Handle*            handle_;
+    detail::Driver     driver_;
+    detail::TaskQueue  local_queue_;
+    bool               is_shutdown_{false};
+    bool               is_searching_{false};
 };
 } // namespace coruring::runtime::scheduler::multi_thread

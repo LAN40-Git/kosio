@@ -19,9 +19,6 @@ static_assert(NUM_LEVELS > 0, "MAX_LEVEL must be greater than 0");
 static inline constexpr std::size_t LEVEL_MULT = 64;
 static_assert((LEVEL_MULT & (LEVEL_MULT - 1)) == 0, "SLOTS must be a power of 2");
 
-// 工作线程每次执行的任务的最大数量
-static inline constexpr std::size_t HANDLE_BATCH_SIZE = 128;
-
 // 工作线程每次尝试收割的 IO 事件的最大数量
 static inline constexpr std::size_t PEEK_BATCH_SIZE = 128;
 

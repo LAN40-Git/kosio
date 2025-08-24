@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <atomic>
 #include <limits>
-#include <list>
 #include <optional>
 #include <unordered_set>
 #include <utility>

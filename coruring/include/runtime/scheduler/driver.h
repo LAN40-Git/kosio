@@ -1,17 +1,17 @@
 #pragma once
-#include "config.h"
+#include "runtime/config.h"
 #include "runtime/io/io_uring.h"
 #include "runtime/timer/timer.h"
 #include "runtime/task/waker.h"
 
-namespace coruring::runtime::detail {
+namespace coruring::runtime::scheduler::detail {
 class Driver;
 
 inline thread_local Driver* t_driver{nullptr};
 
 class Driver {
 public:
-    explicit Driver(const Config& config);
+    explicit Driver(const runtime::detail::Config& config);
     ~Driver();
 
 public:
@@ -23,7 +23,7 @@ public:
 
     template <typename LocalQueue>
     auto poll(LocalQueue &local_queue) -> bool {
-        std::array<io_uring_cqe *, PEEK_BATCH_SIZE> cqes{};
+        std::array<io_uring_cqe *, runtime::detail::PEEK_BATCH_SIZE> cqes{};
         auto count = ring_.peek_batch(cqes);
         for (auto i = 0; i < count; ++i) {
             auto cb = reinterpret_cast<coruring::io::detail::Callback *>(cqes[i]->user_data);
@@ -57,4 +57,4 @@ private:
     timer::Timer       timer_;
     task::waker::Waker waker_;
 };
-} // namespace coruring::runtime::detail
+} // namespace coruring::runtime::scheduler

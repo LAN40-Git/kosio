@@ -1,7 +1,7 @@
 #pragma once
 #include "shared.h"
 #include "runtime/config.h"
-#include "runtime/driver.h"
+#include "runtime/scheduler/driver.h"
 #include <tbb/concurrent_hash_map.h>
 
 namespace coruring::runtime::scheduler::multi_thread {
