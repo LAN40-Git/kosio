@@ -22,24 +22,22 @@ void coruring::runtime::scheduler::multi_thread::Worker::run() {
     while (!is_shutdown_) [[likely]] {
         tick();
 
-        // 在必要时轮询完成的 IO 事件
         maintenance();
 
-        // 取出本地任务
-        take_tasks();
+        if (auto task = next_task(); task) {
+            run_task(task.value());
+            continue;
+        }
 
-        // 窃取任务
-        steal_tasks();
+        if (auto task = steal_task(); task) {
+            run_task(task.value());
+            continue;
+        }
 
-        // 处理任务
-        handle_tasks();
-
-        // 轮询 IO 事件
         if (poll()) {
             continue;
         }
 
-        // 睡眠
         sleep();
     }
 }
@@ -52,8 +50,27 @@ void coruring::runtime::scheduler::multi_thread::Worker::wake_up() const {
     driver_.wake_up();
 }
 
+void coruring::runtime::scheduler::multi_thread::Worker::schedule_local(std::coroutine_handle<> task) {
+    if (lifo_slot_.has_value()) {
+        local_queue_.enqueue(std::move(lifo_slot_.value()));
+        lifo_slot_.emplace(std::move(task));
+        handle_->shared_.wake_up_one();
+    } else {
+        lifo_slot_.emplace(std::move(task));
+    }
+}
+
 auto coruring::runtime::scheduler::multi_thread::Worker::local_queue() -> detail::TaskQueue & {
     return local_queue_;
+}
+
+void coruring::runtime::scheduler::multi_thread::Worker::run_task(std::coroutine_handle<> task) {
+    this->transition_from_searching();
+    task.resume();
+    // 最外层的协程句柄需要手动销毁
+    if (task.done() && handle_->tasks_.erase(task)) {
+        task.destroy();
+    }
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::transition_to_sleepling() -> bool {
@@ -112,54 +129,81 @@ void coruring::runtime::scheduler::multi_thread::Worker::tick() {
     tick_ += 1;
 }
 
-void coruring::runtime::scheduler::multi_thread::Worker::take_tasks() {
-    fired_tasks_.pend_tasks(local_queue_);
+auto coruring::runtime::scheduler::multi_thread::Worker::next_task()
+-> std::optional<std::coroutine_handle<>> {
+    // 1. 每隔（global_queue_interval）次就尝试从全局队列获取任务
+    // 2. 尝试从本地队列取出任务，若本地队列为空，则尝试从全局队列取出至少一个任务
+    if (tick_ % handle_->shared_.config_.global_queue_interval == 0) {
+        return next_remote_task().or_else([this] {
+            return next_local_task();
+        });
+    } else {
+        if (auto task = next_local_task(); task) {
+            return task;
+        }
+
+        auto& global_queue = handle_->shared_.global_queue_;
+
+        if (global_queue.empty()) {
+            return std::nullopt;
+        }
+
+        auto n = std::min(
+            runtime::detail::MAX_QUEUE_BATCH_SIZE,
+            (global_queue.size_approx() / handle_->shared_.workers_.size()) + 1);
+        global_queue.put_into(local_queue_, n);
+        return next_local_task();
+    }
 }
 
-void coruring::runtime::scheduler::multi_thread::Worker::steal_tasks() {
-    // 当本轮已经完成足够任务时，不进行窃取
-    // 当太多线程在窃取时，不进行窃取
-    if (fired_tasks_.full() || !transition_to_searching()) {
-        return;
+auto coruring::runtime::scheduler::multi_thread::Worker::next_local_task()
+-> std::optional<std::coroutine_handle<>> {
+    if (lifo_slot_.has_value()) {
+        std::optional<std::coroutine_handle<>> result{nullptr};
+        result.swap(lifo_slot_);
+        return result;
     }
+    std::coroutine_handle result{nullptr};
+    local_queue_.try_dequeue(result);
+    return result;
+}
 
+auto coruring::runtime::scheduler::multi_thread::Worker::next_remote_task()
+const -> std::optional<std::coroutine_handle<>> {
     auto& global_queue = handle_->shared_.global_queue_;
-    // 先从全局队列窃取
-    fired_tasks_.pend_tasks(global_queue);
-
-    // 若已拿到足够的任务，则直接返回
-    if (fired_tasks_.full()) {
-        return;
+    if (global_queue.empty()) {
+        return std::nullopt;
     }
-    auto target_index =
-        util::FastRand::instance().fastrand_n(handle_->shared_.workers_.size());
-
-    if (target_index == index_) {
-        return;
-    }
-
-    auto& steal_queue = handle_->shared_.workers_[target_index]->local_queue();
-    fired_tasks_.pend_tasks(steal_queue);
+    std::coroutine_handle<> task;
+    global_queue.try_dequeue(task);
+    return task;
 }
 
-void coruring::runtime::scheduler::multi_thread::Worker::handle_tasks() {
-    auto& pending_tasks = fired_tasks_.pending_tasks();
-    auto size = fired_tasks_.size();
-    for (std::size_t i = 0; i < size; ++i) {
-        pending_tasks[i].resume();
-        // 最外层的协程完成了（tasks_ 成功移除），说明任务完成，销毁协程
-        if (pending_tasks[i].done() &&
-            handle_->tasks_.erase(pending_tasks[i])) {
-            pending_tasks[i].destroy();
-            }
+auto coruring::runtime::scheduler::multi_thread::Worker::steal_task()
+-> std::optional<std::coroutine_handle<>> {
+    if (!transition_to_searching()) {
+        return std::nullopt;
     }
-    fired_tasks_.reset();
+
+    auto num = handle_->shared_.workers_.size();
+    auto start = static_cast<std::size_t>(rand_.fastrand_n(static_cast<uint32_t>(num)));
+    for (std::size_t i = 0; i < num; ++i) {
+        i = (start + i) % num;
+        if (i == index_) {
+            continue;
+        }
+
+        auto* target = handle_->shared_.workers_[i];
+        target->local_queue().put_into(local_queue_, std::min(
+            runtime::detail::MAX_QUEUE_BATCH_SIZE,
+            target->local_queue().size_approx() / 2));
+        return next_local_task();
+    }
+    return next_remote_task();
 }
 
 void coruring::runtime::scheduler::multi_thread::Worker::maintenance() {
     if (this->tick_ % handle_->shared_.config_.io_interval == 0) {
-        // Poll happend I/O events, I don't care if I/O events happen
-        // Just a regular checking
         [[maybe_unused]] auto _ = poll();
     }
 }

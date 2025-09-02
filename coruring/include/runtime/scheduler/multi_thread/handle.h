@@ -12,7 +12,7 @@ public:
 
 public:
     void schedule_task(std::coroutine_handle<> task);
-    void close();
+    void close() const;
     void wait();
 
 public:

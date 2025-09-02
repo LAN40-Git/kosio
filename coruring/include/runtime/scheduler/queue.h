@@ -13,7 +13,6 @@ public:
         return tasks_.enqueue_bulk(itemFirst, count);
     }
 
-    [[nodiscard]]
     auto try_dequeue(std::coroutine_handle<>& task) -> bool;
 
     template <typename It>
@@ -29,7 +28,11 @@ public:
     [[nodiscard]]
     auto empty() const -> bool;
 
+public:
+    void put_into(TaskQueue& dst, std::size_t max);
+
 private:
-    moodycamel::ConcurrentQueue<std::coroutine_handle<>> tasks_;
+    moodycamel::ConcurrentQueue<std::coroutine_handle<>>                tasks_;
+    std::array<std::coroutine_handle<>, runtime::detail::MAX_QUEUE_BATCH_SIZE> task_buffer_;
 };
 } // namespace coruring::runtime::scheduler::detail

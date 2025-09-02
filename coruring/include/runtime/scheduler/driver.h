@@ -23,7 +23,7 @@ public:
 
     template <typename LocalQueue>
     auto poll(LocalQueue &local_queue) -> bool {
-        std::array<io_uring_cqe *, runtime::detail::PEEK_BATCH_SIZE> cqes{};
+        std::array<io_uring_cqe *, runtime::detail::MAX_QUEUE_BATCH_SIZE> cqes{};
         auto count = ring_.peek_batch(cqes);
         for (auto i = 0; i < count; ++i) {
             auto cb = reinterpret_cast<coruring::io::detail::Callback *>(cqes[i]->user_data);

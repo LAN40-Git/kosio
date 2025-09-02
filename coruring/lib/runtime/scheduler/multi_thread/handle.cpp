@@ -34,12 +34,14 @@ void coruring::runtime::scheduler::multi_thread::Handle::schedule_task(std::coro
     shared_.schedule_remote(task);
 }
 
-void coruring::runtime::scheduler::multi_thread::Handle::close() {
+void coruring::runtime::scheduler::multi_thread::Handle::close() const {
     shared_.close();
 }
 
 void coruring::runtime::scheduler::multi_thread::Handle::wait() {
     for (auto &thread : threads_) {
-        thread.join();
+        if (thread.joinable()) {
+            thread.join();
+        }
     }
 }

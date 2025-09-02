@@ -20,7 +20,7 @@ static inline constexpr std::size_t LEVEL_MULT = 64;
 static_assert((LEVEL_MULT & (LEVEL_MULT - 1)) == 0, "SLOTS must be a power of 2");
 
 // 工作线程每次尝试收割的 IO 事件的最大数量
-static inline constexpr std::size_t PEEK_BATCH_SIZE = 128;
+static inline constexpr std::size_t MAX_QUEUE_BATCH_SIZE = 256;
 
 struct Config {
     // io_uring 队列纵深
@@ -30,7 +30,10 @@ struct Config {
     std::size_t submit_interval{SUBMIT_INTERVAL};
 
     // 工作线程重复轮询 io_uring 完成的 IO 事件的间隔
-    std::size_t io_interval{64};
+    std::size_t io_interval{61};
+
+    // 工作现成从全局队列取出任务的 tick 次数
+    std::size_t global_queue_interval{61};
 
     // 工作线程数量
     std::size_t num_workers{std::thread::hardware_concurrency()};

@@ -1,17 +1,20 @@
 #pragma once
 #include <random>
+#include <cassert>
 
 namespace coruring::util {
 class FastRand {
 public:
-    // thread_local instance
-    static FastRand& instance() {
-        thread_local FastRand instance;
-        return instance;
+    FastRand() {
+        std::random_device dev;
+        one_ = static_cast<uint32_t>(dev());
+        two_ = static_cast<uint32_t>(dev());
     }
 
-    // n > 0
+public:
+    // n >= 0
     uint32_t fastrand_n(uint32_t n) {
+        if (n == 0) return 0;
         uint32_t threshold = (-n) % n;
         while (true) {
             uint32_t r = fastrand();
@@ -21,16 +24,11 @@ public:
     }
 
     int32_t rand_range(int32_t min, int32_t max) {
+        assert(min <= max);  // 参数检查
         return min + static_cast<int32_t>(fastrand_n(max - min + 1));
     }
 
 private:
-    FastRand() {
-        std::random_device dev;
-        one_ = static_cast<uint32_t>(dev());
-        two_ = static_cast<uint32_t>(dev());
-    }
-
     uint32_t fastrand() {
         auto s1 = one_;
         auto s0 = two_;

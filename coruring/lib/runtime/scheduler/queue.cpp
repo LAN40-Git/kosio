@@ -15,3 +15,10 @@ auto coruring::runtime::scheduler::detail::TaskQueue::size_approx() const -> std
 auto coruring::runtime::scheduler::detail::TaskQueue::empty() const -> bool {
     return tasks_.size_approx() == 0;
 }
+
+void coruring::runtime::scheduler::detail::TaskQueue::put_into(TaskQueue &dst, std::size_t max) {
+    auto count = this->try_dequeue_bulk(
+        task_buffer_.data(),
+        std::min(task_buffer_.size(), max));
+    dst.enqueue_bulk(task_buffer_.data(), count);
+}
