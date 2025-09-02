@@ -1,7 +1,6 @@
 #pragma once
 #include "runtime/config.h"
 #include "runtime/scheduler/current_thread/worker.h"
-#include <tbb/concurrent_hash_map.h>
 
 namespace coruring::runtime::scheduler::current_thread {
 class Handle : util::Noncopyable {
@@ -15,8 +14,20 @@ public:
     void wait();
 
 public:
-    using TaskMap = tbb::concurrent_hash_map<std::coroutine_handle<>, uint64_t>;
     Worker  worker_;
-    TaskMap tasks_;
 };
+
+static inline void schedule_local(std::coroutine_handle<> handle) {
+    if (t_worker == nullptr) [[unlikely]] {
+        std::unreachable();
+    }
+    t_worker->schedule_local(handle);
+}
+
+static inline void schedule_remote(std::coroutine_handle<> handle) {
+    if (t_worker == nullptr) [[unlikely]] {
+        std::unreachable();
+    }
+    t_worker->schedule_remote(handle);
+}
 } // namespace coruring::runtime::scheduler::current_thread

@@ -11,7 +11,6 @@ coruring::runtime::scheduler::current_thread::Handle::~Handle() {
 }
 
 void coruring::runtime::scheduler::current_thread::Handle::schedule_task(std::coroutine_handle<> task) {
-    tasks_.insert({task, 0});
     worker_.schedule_remote(task);
 }
 

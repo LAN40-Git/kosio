@@ -32,7 +32,7 @@ struct TaskPromiseBase {
                         #endif
                     }
                 }
-                // callee.destroy(); // 交给协程调度器管理
+                callee.destroy();
                 return std::noop_coroutine();
             }
         }

@@ -5,12 +5,6 @@
 #include <nlohmann/json.hpp>
 
 namespace coruring::runtime::detail {
-// io_uring 队列纵深
-static inline constexpr std::size_t ENTRIES = 2048;
-
-// io_uring 事件提交间隔
-static inline constexpr std::size_t SUBMIT_INTERVAL = 64;
-
 // 分层时间轮最大层数
 static inline constexpr std::size_t NUM_LEVELS = 6;
 static_assert(NUM_LEVELS > 0, "MAX_LEVEL must be greater than 0");
@@ -24,10 +18,10 @@ static inline constexpr std::size_t MAX_QUEUE_BATCH_SIZE = 256;
 
 struct Config {
     // io_uring 队列纵深
-    std::size_t entries{ENTRIES};
+    std::size_t entries{1024};
 
     // io_uring 事件提交间隔
-    std::size_t submit_interval{SUBMIT_INTERVAL};
+    std::size_t submit_interval{64};
 
     // 工作线程重复轮询 io_uring 完成的 IO 事件的间隔
     std::size_t io_interval{61};

@@ -1,4 +1,5 @@
 #include "runtime/scheduler/multi_thread/worker.h"
+#include "runtime/scheduler/multi_thread/handle.h"
 
 coruring::runtime::scheduler::multi_thread::Worker::Worker(
     std::size_t index,
@@ -67,10 +68,6 @@ auto coruring::runtime::scheduler::multi_thread::Worker::local_queue() -> detail
 void coruring::runtime::scheduler::multi_thread::Worker::run_task(std::coroutine_handle<> task) {
     this->transition_from_searching();
     task.resume();
-    // 最外层的协程句柄需要手动销毁
-    if (task.done() && handle_->tasks_.erase(task)) {
-        task.destroy();
-    }
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::transition_to_sleepling() -> bool {
@@ -165,6 +162,9 @@ auto coruring::runtime::scheduler::multi_thread::Worker::next_local_task()
     }
     std::coroutine_handle result{nullptr};
     local_queue_.try_dequeue(result);
+    if (!result) {
+        return std::nullopt;
+    }
     return result;
 }
 

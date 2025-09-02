@@ -1,5 +1,5 @@
 #pragma once
-#include "common/util/nocopyable.h"
+#include "common/util/noncopyable.h"
 #include "runtime/scheduler/driver.h"
 #include "runtime/scheduler/queue.h"
 
@@ -20,6 +20,7 @@ public:
     void schedule_remote(std::coroutine_handle<> task);
 
 private:
+    void run_task(std::coroutine_handle<> task);
     void tick();
     void maintenance();
     [[nodiscard]]
@@ -37,6 +38,7 @@ private:
     Handle*                 handle_;
     runtime::detail::Config config_;
     detail::Driver          driver_;
+    std::optional<std::coroutine_handle<>> lifo_slot_;
     detail::TaskQueue       local_queue_;
     detail::TaskQueue       global_queue_;
     bool                    is_shutdown_{false};

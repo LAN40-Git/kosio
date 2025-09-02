@@ -11,13 +11,6 @@ set(CORURING_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/coruring")
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBURING REQUIRED liburing)
 find_package(nlohmann_json 3.5 REQUIRED)
-find_package(TBB REQUIRED)
-
-if(TARGET TBB::tbb AND NOT TARGET TBB::TBB)
-    add_library(TBB::TBB ALIAS TBB::tbb)
-elseif(NOT TARGET TBB::TBB)
-    message(FATAL_ERROR "TBB found but no valid target available")
-endif()
 
 if(NOT TARGET liburing::liburing)
     add_library(liburing::liburing INTERFACE IMPORTED)
@@ -27,9 +20,7 @@ if(NOT TARGET liburing::liburing)
     )
 endif()
 
-# ====== INSTALL ======
-
-add_library(coruring STATIC
+set(SOURCE_FILES
         coruring/lib/io/io.cpp
         coruring/lib/socket/net/socket.cpp
         coruring/lib/socket/socket.cpp
@@ -49,86 +40,78 @@ add_library(coruring STATIC
         coruring/lib/runtime/scheduler/current_thread/handle.cpp
 )
 
-target_include_directories(coruring PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/coruring/include>
-    $<INSTALL_INTERFACE:include/coruring>
-)
-
-target_link_libraries(coruring PUBLIC
-    liburing::liburing
-    nlohmann_json::nlohmann_json
-    TBB::TBB
-)
+#target_include_directories(coruring PUBLIC
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/coruring/include>
+#    $<INSTALL_INTERFACE:include/coruring>
+#)
+#
+#target_link_libraries(coruring PUBLIC
+#    liburing::liburing
+#    nlohmann_json::nlohmann_json
+#)
 
 include(CMakePackageConfigHelpers)
 
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/coruringConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfig.cmake"
-    INSTALL_DESTINATION "${CORURING_INSTALL_CMAKEDIR}"
-)
+# ====== INSTALL ======
 
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfigVersion.cmake"
-    VERSION "${PROJECT_VERSION}"
-    COMPATIBILITY SameMajorVersion
-)
-
-install(TARGETS coruring
-    EXPORT coruringTargets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    INCLUDES DESTINATION include
-)
-
-install(DIRECTORY coruring/include/
-    DESTINATION include/coruring
-    FILES_MATCHING PATTERN "*.h"
-)
-
-install(EXPORT coruringTargets
-    FILE coruringTargets.cmake
-    NAMESPACE coruring::
-    DESTINATION "${CORURING_INSTALL_CMAKEDIR}"
-)
-
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfigVersion.cmake"
-    DESTINATION "${CORURING_INSTALL_CMAKEDIR}"
-)
-
-export(EXPORT coruringTargets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/coruringTargets.cmake"
-    NAMESPACE coruring::
-)
+#configure_package_config_file(
+#    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/coruringConfig.cmake.in"
+#    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfig.cmake"
+#    INSTALL_DESTINATION "${CORURING_INSTALL_CMAKEDIR}"
+#)
+#
+#write_basic_package_version_file(
+#    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfigVersion.cmake"
+#    VERSION "${PROJECT_VERSION}"
+#    COMPATIBILITY SameMajorVersion
+#)
+#
+#install(TARGETS coruring
+#    EXPORT coruringTargets
+#    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#    INCLUDES DESTINATION include
+#)
+#
+#install(DIRECTORY coruring/include/
+#    DESTINATION include/coruring
+#    FILES_MATCHING PATTERN "*.h"
+#)
+#
+#install(EXPORT coruringTargets
+#    FILE coruringTargets.cmake
+#    NAMESPACE coruring::
+#    DESTINATION "${CORURING_INSTALL_CMAKEDIR}"
+#)
+#
+#install(FILES
+#    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfig.cmake"
+#    "${CMAKE_CURRENT_BINARY_DIR}/coruringConfigVersion.cmake"
+#    DESTINATION "${CORURING_INSTALL_CMAKEDIR}"
+#)
+#
+#export(EXPORT coruringTargets
+#    FILE "${CMAKE_CURRENT_BINARY_DIR}/coruringTargets.cmake"
+#    NAMESPACE coruring::
+#)
 
 # ====== INSTALL ======
 
 # ====== TEST ======
 
-#set(SOURCE_FILES
-#        coruring/src/runtime/io/io_uring.cpp
-#        coruring/src/io/io.cpp
-#        coruring/src/socket/net/socket.cpp
-#        coruring/src/socket/socket.cpp
-#        coruring/src/runtime/scheduler.cpp
-#        coruring/src/runtime/worker/worker.cpp
-#)
-#
-#add_executable(main
-#        coruring/src/main.cpp
-#        ${SOURCE_FILES}
-#)
-#target_include_directories(main PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/coruring/include>
-#    $<INSTALL_INTERFACE:include/coruring>
-#)
-#
-#target_link_libraries(main PUBLIC
-#    liburing::liburing
-#    nlohmann_json::nlohmann_json
-#    TBB::TBB
-#)
+add_executable(main
+        coruring/lib/main.cpp
+        ${SOURCE_FILES}
+)
+
+target_include_directories(main PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/coruring/include>
+        $<INSTALL_INTERFACE:include/coruring>
+)
+
+target_link_libraries(main PUBLIC
+        liburing::liburing
+        nlohmann_json::nlohmann_json
+)
 
 # ====== TEST ======

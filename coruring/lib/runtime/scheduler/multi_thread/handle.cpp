@@ -30,7 +30,6 @@ coruring::runtime::scheduler::multi_thread::Handle::~Handle() {
 }
 
 void coruring::runtime::scheduler::multi_thread::Handle::schedule_task(std::coroutine_handle<> task) {
-    tasks_.insert({task, 0});
     shared_.schedule_remote(task);
 }
 

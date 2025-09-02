@@ -1,15 +1,14 @@
 #include "core.h"
-#include "net.h"
 #include "log.h"
+#include "net.h"
 #include "timer.h"
-#include <string_view>
-using namespace coruring::async;
-using namespace coruring::socket::net;
+
+using namespace coruring::runtime;
+using namespace coruring::io;
 using namespace coruring::log;
 using namespace coruring::timer;
-using namespace coruring::runtime;
-
-Scheduler sched{1};
+using namespace coruring::async;
+using namespace coruring::socket::net;
 
 constexpr std::string_view response = R"(
 HTTP/1.1 200 OK
@@ -31,32 +30,52 @@ auto process(TcpStream stream) -> Task<void> {
     }
 }
 
-auto server() -> Task<void> {
+auto server() -> Task<> {
     auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
     if (!has_addr) {
-        console.error(has_addr.error().message());
+        console.error("Failed to parse IP address.");
         co_return;
     }
     auto has_listener = TcpListener::bind(has_addr.value());
     if (!has_listener) {
-        console.error(has_listener.error().message());
+        console.error("Failed to bind listener.");
         co_return;
     }
     auto listener = std::move(has_listener.value());
     while (true) {
         if (auto has_stream = co_await listener.accept()) {
             auto &[stream, peer_addr] = has_stream.value();
-            sched.spawn(process(std::move(stream)));
-            auto end = std::chrono::high_resolution_clock::now();
+            // LOG_INFO("Accept a connection from {}", peer_addr);
+            coruring::spawn(process(std::move(stream)));
         } else {
-            console.error("{}", has_stream.error().message());
+            // LOG_ERROR("{}", has_stream.error());
             break;
         }
     }
 }
 
-auto main() -> int {
-    sched.spawn(server());
-    sched.run();
-    while (true) { std::this_thread::sleep_for(std::chrono::seconds(1)); }
+auto main_loop() -> Task<> {
+    coruring::spawn(server());
+    while (true) {
+        console.info("Running...");
+        std::this_thread::sleep_for(std::chrono::milliseconds(100000));
+    }
+}
+
+auto main(int argc, char **argv) -> int {
+    if (argc != 2) {
+        std::cerr << "usage: main num_threas\n";
+        return -1;
+    }
+    auto num_threads = std::stoi(argv[1]);
+    if (num_threads > 1) {
+        auto runtime = MultiThreadBuilder::options()
+            .num_workers(num_threads)
+            .submit_interval(0)
+            .build();
+        runtime.block_on(main_loop());
+    } else {
+        CurrentThreadBuilder::default_create().block_on(main_loop());
+    }
+    return 0;
 }

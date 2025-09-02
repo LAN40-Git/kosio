@@ -3,7 +3,7 @@
 #include "level.h"
 #include "buffer.h"
 #include "common/util/thread.h"
-#include "common/util/nocopyable.h"
+#include "common/util/noncopyable.h"
 #include <list>
 #include <thread>
 #include <string>

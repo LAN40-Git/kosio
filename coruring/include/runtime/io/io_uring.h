@@ -1,6 +1,6 @@
 #pragma once
 #include "runtime/config.h"
-#include "common/util/nocopyable.h"
+#include "common/util/noncopyable.h"
 #include <cstring>
 #include <format>
 #include <liburing.h>

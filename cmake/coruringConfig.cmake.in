@@ -5,7 +5,6 @@ include(CMakeFindDependencyMacro)
 # 查找所有依赖
 find_dependency(PkgConfig)
 find_dependency(nlohmann_json 3.5 REQUIRED)
-find_dependency(TBB REQUIRED)
 
 # 处理 liburing
 find_package(PkgConfig REQUIRED)

@@ -1,8 +1,11 @@
 #pragma once
-#include "runtime/scheduler/multi_thread/handle.h"
 #include "common/util/random.h"
+#include "common/util/noncopyable.h"
+#include "runtime/scheduler/driver.h"
+#include "runtime/scheduler/multi_thread/shared.h"
 
 namespace coruring::runtime::scheduler::multi_thread {
+class Handle;
 static inline thread_local Worker *t_worker{nullptr};
 
 class Worker : util::Noncopyable {
@@ -49,7 +52,7 @@ private:
     util::FastRand                         rand_{};
     Handle*                                handle_;
     detail::Driver                         driver_;
-    std::optional<std::coroutine_handle<>> lifo_slot_;
+    std::optional<std::coroutine_handle<>> lifo_slot_{std::nullopt};
     detail::TaskQueue                      local_queue_;
     bool                                   is_shutdown_{false};
     bool                                   is_searching_{false};
