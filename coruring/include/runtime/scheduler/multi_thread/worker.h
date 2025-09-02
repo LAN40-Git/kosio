@@ -25,19 +25,16 @@ private:
     auto transition_from_sleepling() -> bool;
     auto transition_to_searching() -> bool;
     void transition_from_searching();
+    [[nodiscard]]
     auto should_notify_others() const -> bool;
     void tick();
-    /// 返回从本地队列中取出的任务数量
     void take_tasks();
-    /// 返回窃取并完成的任务数量
     void steal_tasks();
     void handle_tasks();
     void maintenance();
     [[nodiscard]]
     auto poll() -> bool;
     void sleep();
-
-private:
 
 private:
     std::size_t        index_;

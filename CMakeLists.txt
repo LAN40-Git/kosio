@@ -30,20 +30,20 @@ endif()
 # ====== INSTALL ======
 
 add_library(coruring STATIC
-        coruring/lib/runtime/io/io_uring.cpp
         coruring/lib/io/io.cpp
         coruring/lib/socket/net/socket.cpp
         coruring/lib/socket/socket.cpp
         coruring/lib/runtime/scheduler/multi_thread/worker.cpp
+        coruring/lib/runtime/io/io_uring.cpp
         coruring/lib/runtime/timer/entry.cpp
         coruring/lib/runtime/timer/level.cpp
         coruring/lib/runtime/timer/timer.cpp
         coruring/lib/runtime/task/waker.cpp
-        coruring/lib/runtime/scheduler/driver.cpp
         coruring/lib/runtime/scheduler/multi_thread/handle.cpp
         coruring/lib/runtime/scheduler/multi_thread/shared.cpp
         coruring/lib/runtime/scheduler/multi_thread/idle.cpp
         coruring/lib/runtime/scheduler/queue.cpp
+        coruring/lib/runtime/scheduler/driver.cpp
         coruring/lib/runtime/scheduler/fired_tasks.cpp
         coruring/lib/runtime/runtime.cpp
 )
