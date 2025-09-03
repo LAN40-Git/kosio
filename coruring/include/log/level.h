@@ -17,12 +17,12 @@ enum class LogLevel {
 consteval auto level_to_string(LogLevel level) noexcept -> std::string_view {
     using enum LogLevel;
     switch (level) {
-        case Verbose: return "[Verbose]";
-        case Debug:  return "[Debug]";
-        case Info:   return "[Info]";
-        case Warn:   return "[Warn]";
-        case Error:  return "[Error]";
-        case Fatal:  return "[Fatal]";
+        case Verbose: return "Verbose";
+        case Debug:  return "Debug";
+        case Info:   return "Info";
+        case Warn:   return "[Warn";
+        case Error:  return "Error";
+        case Fatal:  return "Fatal";
         default:
             std::unreachable();
             return "UNKNOWN LOG LEVEL";

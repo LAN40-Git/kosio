@@ -30,7 +30,7 @@ auto process(TcpStream stream) -> Task<void> {
     }
 }
 
-auto server() -> Task<> {
+auto server() -> Task<void> {
     auto has_addr = SocketAddr::parse("127.0.0.1", 8080);
     if (!has_addr) {
         console.error("Failed to parse IP address.");
@@ -54,12 +54,9 @@ auto server() -> Task<> {
     }
 }
 
-auto main_loop() -> Task<> {
+auto main_loop() -> Task<void> {
     coruring::spawn(server());
-    while (true) {
-        console.info("Running...");
-        std::this_thread::sleep_for(std::chrono::milliseconds(100000));
-    }
+    co_await coruring::timer::sleep(10000);
 }
 
 auto main(int argc, char **argv) -> int {
@@ -67,6 +64,7 @@ auto main(int argc, char **argv) -> int {
         std::cerr << "usage: main num_threas\n";
         return -1;
     }
+    SET_LOG_LEVEL(coruring::log::LogLevel::Verbose);
     auto num_threads = std::stoi(argv[1]);
     if (num_threads > 1) {
         auto runtime = MultiThreadBuilder::options()

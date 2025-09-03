@@ -34,4 +34,13 @@ static inline void schedule_remote(std::coroutine_handle<> handle) {
     }
     t_shared->schedule_remote(handle);
 }
+
+template <typename It>
+static inline void schedule_remote_batch(It itemFirst, std::size_t count) {
+    if (t_shared == nullptr) [[unlikely]] {
+        std::unreachable();
+        return;
+    }
+    t_shared->schedule_remote_batch(itemFirst, count);
+}
 } // namespace coruring::runtime::scheduler::multi_thread

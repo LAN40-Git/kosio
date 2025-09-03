@@ -43,6 +43,7 @@ void coruring::runtime::scheduler::multi_thread::Shared::close() const {
     wake_up_all();
 }
 
-auto coruring::runtime::scheduler::multi_thread::Shared::schedule_remote(std::coroutine_handle<> task) -> bool {
-    return global_queue_.enqueue(std::move(task));
+void coruring::runtime::scheduler::multi_thread::Shared::schedule_remote(std::coroutine_handle<> task) {
+    global_queue_.enqueue(std::move(task));
+    wake_up_one();
 }

@@ -2,7 +2,7 @@
 
 coruring::runtime::scheduler::multi_thread::IdleState::IdleState(
     std::size_t num_workers)
-    : state_(num_workers){}
+    : state_(num_workers << WORKING_SHIFT) {}
 
 auto coruring::runtime::scheduler::multi_thread::IdleState::num_searching(
     std::memory_order order) const -> std::size_t {

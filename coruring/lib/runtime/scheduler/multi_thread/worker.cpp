@@ -10,7 +10,7 @@ coruring::runtime::scheduler::multi_thread::Worker::Worker(
     , driver_(config) {
     handle_->shared_.workers_.push_back(this);
     t_worker = this;
-    t_shared = &handle_->shared_;
+    t_shared = std::addressof(handle_->shared_);
 }
 
 coruring::runtime::scheduler::multi_thread::Worker::~Worker() {
@@ -71,7 +71,7 @@ void coruring::runtime::scheduler::multi_thread::Worker::run_task(std::coroutine
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::transition_to_sleepling() -> bool {
-    if (local_queue_.size_approx() > 0) {
+    if (has_task()) {
         return false;
     }
 
@@ -85,8 +85,9 @@ auto coruring::runtime::scheduler::multi_thread::Worker::transition_to_sleepling
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::transition_from_sleepling() -> bool {
-    if (local_queue_.size_approx() > 0) {
+    if (has_task()) {
         is_searching_ = !handle_->shared_.idle_.remove(index_);
+        return true;
     }
 
     if (handle_->shared_.idle_.contains(index_)) {
@@ -113,6 +114,10 @@ void coruring::runtime::scheduler::multi_thread::Worker::transition_from_searchi
     if (handle_->shared_.idle_.transition_worker_from_searching()) {
         handle_->shared_.wake_up_one();
     }
+}
+
+auto coruring::runtime::scheduler::multi_thread::Worker::has_task() const -> bool {
+    return lifo_slot_.has_value() || !local_queue_.empty();
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::should_notify_others() const -> bool {

@@ -74,7 +74,7 @@ class CurrentThreadBuilder : public detail::Builder<CurrentThreadBuilder, schedu
 class MultiThreadBuilder : public detail::Builder<MultiThreadBuilder, scheduler::multi_thread::Handle> {
 public:
     [[nodiscard]]
-    auto set_num_workers(std::size_t num_worker_threads) -> MultiThreadBuilder & {
+    auto set_num_workers(std::size_t num_worker_threads) -> MultiThreadBuilder& {
         config_.num_workers = num_worker_threads;
         return *this;
     }

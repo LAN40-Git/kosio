@@ -1,4 +1,5 @@
 #pragma once
+#include "common/debug.h"
 #include "runtime/config.h"
 #include "runtime/scheduler/queue.h"
 #include "runtime/scheduler/multi_thread/idle.h"
@@ -21,10 +22,11 @@ public:
     void wake_up_all() const;
     void wake_up_if_work_pending();
     void close() const;
-    auto schedule_remote(std::coroutine_handle<> task) -> bool;
+    void schedule_remote(std::coroutine_handle<> task);
     template <typename It>
-    auto schedule_remote_batch(It itemFirst, std::size_t count) -> bool {
-        return global_queue_.enqueue_bulk(itemFirst, count);
+    void schedule_remote_batch(It itemFirst, std::size_t count) {
+        global_queue_.enqueue_bulk(itemFirst, count);
+        wake_up_one();
     }
 
 private:

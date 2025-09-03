@@ -6,7 +6,7 @@
 
 namespace coruring::runtime::scheduler::multi_thread {
 class Handle;
-static inline thread_local Worker *t_worker{nullptr};
+inline thread_local Worker *t_worker{nullptr};
 
 class Worker : util::Noncopyable {
     friend class Shared;
@@ -29,6 +29,8 @@ private:
     auto transition_from_sleepling() -> bool;
     auto transition_to_searching() -> bool;
     void transition_from_searching();
+    [[nodiscard]]
+    auto has_task() const -> bool;
     [[nodiscard]]
     auto should_notify_others() const -> bool;
     void tick();

@@ -18,6 +18,10 @@ public:
     void wake_up() const;
     void schedule_local(std::coroutine_handle<> task);
     void schedule_remote(std::coroutine_handle<> task);
+    template <typename It>
+    void schedule_remote_batch(It itemFirst, std::size_t count) {
+        global_queue_.enqueue_bulk(itemFirst, count);
+    }
 
 private:
     void run_task(std::coroutine_handle<> task);

@@ -31,7 +31,7 @@ public:
         return false;
     }
 
-    auto await_resum() const noexcept -> Result<void, TimerError> {
+    auto await_resume() const noexcept -> Result<void, TimerError> {
         return result_;
     }
 
@@ -43,6 +43,7 @@ private:
 } // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
+// sleep `duration` ms
 static auto inline sleep(uint64_t duration) {
     return detail::Sleep{util::current_ms() + duration};
 }

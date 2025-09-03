@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <thread>
+#include <iostream>
 
 namespace coruring::util {
 static inline auto get_tid() noexcept -> pid_t {

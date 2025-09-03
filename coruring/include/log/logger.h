@@ -67,6 +67,11 @@ public:
     }
 
     template <typename... Args>
+    void verbose(FmtWithSourceLocation fmt, Args&& ...args) {
+        format<LogLevel::Verbose>(fmt, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
     void debug(FmtWithSourceLocation fmt, Args&& ...args) {
         format<LogLevel::Debug>(fmt, std::forward<Args>(args)...);
     }
