@@ -56,7 +56,11 @@ auto server() -> Task<void> {
 
 auto main_loop() -> Task<void> {
     coruring::spawn(server());
-    co_await coruring::timer::sleep(10000);
+    while (true) {
+        // co_await coruring::timer::sleep(20);
+        co_await std::suspend_always{};
+        console.info("Main loop.");
+    }
 }
 
 auto main(int argc, char **argv) -> int {
@@ -67,11 +71,11 @@ auto main(int argc, char **argv) -> int {
     SET_LOG_LEVEL(coruring::log::LogLevel::Verbose);
     auto num_threads = std::stoi(argv[1]);
     if (num_threads > 1) {
-        auto runtime = MultiThreadBuilder::options()
+        MultiThreadBuilder::options()
             .num_workers(num_threads)
             .submit_interval(0)
-            .build();
-        runtime.block_on(main_loop());
+            .build()
+            .block_on(main_loop());
     } else {
         CurrentThreadBuilder::default_create().block_on(main_loop());
     }

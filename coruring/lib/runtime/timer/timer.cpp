@@ -1,4 +1,5 @@
 #include "runtime/timer/timer.h"
+#include "common/debug.h"
 
 coruring::runtime::timer::Timer::Timer()
     : start_time_(util::current_ms())

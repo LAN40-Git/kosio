@@ -44,6 +44,8 @@ auto coruring::runtime::scheduler::multi_thread::IdleState::dec_num_working(bool
     return is_searching && (prev & SEARCHING_MASK) == 1;
 }
 
+#include "common/debug.h"
+
 coruring::runtime::scheduler::multi_thread::Idle::Idle(std::size_t num_workers)
     : state_(num_workers)
     , num_workers_(num_workers) {}

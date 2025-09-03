@@ -161,13 +161,13 @@ auto coruring::runtime::scheduler::multi_thread::Worker::next_task()
 auto coruring::runtime::scheduler::multi_thread::Worker::next_local_task()
 -> std::optional<std::coroutine_handle<>> {
     if (lifo_slot_.has_value()) {
-        std::optional<std::coroutine_handle<>> result{nullptr};
+        std::optional<std::coroutine_handle<>> result{std::nullopt};
         result.swap(lifo_slot_);
         return result;
     }
     std::coroutine_handle result{nullptr};
     local_queue_.try_dequeue(result);
-    if (!result) {
+    if (result == nullptr) {
         return std::nullopt;
     }
     return result;
@@ -176,11 +176,11 @@ auto coruring::runtime::scheduler::multi_thread::Worker::next_local_task()
 auto coruring::runtime::scheduler::multi_thread::Worker::next_remote_task()
 const -> std::optional<std::coroutine_handle<>> {
     auto& global_queue = handle_->shared_.global_queue_;
-    if (global_queue.empty()) {
+    std::coroutine_handle<> task{nullptr};
+    global_queue.try_dequeue(task);
+    if (task == nullptr) {
         return std::nullopt;
     }
-    std::coroutine_handle<> task;
-    global_queue.try_dequeue(task);
     return task;
 }
 

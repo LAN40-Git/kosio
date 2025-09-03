@@ -6,7 +6,7 @@
 namespace coruring::runtime::scheduler::current_thread {
 class Worker;
 class Handle;
-static inline thread_local Worker *t_worker{nullptr};
+inline thread_local Worker *t_worker{nullptr};
 
 class Worker : util::Noncopyable {
 public:

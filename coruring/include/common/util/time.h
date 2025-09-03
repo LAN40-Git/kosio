@@ -12,7 +12,7 @@ static inline uint64_t current_ms() noexcept {
         timespec last_ts {};
         uint64_t cached_ms = 0;
     };
-    static thread_local Cache tls_cache;
+    thread_local Cache tls_cache;
 
     timespec now{};
     clock_gettime(CLOCK_MONOTONIC_COARSE, &now);

@@ -9,7 +9,7 @@ namespace coruring::runtime::scheduler::multi_thread {
 class Worker;
 class Shared;
 
-static inline thread_local Shared *t_shared{nullptr};
+inline thread_local Shared *t_shared{nullptr};
 
 class Shared {
     friend class Worker;
