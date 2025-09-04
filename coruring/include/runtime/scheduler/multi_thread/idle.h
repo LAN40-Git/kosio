@@ -18,7 +18,7 @@ public:
     [[nodiscard]]
     auto num_working(std::memory_order order) const -> std::size_t;
     [[nodiscard]]
-    auto num_searching_and_working(std::memory_order order) -> std::pair<std::size_t, std::size_t>;
+    auto num_working_and_searching(std::memory_order order) -> std::pair<std::size_t, std::size_t>;
     void inc_num_searching(std::memory_order order);
     /// Returns `true` if this is the final searching worker
     [[nodiscard]]

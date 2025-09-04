@@ -44,6 +44,12 @@ void coruring::runtime::scheduler::multi_thread::Shared::close() const {
 }
 
 void coruring::runtime::scheduler::multi_thread::Shared::schedule_remote(std::coroutine_handle<> task) {
-    global_queue_.enqueue(std::move(task));
+    global_queue_.push(std::move(task));
+    wake_up_one();
+}
+
+void coruring::runtime::scheduler::multi_thread::Shared::schedule_remote_batch(
+    std::list<std::coroutine_handle<>> &&handles, std::size_t n) {
+    global_queue_.push_batch(std::move(handles), n);
     wake_up_one();
 }

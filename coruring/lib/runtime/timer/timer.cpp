@@ -54,8 +54,8 @@ auto coruring::runtime::timer::Timer::next_expiration_time() const noexcept -> s
     }
 }
 
-auto coruring::runtime::timer::Timer::handle_expired_entries(uint64_t now)
-noexcept -> std::size_t {
+auto coruring::runtime::timer::Timer::handle_expired_entries() noexcept -> std::size_t {
+    auto now = util::current_ms() - start_time_;
     std::size_t count = 0;
     while (true) {
         // 首先处理到期事件

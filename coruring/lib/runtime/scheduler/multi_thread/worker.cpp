@@ -53,16 +53,12 @@ void coruring::runtime::scheduler::multi_thread::Worker::wake_up() const {
 
 void coruring::runtime::scheduler::multi_thread::Worker::schedule_local(std::coroutine_handle<> task) {
     if (lifo_slot_.has_value()) {
-        local_queue_.enqueue(std::move(lifo_slot_.value()));
+        local_queue_.push_back_or_overflow(std::move(lifo_slot_.value()), handle_->shared_.global_queue_);
         lifo_slot_.emplace(std::move(task));
         handle_->shared_.wake_up_one();
     } else {
         lifo_slot_.emplace(std::move(task));
     }
-}
-
-auto coruring::runtime::scheduler::multi_thread::Worker::local_queue() -> detail::TaskQueue & {
-    return local_queue_;
 }
 
 void coruring::runtime::scheduler::multi_thread::Worker::run_task(std::coroutine_handle<> task) {
@@ -124,7 +120,7 @@ auto coruring::runtime::scheduler::multi_thread::Worker::should_notify_others() 
     if (is_searching_) {
         return false;
     }
-    return local_queue_.size_approx() > 1;
+    return local_queue_.size() > 1;
 }
 
 void coruring::runtime::scheduler::multi_thread::Worker::tick() {
@@ -150,10 +146,17 @@ auto coruring::runtime::scheduler::multi_thread::Worker::next_task()
             return std::nullopt;
         }
 
-        auto n = std::min(
-            runtime::detail::MAX_QUEUE_BATCH_SIZE,
-            (global_queue.size_approx() / handle_->shared_.workers_.size()) + 1);
-        global_queue.put_into(local_queue_, n);
+        auto n = std::min(local_queue_.remaining_slots(), local_queue_.capacity() / 2);
+        if (n == 0) [[unlikely]] {
+            // All tasks of current worker are being stolen
+            return next_remote_task();
+        }
+        n = std::min(handle_->shared_.global_queue_.size() / handle_->shared_.workers_.size() + 1, n);
+        auto tasks = handle_->shared_.global_queue_.pop_n(n);
+        if (n == 0) {
+            return std::nullopt;
+        }
+        local_queue_.push_batch(tasks, n);
         return next_local_task();
     }
 }
@@ -165,23 +168,22 @@ auto coruring::runtime::scheduler::multi_thread::Worker::next_local_task()
         result.swap(lifo_slot_);
         return result;
     }
-    std::coroutine_handle result{nullptr};
-    local_queue_.try_dequeue(result);
-    if (result == nullptr) {
+
+    if (local_queue_.empty()) {
         return std::nullopt;
     }
-    return result;
+
+    return local_queue_.pop();
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::next_remote_task()
 const -> std::optional<std::coroutine_handle<>> {
     auto& global_queue = handle_->shared_.global_queue_;
-    std::coroutine_handle<> task{nullptr};
-    global_queue.try_dequeue(task);
-    if (task == nullptr) {
+    if (global_queue.empty()) {
         return std::nullopt;
     }
-    return task;
+
+    return global_queue.pop();
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::steal_task()
@@ -198,11 +200,11 @@ auto coruring::runtime::scheduler::multi_thread::Worker::steal_task()
             continue;
         }
 
-        auto* target = handle_->shared_.workers_[i];
-        target->local_queue().put_into(local_queue_, std::min(
-            runtime::detail::MAX_QUEUE_BATCH_SIZE,
-            target->local_queue().size_approx() / 2));
-        return next_local_task();
+        // TODO: 动态调整窃取的任务数量
+        if (auto result =
+            handle_->shared_.workers_[i]->local_queue_.steal_into(local_queue_); result) {
+            return result;
+        }
     }
     return next_remote_task();
 }
@@ -214,7 +216,7 @@ void coruring::runtime::scheduler::multi_thread::Worker::maintenance() {
 }
 
 auto coruring::runtime::scheduler::multi_thread::Worker::poll() -> bool {
-    if (!driver_.poll(local_queue_)) {
+    if (!driver_.poll(local_queue_, handle_->shared_.global_queue_)) {
         return false;
     }
     if (should_notify_others()) {
@@ -226,7 +228,7 @@ auto coruring::runtime::scheduler::multi_thread::Worker::poll() -> bool {
 void coruring::runtime::scheduler::multi_thread::Worker::sleep() {
     if (transition_to_sleepling()) {
         while (!is_shutdown_) [[likely]] {
-            driver_.wait(local_queue_);
+            driver_.wait(local_queue_, handle_->shared_.global_queue_);
             if (transition_from_sleepling()) {
                 break;
             }

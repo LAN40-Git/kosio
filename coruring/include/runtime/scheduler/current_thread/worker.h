@@ -1,7 +1,7 @@
 #pragma once
 #include "common/util/noncopyable.h"
 #include "runtime/scheduler/driver.h"
-#include "runtime/scheduler/queue.h"
+#include "runtime/scheduler/current_thread/queue.h"
 
 namespace coruring::runtime::scheduler::current_thread {
 class Worker;
@@ -18,10 +18,7 @@ public:
     void wake_up() const;
     void schedule_local(std::coroutine_handle<> task);
     void schedule_remote(std::coroutine_handle<> task);
-    template <typename It>
-    void schedule_remote_batch(It itemFirst, std::size_t count) {
-        global_queue_.enqueue_bulk(itemFirst, count);
-    }
+    void schedule_remote_batch(std::list<std::coroutine_handle<>> &&handles, [[maybe_unused]] std::size_t n);
 
 private:
     void run_task(std::coroutine_handle<> task);
@@ -43,8 +40,8 @@ private:
     runtime::detail::Config config_;
     detail::Driver          driver_;
     std::optional<std::coroutine_handle<>> lifo_slot_;
-    detail::TaskQueue       local_queue_;
-    detail::TaskQueue       global_queue_;
+    LocalQueue              local_queue_;
+    GlobalQueue             global_queue_;
     bool                    is_shutdown_{false};
     bool                    is_searching_{false};
 };

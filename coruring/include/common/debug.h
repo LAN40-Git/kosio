@@ -20,7 +20,7 @@ inline auto &debug_logger = coruring::log::console;
 
 #define SET_LOG_LEVEL(level)
 
-#define LOG_TRACE(...)
+#define LOG_VERBOSE(...)
 #define LOG_INFO(...)
 #define LOG_DEBUG(...)
 #define LOG_WARN(...)

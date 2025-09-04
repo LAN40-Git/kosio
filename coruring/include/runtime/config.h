@@ -13,15 +13,14 @@ static_assert(NUM_LEVELS > 0, "MAX_LEVEL must be greater than 0");
 static inline constexpr std::size_t LEVEL_MULT = 64;
 static_assert((LEVEL_MULT & (LEVEL_MULT - 1)) == 0, "SLOTS must be a power of 2");
 
-// 工作线程每次尝试收割的 IO 事件的最大数量
-static inline constexpr std::size_t MAX_QUEUE_BATCH_SIZE = 256;
+static inline constexpr std::size_t LOCAL_QUEUE_CAPACITY = 256;
 
 struct Config {
     // io_uring 队列纵深
     std::size_t entries{1024};
 
     // io_uring 事件提交间隔
-    std::size_t submit_interval{64};
+    std::size_t submit_interval{4};
 
     // 工作线程重复轮询 io_uring 完成的 IO 事件的间隔
     std::size_t io_interval{61};

@@ -22,7 +22,7 @@ struct ImplAsyncWrite {
                 co_return std::unexpected{ret.error()};
             }
             if (ret.value() == 0) {
-                std::unexpected{std::make_error_code(std::errc::connection_reset)};
+                co_return std::unexpected{std::make_error_code(std::errc::connection_reset)};
             }
             buf = buf.subspan( ret.value(), buf.size_bytes() - ret.value());
         }

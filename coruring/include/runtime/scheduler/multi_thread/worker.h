@@ -19,7 +19,6 @@ public:
     void shutdown();
     void wake_up() const;
     void schedule_local(std::coroutine_handle<> task);
-    auto local_queue() -> detail::TaskQueue&;
 
 private:
     void run_task(std::coroutine_handle<> task);
@@ -48,14 +47,13 @@ private:
     void sleep();
 
 private:
-    using TaskBuffer = std::array<std::coroutine_handle<>, runtime::detail::MAX_QUEUE_BATCH_SIZE>;
     std::size_t                            index_;
     uint32_t                               tick_{0};
     util::FastRand                         rand_{};
     Handle*                                handle_;
     detail::Driver                         driver_;
     std::optional<std::coroutine_handle<>> lifo_slot_{std::nullopt};
-    detail::TaskQueue                      local_queue_;
+    LocalQueue                             local_queue_;
     bool                                   is_shutdown_{false};
     bool                                   is_searching_{false};
 };

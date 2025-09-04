@@ -37,7 +37,7 @@ void coruring::runtime::scheduler::current_thread::Worker::wake_up() const {
 
 void coruring::runtime::scheduler::current_thread::Worker::schedule_local(std::coroutine_handle<> task) {
     if (lifo_slot_.has_value()) {
-        local_queue_.enqueue(std::move(lifo_slot_.value()));
+        local_queue_.push(std::move(lifo_slot_.value()));
         lifo_slot_.emplace(std::move(task));
     } else {
         lifo_slot_.emplace(std::move(task));
@@ -45,7 +45,13 @@ void coruring::runtime::scheduler::current_thread::Worker::schedule_local(std::c
 }
 
 void coruring::runtime::scheduler::current_thread::Worker::schedule_remote(std::coroutine_handle<> task) {
-    global_queue_.enqueue(std::move(task));
+    global_queue_.push(std::move(task));
+    wake_up();
+}
+
+void coruring::runtime::scheduler::current_thread::Worker::schedule_remote_batch(
+    std::list<std::coroutine_handle<>> &&handles, [[maybe_unused]] std::size_t n) {
+    global_queue_.push_batch(std::move(handles));
     wake_up();
 }
 
@@ -78,7 +84,13 @@ auto coruring::runtime::scheduler::current_thread::Worker::next_task()
             return std::nullopt;
         }
 
-        global_queue_.put_into(local_queue_, runtime::detail::MAX_QUEUE_BATCH_SIZE);
+        auto handles = global_queue_.pop_all();
+
+        if (handles.empty()) {
+            return std::nullopt;
+        }
+
+        local_queue_.push_batch(handles);
         return next_local_task();
     }
 }
@@ -86,13 +98,16 @@ auto coruring::runtime::scheduler::current_thread::Worker::next_task()
 auto coruring::runtime::scheduler::current_thread::Worker::next_local_task()
 -> std::optional<std::coroutine_handle<>> {
     if (lifo_slot_.has_value()) {
-        std::optional<std::coroutine_handle<>> result{nullptr};
+        std::optional<std::coroutine_handle<>> result{std::nullopt};
         result.swap(lifo_slot_);
         return result;
     }
-    std::coroutine_handle result{nullptr};
-    local_queue_.try_dequeue(result);
-    return result;
+
+    if (local_queue_.empty()) {
+        return std::nullopt;
+    }
+
+    return local_queue_.pop();
 }
 
 auto coruring::runtime::scheduler::current_thread::Worker::next_remote_task()
@@ -100,13 +115,12 @@ auto coruring::runtime::scheduler::current_thread::Worker::next_remote_task()
     if (global_queue_.empty()) {
         return std::nullopt;
     }
-    std::coroutine_handle<> task;
-    global_queue_.try_dequeue(task);
-    return task;
+
+    return global_queue_.pop();
 }
 
 auto coruring::runtime::scheduler::current_thread::Worker::poll() -> bool {
-    if (!driver_.poll(local_queue_)) {
+    if (!driver_.poll(local_queue_, global_queue_)) {
         return false;
     }
     return true;
@@ -114,7 +128,7 @@ auto coruring::runtime::scheduler::current_thread::Worker::poll() -> bool {
 
 void coruring::runtime::scheduler::current_thread::Worker::sleep() {
     while (!is_shutdown_) [[likely]] {
-        driver_.wait(local_queue_);
+        driver_.wait(local_queue_, global_queue_);
         if (!local_queue_.empty() || !global_queue_.empty()) {
             break;
         }

@@ -1,4 +1,5 @@
 #include "runtime/scheduler/multi_thread/idle.h"
+#include "common/debug.h"
 
 coruring::runtime::scheduler::multi_thread::IdleState::IdleState(
     std::size_t num_workers)
@@ -14,7 +15,7 @@ auto coruring::runtime::scheduler::multi_thread::IdleState::num_working(
     return (state_.load(order) & WORKING_MASK) >> WORKING_SHIFT;
 }
 
-auto coruring::runtime::scheduler::multi_thread::IdleState::num_searching_and_working(
+auto coruring::runtime::scheduler::multi_thread::IdleState::num_working_and_searching(
     std::memory_order order) -> std::pair<std::size_t, std::size_t> {
     auto state = state_.fetch_add(0, order);
     return {(state & WORKING_MASK) >> WORKING_SHIFT, state & SEARCHING_MASK};
@@ -43,8 +44,6 @@ auto coruring::runtime::scheduler::multi_thread::IdleState::dec_num_working(bool
     auto prev = state_.fetch_sub(dec, std::memory_order::seq_cst);
     return is_searching && (prev & SEARCHING_MASK) == 1;
 }
-
-#include "common/debug.h"
 
 coruring::runtime::scheduler::multi_thread::Idle::Idle(std::size_t num_workers)
     : state_(num_workers)
@@ -102,7 +101,7 @@ auto coruring::runtime::scheduler::multi_thread::Idle::contains(std::size_t work
 }
 
 auto coruring::runtime::scheduler::multi_thread::Idle::notify_should_wakeup() -> bool {
-    auto [num_searching, num_working] =
-        state_.num_searching_and_working(std::memory_order::seq_cst);
+    auto [num_working, num_searching] =
+        state_.num_working_and_searching(std::memory_order::seq_cst);
     return num_searching == 0 && num_working < num_workers_;
 }

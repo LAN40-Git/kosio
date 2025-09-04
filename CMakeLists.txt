@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_compile_definitions(NEED_CORURING_LOG)
+# add_compile_definitions(NEED_CORURING_LOG)
 
 include(GNUInstallDirs)
 set(CORURING_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/coruring")
@@ -35,7 +35,6 @@ set(SOURCE_FILES
         coruring/lib/runtime/scheduler/multi_thread/handle.cpp
         coruring/lib/runtime/scheduler/multi_thread/shared.cpp
         coruring/lib/runtime/scheduler/multi_thread/idle.cpp
-        coruring/lib/runtime/scheduler/queue.cpp
         coruring/lib/runtime/scheduler/driver.cpp
         coruring/lib/runtime/runtime.cpp
         coruring/lib/runtime/scheduler/current_thread/worker.cpp
