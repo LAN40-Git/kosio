@@ -28,7 +28,6 @@ set(SOURCE_FILES
         coruring/lib/socket/socket.cpp
         coruring/lib/runtime/scheduler/multi_thread/worker.cpp
         coruring/lib/runtime/io/io_uring.cpp
-        coruring/lib/runtime/timer/entry.cpp
         coruring/lib/runtime/timer/level.cpp
         coruring/lib/runtime/timer/timer.cpp
         coruring/lib/runtime/task/waker.cpp

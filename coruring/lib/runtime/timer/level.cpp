@@ -1,14 +1,12 @@
 #include "runtime/timer/level.h"
 #include <bit>
 
+#include "common/debug.h"
+
 void coruring::runtime::timer::detail::Level::add_entry(std::unique_ptr<Entry> entry, uint64_t when) {
     auto slot = slot_for(when);
     slots_[slot].push_back(std::move(entry));
     occupied_ |= (1ULL << slot);
-}
-
-void coruring::runtime::timer::detail::Level::add_entry_to_slot(std::unique_ptr<Entry> entry, std::size_t slot) {
-    slots_[slot].push_back(std::move(entry));
 }
 
 auto coruring::runtime::timer::detail::Level::next_expiration(uint64_t now)

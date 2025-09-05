@@ -42,7 +42,7 @@ public:
 
         ring_.consume(count);
 
-        auto timer_count = timer_.handle_expired_entries();
+        auto timer_count = timer_.handle_expired_entries(local_queue, global_queue);
 
         count += timer_count;
 

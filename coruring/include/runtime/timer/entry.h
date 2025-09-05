@@ -1,4 +1,5 @@
 #pragma once
+#include "log.h"
 #include "common/error.h"
 #include "runtime/io/io_uring.h"
 #include "io/base/callback.h"
@@ -42,12 +43,45 @@ public:
         : data_{data}
         , expiration_time_{expiration_time} {}
 
-public:
-    void execute() const;
+    explicit Entry(std::coroutine_handle<> handle, uint64_t expiration_time)
+        : handle_{handle}
+        , expiration_time_{expiration_time} {}
 
 public:
-    coruring::io::detail::Callback *data_{};            // 提交到 io_uring 的数据
-    uint64_t                        expiration_time_{}; // 到期时间（毫秒）
+    template <typename LocalQueue, typename GlobalQueue>
+    void execute(LocalQueue &local_queue, GlobalQueue &global_queue) const {
+        // 若 io 事件已完成，则 data_ 会被设置为 nullptr
+        // 此时不需要进行操作
+        if (data_) {
+            // 若 io 事件未完成，则提交取消请求
+            if (auto sqe = io::t_ring->get_sqe()) [[likely]] {
+                io_uring_prep_cancel(sqe, data_, 0);
+                io_uring_sqe_set_data(sqe, nullptr);
+                io::t_ring->pend_submit();
+            }
+            // 将 entry_ 设置为 nullptr
+            // 告知 worker 不需要将事件从分层时间轮中移除
+            data_->entry_ = nullptr;
+        } else if (handle_) {
+            // 睡眠时间未提交到 io_uring，需要手动将句柄加入任务队列
+            local_queue.push_back_or_overflow(handle_, global_queue);
+        }
+    }
+
+public:
+    template <typename T>
+        requires std::constructible_from<Entry, T, uint64_t>
+    [[nodiscard]]
+    static auto make(T pargma, uint64_t expiration_time)
+    -> std::pair<std::unique_ptr<Entry>, Entry*> {
+        auto entry = std::make_unique<Entry>(pargma, expiration_time);
+        return std::make_pair(std::move(entry), entry.get());
+    }
+
+public:
+    coruring::io::detail::Callback *data_{nullptr};
+    std::coroutine_handle<>         handle_{nullptr};
+    uint64_t                        expiration_time_{};
 };
 
 struct Expiration {
