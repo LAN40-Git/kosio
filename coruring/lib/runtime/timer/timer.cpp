@@ -48,6 +48,7 @@ const noexcept -> std::optional<Expiration> {
 
 auto coruring::runtime::timer::Timer::next_expiration_time() const noexcept -> std::optional<uint64_t> {
     if (auto expiration = next_expiration()) {
+        // 这里的 deadline 是相对于 start_time_ 的
         return expiration->deadline;
     } else {
         return std::nullopt;
@@ -70,7 +71,7 @@ auto coruring::runtime::timer::Timer::handle_expired_entries() noexcept -> std::
         }
 
         // 处理到期信息
-        count += process_expiration(expiration.value());
+        process_expiration(expiration.value());
 
         // 推进分层时间轮时间
         elapsed_ = expiration.value().deadline;
@@ -94,16 +95,14 @@ const noexcept -> EntryList {
     return levels_[expiration.level]->take_slot(expiration.slot);
 }
 
-auto coruring::runtime::timer::Timer::process_expiration(const Expiration &expiration)
-noexcept -> std::size_t {
+void coruring::runtime::timer::Timer::process_expiration(const Expiration &expiration) noexcept {
     auto entries = take_entries(expiration);
-    auto count = entries.size();
 
     // 若槽位位于第 0 层，说明此槽位中的所有时间都到期
     // 直接放入 pending_ 中等待立即处理
     if (expiration.level == 0) {
         pending_.splice(pending_.end(), entries);
-        return count;
+        return;
     }
 
     // 若槽位不在第 0 层，则说明此槽位中可能有未到期的事件
@@ -123,8 +122,6 @@ noexcept -> std::size_t {
             levels_[level]->add_entry(std::move(entry), when);
         }
     }
-
-    return count;
 }
 
 auto coruring::runtime::timer::Timer::handle_pending_entries()

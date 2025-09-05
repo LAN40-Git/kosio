@@ -46,8 +46,7 @@ private:
     static auto level_for(uint64_t elapsed, uint64_t when) noexcept -> std::size_t;
     [[nodiscard]]
     auto take_entries(const Expiration& expiration) const noexcept -> EntryList;
-    [[nodiscard]]
-    auto process_expiration(const Expiration& expiration) noexcept -> std::size_t;
+    void process_expiration(const Expiration& expiration) noexcept;
     [[nodiscard]]
     auto handle_pending_entries() noexcept -> std::size_t;;
 

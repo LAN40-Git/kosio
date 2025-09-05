@@ -17,11 +17,12 @@ public:
             explicit Accept(int fd)
                 : io::detail::IoRegistrator<Accept>{io_uring_prep_accept, fd, reinterpret_cast<sockaddr *>(&addr_), &addrlen_, 0} {}
 
-            auto await_resume() const noexcept -> std::expected<std::pair<Stream, Addr>, std::error_code> {
+            auto await_resume() const noexcept -> Result<std::pair<Stream, Addr>, IoError> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return std::make_pair(Stream{Socket{this->cb_.result_}}, addr_);
+                } else {
+                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
                 }
-                return std::unexpected{std::error_code{-this->cb_.result_, std::generic_category()}};
             }
 
         private:

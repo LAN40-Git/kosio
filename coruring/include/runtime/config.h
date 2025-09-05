@@ -20,7 +20,7 @@ struct Config {
     std::size_t entries{1024};
 
     // io_uring 事件提交间隔
-    std::size_t submit_interval{4};
+    std::size_t submit_interval{64};
 
     // 工作线程重复轮询 io_uring 完成的 IO 事件的间隔
     std::size_t io_interval{61};

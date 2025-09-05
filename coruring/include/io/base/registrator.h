@@ -4,6 +4,7 @@
 #include "common/macros.h"
 #include "common/error.h"
 #include "common/util/time.h"
+#include "common/debug.h"
 #include "callback.h"
 #include "timer/timeout.h"
 #include <functional>

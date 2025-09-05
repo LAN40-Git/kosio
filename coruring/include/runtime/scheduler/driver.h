@@ -46,6 +46,8 @@ public:
 
         count += timer_count;
 
+        // LOG_VERBOSE("poll {} events, {} timer events.", count, timer_count);
+
         waker_.turn_on();
 
         ring_.submit();

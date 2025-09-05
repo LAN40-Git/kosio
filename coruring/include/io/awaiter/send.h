@@ -8,12 +8,26 @@ public:
     Send(int sockfd, const void *buf, size_t len, int flags)
         : IoRegistrator{io_uring_prep_send, sockfd, buf, len, flags} {}
 
-    auto await_resume() noexcept -> std::expected<std::size_t, std::error_code> {
+    auto await_resume() const noexcept -> Result<std::size_t, IoError> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return static_cast<std::size_t>(this->cb_.result_);
+        } else {
+           return std::unexpected{make_error<IoError>(-this->cb_.result_)};
         }
-        return std::unexpected{std::error_code(-this->cb_.result_,
-                                               std::generic_category())};
+    }
+};
+
+class SendZC : public IoRegistrator<SendZC> {
+public:
+    SendZC(int sockfd, const void *buf, size_t len, int flags, unsigned zc_flags)
+        : IoRegistrator{io_uring_prep_send_zc, sockfd, buf, len, flags, zc_flags} {}
+
+    auto await_resume() const noexcept -> Result<std::size_t, IoError> {
+        if (this->cb_.result_ >= 0) [[likely]] {
+            return static_cast<std::size_t>(this->cb_.result_);
+        } else {
+            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+        }
     }
 };
 } // namespace detail

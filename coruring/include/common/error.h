@@ -38,6 +38,7 @@ protected:
 } // namespace detail
 
 /* Template of DriverError
+// ========== Fixme ==========
 class Fixme : public detail::ErrorBase<Fixme> {
 public:
     enum Code {
@@ -61,30 +62,7 @@ public:
 };
 */
 
-// ========== 常规错误 ==========
-class CommonError : public detail::ErrorBase<CommonError> {
-public:
-    enum Code {
-        kUnknown = detail::CommonErrorCodeBase,
-    };
-
-public:
-    explicit CommonError(int error_code)
-        : ErrorBase<CommonError>(error_code) {}
-
-public:
-    [[nodiscard]]
-    auto error_message() const noexcept -> std::string_view {
-        switch (static_cast<Code>(error_code_)) {
-            case kUnknown:
-                return "Unknown common error.";
-            default:
-                return strerror(error_code_);
-        }
-    }
-};
-
-// ========== 定时器错误 ==========
+// ========== Timer Error ==========
 class TimerError : public detail::ErrorBase<TimerError> {
 public:
     enum Code {
@@ -110,11 +88,12 @@ public:
     }
 };
 
-// ========== 输入输出错误 ==========
+// ========== Io Error ==========
 class IoError : public detail::ErrorBase<IoError> {
 public:
     enum Code {
         kUnknown = detail::IoErrorCodeBase,
+        kWriteZero,
     };
 public:
     explicit IoError(Code error_code)
@@ -126,6 +105,8 @@ public:
         switch (static_cast<Code>(error_code_)) {
             case kUnknown:
                 return "Unknown io error.";
+            case kWriteZero:
+                return "Write return zero.";
             default:
                 return strerror(error_code_);
         }
@@ -142,3 +123,22 @@ static inline auto make_error(int error_code) -> detail::ErrorBase<ErrorType> {
 template <typename ResultType, class ErrorType>
 using Result = std::expected<ResultType, detail::ErrorBase<ErrorType>>;
 } // namespace coruring
+
+namespace std {
+template <typename ErrorType>
+class formatter<coruring::detail::ErrorBase<ErrorType>> {
+public:
+    constexpr auto parse(format_parse_context& ctx) {
+        auto it = ctx.begin();
+        auto end = ctx.end();
+        if (it != end && *it != '}') {
+            throw format_error("Invalid format specifier for Error");
+        }
+        return it;
+    }
+
+    auto format(const coruring::detail::ErrorBase<ErrorType>& error, auto& ctx) const {
+        return format_to(ctx.out(), "{} (error {})", error.message(), error.value());
+    }
+};
+} // namespace std

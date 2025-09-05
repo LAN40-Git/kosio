@@ -1,4 +1,5 @@
 #pragma once
+#include "common/debug.h"
 #include "io/base/callback.h"
 #include "common/macros.h"
 #include "runtime/timer/timer.h"
@@ -7,8 +8,10 @@ namespace coruring::timer {
 namespace detail {
 class Sleep {
 public:
-    Sleep(uint64_t deadline) {
+    Sleep(uint64_t deadline)
+        : sqe_{runtime::io::t_ring->get_sqe()} {
         cb_.deadline_ = deadline;
+        io_uring_sqe_set_data(sqe_, &this->cb_);
     }
 
 public:
@@ -18,17 +21,19 @@ public:
     }
 
     auto await_ready() const noexcept -> bool {
-        return false;
+        return sqe_ == nullptr;
     }
 
     auto await_suspend(std::coroutine_handle<> handle) noexcept -> bool {
         auto ret = runtime::timer::t_timer->insert(&this->cb_, this->cb_.deadline_);
         if (ret.value()) [[likely]] {
             this->cb_.entry_ = ret.value();
+            this->cb_.handle_ = handle;
             return true;
+        } else {
+            result_ = std::unexpected{ret.error()};
+            return false;
         }
-        result_ = std::unexpected{ret.error()};
-        return false;
     }
 
     auto await_resume() const noexcept -> Result<void, TimerError> {
@@ -38,6 +43,7 @@ public:
 
 private:
     io::detail::Callback     cb_{};
+    io_uring_sqe            *sqe_;
     Result<void, TimerError> result_{};
 };
 } // namespace detail

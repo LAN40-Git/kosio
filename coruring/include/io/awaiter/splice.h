@@ -13,12 +13,12 @@ public:
            unsigned int splice_flags)
         : IoRegistrator{io_uring_prep_splice, fd_in, off_in, fd_out, off_out, nbytes, splice_flags} {}
 
-    auto await_resume() const noexcept -> std::expected<std::size_t, std::error_code> {
+    auto await_resume() const noexcept -> Result<std::size_t, IoError> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return static_cast<std::size_t>(this->cb_.result_);
+        } else {
+            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
         }
-        return ::std::unexpected{std::error_code(-this->cb_.result_,
-        std::generic_category())};
     }
 };
 } // namespace detail

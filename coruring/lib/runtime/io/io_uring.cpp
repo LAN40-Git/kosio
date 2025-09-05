@@ -1,6 +1,8 @@
 #include "runtime/io/io_uring.h"
 #include <iostream>
 
+#include "common/debug.h"
+
 coruring::runtime::io::IoUring::IoUring(const detail::Config& config)
     : submit_interval_{static_cast<uint32_t>(config.submit_interval)} {
     if (auto ret = io_uring_queue_init(config.entries, &ring_, 0); ret < 0) [[unlikely]] {
