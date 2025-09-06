@@ -1,5 +1,5 @@
 #!/bin/bash
 sudo rm -rf ./build
-sudo rm -rf /usr/local/include/coruring
-sudo rm -f /usr/local/lib/libcoruring.a
-sudo rm -rf /usr/local/lib/cmake/coruring
+sudo rm -rf /usr/local/include/kosio
+sudo rm -f /usr/local/lib/libkosio.a
+sudo rm -rf /usr/local/lib/cmake/kosio

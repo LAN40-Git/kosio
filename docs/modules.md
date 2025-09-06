@@ -16,14 +16,14 @@
 
    ```c++
    // 异步睡眠1s+300ns，后继参数见io_uring_prep_timeout
-   co_await coruring::timer::sleep(1, 300, 0, 0);
+   co_await kosio::timer::sleep(1, 300, 0, 0);
    ```
 
 2. `timeout`
 
    ```c++
    // 从套接字中读取消息并设置超时为100ms
-   co_await coruring::io::recv(fd, buf, sizeof(buf), 0).set_timeout(100);
+   co_await kosio::io::recv(fd, buf, sizeof(buf), 0).set_timeout(100);
    ```
 
    
@@ -46,9 +46,9 @@
 // ignore all errors
 #include "core.h"
 #include "net.h"
-using namespace coruring::async;
-using namespace coruring::socket::net;
-using namespace coruring::scheduler;
+using namespace kosio::async;
+using namespace kosio::socket::net;
+using namespace kosio::scheduler;
 Scheduler sched{1};
 
 auto process(TcpStream stream) -> Task<void> {

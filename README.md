@@ -1,27 +1,23 @@
-# CorUring
+# kosio
 
  ![C++](https://img.shields.io/badge/standard-C++23-00599C?logo=cplusplus&logoColor=white) ![Linux](https://img.shields.io/badge/platform-linux-dimgray)
 
-## **Introduction**
+## 简介
 
-Inspired by [zedio](https://github.com/8sileus/zedio), I redesigned the **scheduler** and **timer subsystem** to optimize for **low-latency** and **high-concurrency** workloads.
+本项目是一个使用 c++ 实现的异步运行时，大量使用 `c++` 编译期编程技术以减少运行时开销，通过任务窃取来实现负载均衡，能够安全的在高并发高负载下高效调度各种 `io` 和定时任务。
 
-### **Key Improvements**
+本项目参照 [tokio](https://github.com/tokio-rs/tokio) 和 [zedio](https://github.com/8sileus/zedio) 实现，非常感谢 [zedio](https://github.com/8sileus/zedio) 的作者为我解惑。
 
-**Scheduler Optimization**
+## 特点
 
-- Implemented a **work-stealing** multithreaded scheduler with **lock-free task queues**, reducing cross-thread contention.
-- Achieved **92% lower P99 latency** (500ms → 40ms) under **10,000 concurrent connections**, with only a **4.2% throughput drop** (480k → 460k QPS).
-- Improved **low-concurrency throughput** by **4.3%** (460k → 480k QPS at 2,000 connections), demonstrating balanced efficiency.
+- 具有工作窃取负载平衡的多线程调度器。
+- 基于 `io_uring` (为异步 IO 设计的框架) 实现的 `Proactor` 模式。
+- 零成本抽象:
+  - 无虚函数
+  - 无运行时多态
+  - 无动态调度
 
-## Features
 
-- Multithreaded scheduler with work-stealing load balancing. (reference [zedio](https://github.com/8sileus/zedio))
-- Proactor pattern via io_uring for async I/O.
-- Zero-cost abstraction:
-  - No virtual function overhead
-  - No runtime polymorphism
-  - No dynamic dispatch
 
 
 
@@ -32,9 +28,9 @@ Inspired by [zedio](https://github.com/8sileus/zedio), I redesigned the **schedu
 // ignore all errors
 #include "core.h"
 #include "net.h"
-using namespace coruring::async;
-using namespace coruring::socket::net;
-using namespace coruring::scheduler;
+using namespace kosio::async;
+using namespace kosio::socket::net;
+using namespace kosio::scheduler;
 Scheduler sched{1}; // single thread
 
 auto process(TcpStream stream) -> Task<void> {
