@@ -2,9 +2,8 @@
 
 ```shell
 sudo apt update
-sudo apt install -y build-essential cmake liburing-dev nlohmann-json3-dev pkg-config
+sudo apt install -y build-essential cmake liburing-dev pkg-config
 ```
-
 
 ## INSTALL
 
@@ -19,13 +18,8 @@ sudo make install
 
 ## USE
 Add the code to your CMakeLists.txt
-```cmake
-find_package(kosio REQUIRED)
-target_link_libraries(your_app PRIVATE kosio::kosio)
-```
 
-## UNINSTALL
-```shell
-# execute the clean.sh
-./clean.sh
+```cmake
+find_package(. REQUIRED)
+target_link_libraries(your_app PRIVATE kosio::kosio)
 ```

@@ -1,6 +1,6 @@
 #pragma once
-#include "runtime/config.h"
-#include "runtime/scheduler/current_thread/worker.h"
+#include "kosio/include/runtime/config.h"
+#include "kosio/include/runtime/scheduler/current_thread/worker.h"
 
 namespace kosio::runtime::scheduler::current_thread {
 class Handle : util::Noncopyable {

@@ -1,9 +1,9 @@
 #pragma once
-#include "runtime/config.h"
-#include "runtime/io/io_uring.h"
-#include "runtime/timer/timer.h"
-#include "runtime/task/waker.h"
-#include "runtime/scheduler/multi_thread/queue.h"
+#include "kosio/include/runtime/config.h"
+#include "kosio/include/runtime/io/io_uring.h"
+#include "kosio/include/runtime/timer/timer.h"
+#include "kosio/include/runtime/task/waker.h"
+#include "kosio/include/runtime/scheduler/multi_thread/queue.h"
 
 namespace kosio::runtime::scheduler::detail {
 class Driver;

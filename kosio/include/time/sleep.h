@@ -1,10 +1,10 @@
 #pragma once
-#include "common/debug.h"
-#include "io/base/callback.h"
-#include "common/macros.h"
-#include "runtime/timer/timer.h"
+#include "kosio/include/common/debug.h"
+#include "kosio/include/io/base/callback.h"
+#include "kosio/include/common/macros.h"
+#include "kosio/include/runtime/timer/timer.h"
 
-namespace kosio::timer {
+namespace kosio::time {
 namespace detail {
 class Sleep {
 public:
@@ -54,4 +54,4 @@ static auto inline sleep(uint64_t duration) {
 static auto inline sleep_until(uint64_t deadline) {
     return detail::Sleep{deadline};
 }
-} // namespace kosio::timer
+} // namespace kosio::time

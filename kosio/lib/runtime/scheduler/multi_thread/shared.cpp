@@ -1,5 +1,5 @@
-#include "runtime/scheduler/multi_thread/shared.h"
-#include "runtime/scheduler/multi_thread/worker.h"
+#include "kosio/include/runtime/scheduler/multi_thread/shared.h"
+#include "kosio/include/runtime/scheduler/multi_thread/worker.h"
 
 kosio::runtime::scheduler::multi_thread::Shared::Shared(const runtime::detail::Config &config)
     : config_(config)

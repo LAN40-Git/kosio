@@ -1,7 +1,7 @@
 #pragma once
-#include "shared.h"
-#include "runtime/config.h"
-#include "runtime/scheduler/multi_thread/worker.h"
+#include "kosio/include/runtime/config.h"
+#include "kosio/include/runtime/scheduler/multi_thread/shared.h"
+#include "kosio/include/runtime/scheduler/multi_thread/worker.h"
 
 namespace kosio::runtime::scheduler::multi_thread {
 class Handle {

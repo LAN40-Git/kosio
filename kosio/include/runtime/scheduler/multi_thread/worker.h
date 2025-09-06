@@ -1,8 +1,8 @@
 #pragma once
-#include "common/util/random.h"
-#include "common/util/noncopyable.h"
-#include "runtime/scheduler/driver.h"
-#include "runtime/scheduler/multi_thread/shared.h"
+#include "kosio/include/common/util/random.h"
+#include "kosio/include/common/util/noncopyable.h"
+#include "kosio/include/runtime/scheduler/driver.h"
+#include "kosio/include/runtime/scheduler/multi_thread/shared.h"
 
 namespace kosio::runtime::scheduler::multi_thread {
 class Handle;

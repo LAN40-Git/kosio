@@ -2,7 +2,6 @@
 #include <mutex>
 #include <fstream>
 #include <thread>
-#include <nlohmann/json.hpp>
 
 namespace kosio::runtime::detail {
 // 分层时间轮最大层数

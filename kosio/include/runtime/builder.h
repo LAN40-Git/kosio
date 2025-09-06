@@ -1,7 +1,7 @@
 #pragma once
-#include "runtime/config.h"
-#include "runtime/scheduler/current_thread/handle.h"
-#include "runtime/scheduler/multi_thread/handle.h"
+#include "kosio/include/runtime/config.h"
+#include "kosio/include/runtime/scheduler/current_thread/handle.h"
+#include "kosio/include/runtime/scheduler/multi_thread/handle.h"
 #include <string>
 #include <thread>
 

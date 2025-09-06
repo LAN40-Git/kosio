@@ -1,7 +1,7 @@
-#include "runtime/timer/level.h"
+#include "kosio/include/runtime/timer/level.h"
 #include <bit>
 
-#include "common/debug.h"
+#include "kosio/include/common/debug.h"
 
 void kosio::runtime::timer::detail::Level::add_entry(std::unique_ptr<Entry> entry, uint64_t when) {
     auto slot = slot_for(when);

@@ -1,5 +1,5 @@
 #pragma once
-#include "io/base/registrator.h"
+#include "kosio/include/io/base/registrator.h"
 
 namespace kosio::io {
 namespace detail {

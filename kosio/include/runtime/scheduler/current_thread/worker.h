@@ -1,7 +1,7 @@
 #pragma once
-#include "common/util/noncopyable.h"
-#include "runtime/scheduler/driver.h"
-#include "runtime/scheduler/current_thread/queue.h"
+#include "kosio/include/common/util/noncopyable.h"
+#include "kosio/include/runtime/scheduler/driver.h"
+#include "kosio/include/runtime/scheduler/current_thread/queue.h"
 
 namespace kosio::runtime::scheduler::current_thread {
 class Worker;

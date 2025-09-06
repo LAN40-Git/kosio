@@ -1,7 +1,7 @@
 #pragma once
-#include "async/coroutine/task.h"
-#include "timer/sleep.h"
-#include "runtime/builder.h"
+#include "kosio/include/async/coroutine/task.h"
+#include "kosio/include/time/sleep.h"
+#include "kosio/include/runtime/builder.h"
 
 namespace kosio::runtime::detail {
 template <typename Handle>
@@ -18,9 +18,9 @@ public:
             try {
                 co_await task;
             } catch (const std::exception &ex) {
-                // LOG_ERROR("{}", ex.what());
+                LOG_ERROR("{}", ex.what());
             } catch (...) {
-                // LOG_ERROR("Catch a unknown exception");
+                LOG_ERROR("Catch a unknown exception");
             }
             handle.close();
             co_return;
@@ -33,7 +33,7 @@ public:
 
     void shutdown_timeout(uint64_t delay) {
         auto task = [](Handle &handle, uint64_t delay) -> async::Task<void> {
-            co_await kosio::timer::sleep(delay);
+            co_await kosio::time::sleep(delay);
             handle.close();
             co_return {};
         }(handle_, delay);

@@ -1,7 +1,8 @@
 #pragma once
-#include "runtime/scheduler/multi_thread/queue.h"
-#include "runtime/scheduler/multi_thread/idle.h"
+#include "kosio/include/runtime/scheduler/multi_thread/queue.h"
+#include "kosio/include/runtime/scheduler/multi_thread/idle.h"
 #include <latch>
+#include <vector>
 
 namespace kosio::runtime::scheduler::multi_thread {
 class Worker;

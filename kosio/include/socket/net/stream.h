@@ -1,6 +1,6 @@
 #pragma once
-#include "socket/net/addr.h"
-#include "socket/stream.h"
+#include "kosio/include/socket/net/addr.h"
+#include "kosio/include/socket/stream.h"
 
 namespace kosio::socket::net
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "socket/net/addr.h"
-#include "socket/net/socket.h"
-#include "socket/net/listener.h"
-#include "socket/net/stream.h"
+#include "kosio/include/socket/net/addr.h"
+#include "kosio/include/socket/net/socket.h"
+#include "kosio/include/socket/net/listener.h"
+#include "kosio/include/socket/net/stream.h"

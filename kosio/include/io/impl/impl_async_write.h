@@ -1,5 +1,5 @@
 #pragma once
-#include "io/io.h"
+#include "kosio/include/io/io.h"
 
 namespace kosio::io::detail {
 template<class T>

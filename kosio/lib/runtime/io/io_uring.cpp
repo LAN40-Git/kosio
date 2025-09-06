@@ -1,7 +1,7 @@
-#include "runtime/io/io_uring.h"
+#include "kosio/include/runtime/io/io_uring.h"
 #include <iostream>
 
-#include "common/debug.h"
+#include "kosio/include/common/debug.h"
 
 kosio::runtime::io::IoUring::IoUring(const detail::Config& config)
     : submit_interval_{static_cast<uint32_t>(config.submit_interval)} {

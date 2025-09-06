@@ -1,10 +1,10 @@
 #pragma once
 #include <array>
 #include <list>
-#include "runtime/config.h"
-#include "level.h"
-#include "common/error.h"
-#include "common/util/time.h"
+#include "kosio/include/runtime/config.h"
+#include "kosio/include/runtime/timer/level.h"
+#include "kosio/include/common/error.h"
+#include "kosio/include/common/util/time.h"
 
 namespace kosio::runtime::timer {
 class Timer;

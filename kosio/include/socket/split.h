@@ -1,9 +1,9 @@
 #pragma once
-#include "socket/socket.h"
-#include "socket/impl/impl_peer_addr.h"
-#include "socket/impl/impl_local_addr.h"
-#include "socket/impl/impl_stream_read.h"
-#include "socket/impl/impl_stream_write.h"
+#include "kosio/include/socket/socket.h"
+#include "kosio/include/socket/impl/impl_peer_addr.h"
+#include "kosio/include/socket/impl/impl_local_addr.h"
+#include "kosio/include/socket/impl/impl_stream_read.h"
+#include "kosio/include/socket/impl/impl_stream_write.h"
 
 namespace kosio::socket::detail {
 template<class Addr>

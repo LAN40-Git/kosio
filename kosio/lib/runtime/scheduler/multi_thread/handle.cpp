@@ -1,6 +1,6 @@
-#include "runtime/scheduler/multi_thread/handle.h"
-#include "runtime/scheduler/multi_thread/worker.h"
-#include "common/util/thread.h"
+#include "kosio/include/runtime/scheduler/multi_thread/handle.h"
+#include "kosio/include/runtime/scheduler/multi_thread/worker.h"
+#include "kosio/include/common/util/thread.h"
 
 kosio::runtime::scheduler::multi_thread::Handle::Handle(const runtime::detail::Config &config)
     : shared_(config) {

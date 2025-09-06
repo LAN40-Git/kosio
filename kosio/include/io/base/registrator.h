@@ -1,12 +1,12 @@
 #pragma once
-#include "runtime/io/io_uring.h"
-#include "common/concepts.h"
-#include "common/macros.h"
-#include "common/error.h"
-#include "common/util/time.h"
-#include "common/debug.h"
-#include "callback.h"
-#include "timer/timeout.h"
+#include "kosio/include/runtime/io/io_uring.h"
+#include "kosio/include/common/concepts.h"
+#include "kosio/include/common/macros.h"
+#include "kosio/include/common/error.h"
+#include "kosio/include/common/util/time.h"
+#include "kosio/include/common/debug.h"
+#include "kosio/include/io/base/callback.h"
+#include "kosio/include/time/timeout.h"
 #include <functional>
 
 namespace kosio::io::detail {
@@ -55,7 +55,7 @@ public:
     [[REMEMBER_CO_AWAIT]]
     auto set_timeout_at(uint64_t deadline) noexcept {
         cb_.deadline_ = static_cast<int64_t>(deadline);
-        return timer::detail::Timeout{std::move(*static_cast<IO*>(this))};
+        return time::detail::Timeout{std::move(*static_cast<IO*>(this))};
     }
 
     [[REMEMBER_CO_AWAIT]]

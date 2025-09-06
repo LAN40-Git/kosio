@@ -1,5 +1,5 @@
-#include "runtime/scheduler/multi_thread/worker.h"
-#include "runtime/scheduler/multi_thread/handle.h"
+#include "kosio/include/runtime/scheduler/multi_thread/worker.h"
+#include "kosio/include/runtime/scheduler/multi_thread/handle.h"
 
 kosio::runtime::scheduler::multi_thread::Worker::Worker(
     std::size_t index,

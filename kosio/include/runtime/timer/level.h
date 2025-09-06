@@ -1,5 +1,5 @@
 #pragma once
-#include "runtime/timer/entry.h"
+#include "kosio/include/runtime/timer/entry.h"
 
 namespace kosio::runtime::timer::detail {
 class Level {

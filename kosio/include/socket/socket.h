@@ -1,6 +1,6 @@
 #pragma once
-#include "io/io.h"
-#include "common/error.h"
+#include "kosio/include/io/io.h"
+#include "kosio/include/common/error.h"
 
 namespace kosio::socket::detail {
 /**Support

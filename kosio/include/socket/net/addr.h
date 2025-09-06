@@ -1,5 +1,5 @@
 #pragma once
-#include "common/error.h"
+#include "kosio/include/common/error.h"
 #include <cstring>
 #include <format>
 #include <string>
@@ -208,7 +208,7 @@ public:
     static auto parse(std::string_view host_name, uint16_t port)
     -> std::expected<SocketAddr, std::error_code> {
         addrinfo hints{};
-        hints.ai_flags = AI_NUMERICHOST;
+        hints.ai_flags = AI_NUMERICSERV;
         addrinfo *result{nullptr};
         if (::getaddrinfo(host_name.data(),
             std::to_string(port).data(),

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/debug.h"
-#include "runtime/config.h"
+#include "kosio/include/common/debug.h"
+#include "kosio/include/runtime/config.h"
 
 // C
 #include <cassert>

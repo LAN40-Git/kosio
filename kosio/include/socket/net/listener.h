@@ -1,6 +1,6 @@
 #pragma once
-#include "socket/listener.h"
-#include "stream.h"
+#include "kosio/include/socket/listener.h"
+#include "kosio/include/socket/net/stream.h"
 
 namespace kosio::socket::net
 {

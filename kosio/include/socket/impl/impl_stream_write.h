@@ -1,6 +1,6 @@
 #pragma once
-#include "io/awaiter/send.h"
-#include "io/impl/impl_async_write.h"
+#include "kosio/include/io/awaiter/send.h"
+#include "kosio/include/io/impl/impl_async_write.h"
 
 namespace kosio::socket::detail {
 template <class T>

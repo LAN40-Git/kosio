@@ -1,8 +1,8 @@
 #pragma once
-#include "log.h"
-#include "common/error.h"
-#include "runtime/io/io_uring.h"
-#include "io/base/callback.h"
+#include "kosio/include/log.h"
+#include "kosio/include/common/error.h"
+#include "kosio/include/runtime/io/io_uring.h"
+#include "kosio/include/io/base/callback.h"
 #include <optional>
 #include <list>
 

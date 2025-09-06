@@ -1,5 +1,4 @@
 #pragma once
-
 #include <concepts>
 #include <coroutine>
 #include <span>

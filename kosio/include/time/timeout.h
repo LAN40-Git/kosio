@@ -1,12 +1,12 @@
 #pragma once
-#include "runtime/timer/timer.h"
+#include "kosio/include/runtime/timer/timer.h"
 
 namespace kosio::io::detail {
 template <class T>
 class IoRegistrator;
 } // namespace kosio::io::detail
 
-namespace kosio::timer {
+namespace kosio::time {
 namespace detail {
 template <class T>
     requires std::derived_from<T, io::detail::IoRegistrator<T>>
@@ -43,4 +43,4 @@ template <class T>
 auto timeout(T &&io, uint64_t timeout) {
     return io.set_timeout(timeout);
 }
-} // namespace kosio::timer
+} // namespace kosio::time

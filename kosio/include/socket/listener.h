@@ -1,6 +1,6 @@
 #pragma once
-#include "socket/impl/impl_local_addr.h"
-#include "socket/socket.h"
+#include "kosio/include/socket/impl/impl_local_addr.h"
+#include "kosio/include/socket/socket.h"
 
 namespace kosio::socket::detail {
 template <class Listener, class Stream, class Addr>

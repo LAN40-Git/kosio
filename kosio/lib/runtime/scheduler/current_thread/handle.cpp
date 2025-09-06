@@ -1,5 +1,5 @@
-#include "runtime/scheduler/current_thread/handle.h"
-#include "common/util/thread.h"
+#include "kosio/include/runtime/scheduler/current_thread/handle.h"
+#include "kosio/include/common/util/thread.h"
 
 kosio::runtime::scheduler::current_thread::Handle::Handle(const runtime::detail::Config &config)
     : worker_(this, config) {

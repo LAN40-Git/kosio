@@ -1,5 +1,5 @@
-#include "runtime/scheduler/multi_thread/idle.h"
-#include "common/debug.h"
+#include "kosio/include/runtime/scheduler/multi_thread/idle.h"
+#include "kosio/include/common/debug.h"
 
 kosio::runtime::scheduler::multi_thread::IdleState::IdleState(
     std::size_t num_workers)

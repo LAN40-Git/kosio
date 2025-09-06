@@ -1,7 +1,6 @@
 #pragma once
-
 #include <cassert>
-#ifdef NEED_kosio_LOG
+#ifdef NEED_KOSIO_LOG
 
 #include "log.h"
 
