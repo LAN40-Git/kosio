@@ -18,7 +18,7 @@ const noexcept -> std::optional<Expiration> {
 
     // 获取当前层级对齐的起始时间（LEVEL_RANGE[level_] 是 2 的幂）
     // now & !(LEVEL_RANGE[level_] - 1) 清除 now 的低 log2(LEVEL_RANGE[level_])位
-    auto level_start = now & !(LEVEL_RANGE[level_] - 1);
+    auto level_start = now & ~(LEVEL_RANGE[level_] - 1);
     // 计算非空槽位内事件到期时间的最小值（相对于分层时间轮启动）
     // 此最小值表示的是槽位内最早到期的事件对应的时间，比如：
     // 当前在第 1 层，slot = next_occupied_slot(now) = 1

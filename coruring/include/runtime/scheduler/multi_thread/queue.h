@@ -214,7 +214,6 @@ public:
         if (n == 0) {
             return result;
         }
-        LOG_VERBOSE("steal {} works", n);
         /// Take the final task for result
         n -= 1;
         auto        dst_new_tail = dst_tail + n;

@@ -58,7 +58,6 @@ const noexcept -> std::optional<Expiration> {
 
 auto coruring::runtime::timer::Timer::next_expiration_time() const noexcept -> std::optional<uint64_t> {
     if (auto expiration = next_expiration()) {
-        LOG_VERBOSE("{}-{}", expiration->deadline, elapsed_);
         return expiration->deadline - elapsed_;
     } else {
         return std::nullopt;
@@ -94,13 +93,14 @@ void coruring::runtime::timer::Timer::process_expiration(const Expiration &expir
         auto entry = std::move(entries.front());
         entries.pop_front();
 
-        if (entry->expiration_time_ <= expiration.deadline) {
+        auto when = entry->expiration_time_ - start_time_;
+
+        if (when <= expiration.deadline) {
             // 若事件到期，则加入 pending_
             pending_.push_back(std::move(entry));
         } else {
             // 若事件未到期，则以 expiration.deadline 为
             // 分层时间轮当前时间，重新计算事件所在层级并插入
-            auto when = entry->expiration_time_ - start_time_;
             auto level = level_for(expiration.deadline, when);
             levels_[level]->add_entry(std::move(entry), when);
         }
