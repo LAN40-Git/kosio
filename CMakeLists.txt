@@ -5,18 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# add_compile_definitions(NEED_kosio_LOG)
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBURING REQUIRED liburing)
-
-if(NOT TARGET liburing::liburing)
-    add_library(liburing::liburing INTERFACE IMPORTED)
-    set_target_properties(liburing::liburing PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${LIBURING_INCLUDE_DIRS}"
-        INTERFACE_LINK_LIBRARIES "${LIBURING_LIBRARIES}"
-    )
-endif()
 
 set(SOURCE_FILES
         kosio/lib/io/io.cpp
@@ -35,15 +25,62 @@ set(SOURCE_FILES
         kosio/lib/runtime/scheduler/current_thread/handle.cpp
 )
 
-add_executable(main
-        kosio/lib/main.cpp
-        ${SOURCE_FILES}
+# ====== LIBRARY ======
+add_library(kosio SHARED ${SOURCE_FILES})
+target_include_directories(kosio PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/kosio/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(kosio PUBLIC
+        pthread
+        uring
 )
 
-target_include_directories(main PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
+# ====== INSTALL ======
+include(GNUInstallDirs)
+
+# 安装库文件
+install(TARGETS kosio
+        EXPORT kosioTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-target_link_libraries(main PUBLIC
-        liburing::liburing
+# 安装头文件
+install(DIRECTORY kosio/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+
+# 导出 targets 文件
+install(EXPORT kosioTargets
+        FILE kosioTargets.cmake
+        NAMESPACE kosio::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
+)
+
+# 生成并安装配置文件
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/kosioConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfig.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
+)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
+)
+
+# ====== TEST ======
+add_executable(main kosio/lib/main.cpp)
+target_link_libraries(main PRIVATE kosio)

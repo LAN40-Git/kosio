@@ -6,7 +6,7 @@
 using namespace kosio::runtime;
 using namespace kosio::io;
 using namespace kosio::log;
-using namespace kosio::timer;
+using namespace kosio::time;
 using namespace kosio::async;
 using namespace kosio::socket::net;
 

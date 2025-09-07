@@ -39,9 +39,8 @@ const noexcept -> Result<Entry *, TimerError> {
 }
 
 void kosio::runtime::timer::Timer::remove(Entry *entry) noexcept {
-    // 若事件未被分层时间轮取消，则设置 data_ 为 nullptr
-    // 告诉分层时间轮此事件已经完成，不需要再取消
     entry->data_ = nullptr;
+    entry->handle_ = nullptr;
 }
 
 auto kosio::runtime::timer::Timer::next_expiration()

@@ -65,7 +65,7 @@ public:
     }
 
     [[nodiscard]]
-    auto is_closed() -> bool {
+    auto is_closed() const -> bool {
         return is_closed_.load(std::memory_order::acquire);
     }
 
