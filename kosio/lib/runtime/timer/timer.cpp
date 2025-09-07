@@ -39,14 +39,16 @@ const noexcept -> Result<Entry *, TimerError> {
 }
 
 void kosio::runtime::timer::Timer::remove(Entry *entry) noexcept {
+    // 惰性删除
     entry->data_ = nullptr;
     entry->handle_ = nullptr;
+    // TODO: 并不真正处理标记为删除的事件
 }
 
 auto kosio::runtime::timer::Timer::next_expiration()
 const noexcept -> std::optional<Expiration> {
     // 否则从第 0 层开始遍历获取到 最近一个非空槽位信息所在位置
-    for (auto level = 0; level < runtime::detail::NUM_LEVELS; ++level) {
+    for (std::size_t level = 0; level < runtime::detail::NUM_LEVELS; ++level) {
         if (auto expiration = levels_[level]->next_expiration(elapsed_)) {
             return expiration;
         }

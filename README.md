@@ -1,4 +1,4 @@
-# kosio
+# Kosio
 
  ![C++](https://img.shields.io/badge/standard-C++23-00599C?logo=cplusplus&logoColor=white) ![Linux](https://img.shields.io/badge/platform-linux-dimgray)
 
@@ -13,9 +13,9 @@
 
 ## 简介
 
-本项目是一个使用 c++ 实现的异步运行时，大量使用 `c++` 编译期编程技术以减少运行时开销，通过任务窃取来实现负载均衡，能够安全的在高并发高负载下高效调度各种 `io` 和定时任务。
+本项目是一个使用 `c++` 实现的异步运行时，大量使用 `c++` 编译期编程技术以减少运行时开销，通过任务窃取来实现负载均衡，能够安全的在高并发高负载下高效调度各种 `io` 和定时任务。
 
-本项目参照 [tokio](https://github.com/tokio-rs/tokio) 和 [zedio](https://github.com/8sileus/zedio) 实现，非常感谢 [zedio](https://github.com/8sileus/zedio) 的作者为我解惑。
+本项目参照 [tokio](https://github.com/tokio-rs/tokio) 和 [zedio](https://github.com/8sileus/zedio) 实现，目前正在重构改进相关模块，非常感谢 [zedio](https://github.com/8sileus/zedio) 的作者为我解惑。
 
 
 
@@ -63,22 +63,14 @@ auto main() -> int {
 }
 ```
 
-
-
-## 子组件
-
-- **IO**
-- **NetWorking**
-- **Time**
-- **Log**
-
-
-
 ## Todo Lists
 
-- **完善文档**
-- **改进任务调度功能**
-- **添加 FIleSystem 模块**
-- **添加 Sync 模块**
-- **重构 NetWorking 模块**
-- **添加数据监控功能**
+- [x] 重构分层时间轮及 TIme 组件
+- [ ] 重构运行时
+- [ ] 完善文档
+- [ ] 重构改进任务调度功能
+- [ ] 支持 Signal
+- [ ] 重构 NetWorking 组件
+- [ ] 添加 FIleSystem 组件
+- [ ] 添加 Sync 组件
+- [ ] 添加数据监控功能

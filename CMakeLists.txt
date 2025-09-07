@@ -41,7 +41,6 @@ target_link_libraries(kosio PUBLIC
 # ====== INSTALL ======
 include(GNUInstallDirs)
 
-# 安装库文件
 install(TARGETS kosio
         EXPORT kosioTargets
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -50,19 +49,16 @@ install(TARGETS kosio
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-# 安装头文件
 install(DIRECTORY kosio/include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kosio
 )
 
-# 导出 targets 文件
 install(EXPORT kosioTargets
         FILE kosioTargets.cmake
         NAMESPACE kosio::
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
 )
 
-# 生成并安装配置文件
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(

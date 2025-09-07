@@ -18,7 +18,7 @@ public:
 
 private:
     [[nodiscard]]
-    auto slot_for(uint64_t duration) const noexcept -> std::size_t;
+    auto slot_for(uint64_t when) const noexcept -> std::size_t;
 
 private:
     // 当前层级

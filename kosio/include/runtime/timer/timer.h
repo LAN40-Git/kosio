@@ -28,7 +28,7 @@ public:
     auto insert(std::coroutine_handle<> handle, uint64_t expiration_time)
     const noexcept -> Result<Entry*, TimerError>;
     // Remove a timeout entry
-    static void remove(Entry* entry) noexcept;
+    void remove(Entry* entry) noexcept;
     [[nodiscard]]
     auto next_expiration() const noexcept -> std::optional<Expiration>;
     [[nodiscard]]

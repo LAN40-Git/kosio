@@ -62,7 +62,7 @@ auto kosio::runtime::timer::detail::Level::take_slot(std::size_t slot) -> EntryL
     return entries;
 }
 
-auto kosio::runtime::timer::detail::Level::slot_for(uint64_t duration)
+auto kosio::runtime::timer::detail::Level::slot_for(uint64_t when)
 const noexcept -> std::size_t {
-    return (duration >> (level_ * 6)) % runtime::detail::LEVEL_MULT;
+    return (when >> (level_ * 6)) % runtime::detail::LEVEL_MULT;
 }
