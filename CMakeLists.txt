@@ -28,9 +28,11 @@ set(SOURCE_FILES
 # ====== LIBRARY ======
 add_library(kosio SHARED ${SOURCE_FILES})
 target_include_directories(kosio PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/kosio/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
 target_link_libraries(kosio PUBLIC
         pthread
         uring

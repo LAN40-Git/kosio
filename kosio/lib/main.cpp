@@ -1,7 +1,6 @@
 #include "kosio/include/core.h"
 #include "kosio/include/log.h"
 #include "kosio/include/net.h"
-#include "kosio/include/time.h"
 
 using namespace kosio::runtime;
 using namespace kosio::io;
