@@ -1,7 +1,7 @@
 // an echo server
 // ignore all errors
-#include "kosio/include/core.h"
-#include "kosio/include/net.h"
+#include "kosio/core.h"
+#include "kosio/net.h"
 using namespace kosio;
 using namespace kosio::async;
 using namespace kosio::socket::net;

@@ -1,6 +1,6 @@
-#include "kosio/include/core.h"
-#include "kosio/include/log.h"
-#include "kosio/include/net.h"
+#include "kosio/core.h"
+#include "kosio/log.h"
+#include "kosio/net.h"
 
 using namespace kosio::runtime;
 using namespace kosio::io;
