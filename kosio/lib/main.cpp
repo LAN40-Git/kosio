@@ -17,13 +17,13 @@ Content-Length: 13
 Hello, World!
 )";
 
-auto process(TcpStream stream) -> Task<void> {
+auto process(int fd) -> Task<void> {
     char buf[128];
     while (true) {
-        if (auto ret = co_await stream.read(buf); !ret || ret.value() == 0) {
+        if (auto ret = co_await kosio::io::recv(fd, buf, sizeof(buf), 0); !ret || ret.value() == 0) {
             break;
         }
-        if (auto ret = co_await stream.write_all(response); !ret) {
+        if (auto ret = co_await kosio::io::send(fd, response.data(), response.size(), 0); !ret) {
             break;
         }
     }
@@ -41,13 +41,14 @@ auto server() -> Task<void> {
         co_return;
     }
     auto listener = std::move(has_listener.value());
+
+    struct sockaddr_in peer_addr {};
+    socklen_t          addrlen{};
+
     while (true) {
-        if (auto has_stream = co_await listener.accept()) {
-            auto &[stream, peer_addr] = has_stream.value();
-            // LOG_INFO("Accept a connection from {}", peer_addr);
-            kosio::spawn(process(std::move(stream)));
+        if (auto fd = co_await kosio::io::accept(listener.fd(), reinterpret_cast<sockaddr*>(&peer_addr), &addrlen, 0)) {
+            kosio::spawn(process(fd.value()));
         } else {
-            // LOG_ERROR("{}", has_stream.error());
             break;
         }
     }

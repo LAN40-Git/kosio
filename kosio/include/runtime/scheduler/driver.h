@@ -33,7 +33,7 @@ public:
                 // 那么将事件放入本地队列
                 if (cb->entry_) {
                     // 将事件标从分层时间轮中移除
-                    timer::Timer::remove(cb->entry_);
+                    timer_.remove(cb->entry_);
                 }
                 cb->result_ = cqes[i]->res;
                 local_queue.push_back_or_overflow(cb->handle_, global_queue);
