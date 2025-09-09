@@ -5,6 +5,11 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+message(STATUS "Version: " "${CMAKE_PROJECT_VERSION}")
+message(STATUS "C++ standard: " "${CMAKE_CXX_STANDARD}")
+message(STATUS "Compiler: " "${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "Build type: " "${CMAKE_BUILD_TYPE}")
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBURING REQUIRED liburing)
 
