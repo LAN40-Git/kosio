@@ -7,7 +7,7 @@
 #include <netdb.h>
 #include <variant>
 
-namespace kosio::socket::net
+namespace kosio::net
 {
 class Ipv4Addr {
 public:
@@ -229,12 +229,11 @@ private:
         sockaddr_in6 in6;
     } addr_;
 };
-} // namespace kosio::socket::net
+} // namespace kosio::net
 
-namespace std
-{
+namespace std {
 template <>
-class formatter<kosio::socket::net::Ipv4Addr> {
+class formatter<kosio::net::Ipv4Addr> {
 public:
     constexpr auto parse(format_parse_context &context) {
         auto it{context.begin()};
@@ -249,13 +248,13 @@ public:
         return it;
     }
 
-    auto format(kosio::socket::net::Ipv4Addr addr, auto &context) const noexcept {
+    auto format(kosio::net::Ipv4Addr addr, auto &context) const noexcept {
         return format_to(context.out(), "{}", addr.to_string());
     }
 };
 
 template <>
-class formatter<kosio::socket::net::Ipv6Addr> {
+class formatter<kosio::net::Ipv6Addr> {
 public:
     constexpr auto parse(format_parse_context &context) {
         auto it{context.begin()};
@@ -270,13 +269,13 @@ public:
         return it;
     }
 
-    auto format(const kosio::socket::net::Ipv6Addr &addr, auto &context) const noexcept {
+    auto format(const kosio::net::Ipv6Addr &addr, auto &context) const noexcept {
         return format_to(context.out(), "{}", addr.to_string());
     }
 };
 
 template <>
-class formatter<kosio::socket::net::SocketAddr> {
+class formatter<kosio::net::SocketAddr> {
 public:
     constexpr auto parse(format_parse_context &context) {
         auto it{context.begin()};
@@ -291,7 +290,7 @@ public:
         return it;
     }
 
-    auto format(const kosio::socket::net::SocketAddr &addr, auto &context) const noexcept {
+    auto format(const kosio::net::SocketAddr &addr, auto &context) const noexcept {
         return format_to(context.out(), "{}", addr.to_string());
     }
 };

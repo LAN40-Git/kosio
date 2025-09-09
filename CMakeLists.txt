@@ -15,20 +15,8 @@ pkg_check_modules(LIBURING REQUIRED liburing)
 
 # ====== LIBRARY ======
 add_library(kosio SHARED
-        kosio/io/io.cpp
         kosio/socket/socket.cpp
         kosio/socket/net/socket.cpp
-        kosio/runtime/io/io_uring.cpp
-        kosio/runtime/timer/level.cpp
-        kosio/runtime/timer/timer.cpp
-        kosio/runtime/task/waker.cpp
-        kosio/runtime/scheduler/driver.cpp
-        kosio/runtime/scheduler/multi_thread/idle.cpp
-        kosio/runtime/scheduler/multi_thread/worker.cpp
-        kosio/runtime/scheduler/multi_thread/handle.cpp
-        kosio/runtime/scheduler/multi_thread/shared.cpp
-        kosio/runtime/scheduler/current_thread/worker.cpp
-        kosio/runtime/scheduler/current_thread/handle.cpp
 )
 
 set(DEPEND_LIBS
