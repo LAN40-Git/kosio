@@ -11,10 +11,10 @@ inline thread_local Worker *t_worker{nullptr};
 class Worker : util::Noncopyable {
     friend class Shared;
 public:
-    Worker(std::size_t index, Shared& shared, const runtime::detail::Config &config)
+    Worker(std::size_t index, Shared& shared)
         : index_(index)
         , shared_(shared)
-        , driver_(config) {
+        , driver_(shared_.config_) {
         shared_.workers_.push_back(this);
         t_worker = this;
         t_shared = std::addressof(shared);

@@ -1,5 +1,5 @@
 #pragma once
-#include "kosio/runtime/io/io_uring.h"
+#include "kosio/runtime/io/io_uring.hpp"
 #include "kosio/common/concepts.hpp"
 #include "kosio/common/macros.hpp"
 #include "kosio/common/error.hpp"

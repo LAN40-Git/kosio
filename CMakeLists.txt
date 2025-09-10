@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(KOSIO VERSION 0.2.0 LANGUAGES CXX)
+project(KOSIO VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,11 +14,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBURING REQUIRED liburing)
 
 # ====== LIBRARY ======
-add_library(kosio SHARED
-        kosio/socket/socket.cpp
-        kosio/socket/net/socket.cpp
-)
-
 set(DEPEND_LIBS
         pthread
         ${LIBURING_LIBRARIES}
@@ -29,45 +24,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # ====== INSTALL ======
 include(GNUInstallDirs)
 
-install(TARGETS kosio
-        EXPORT kosioTargets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-
 install(DIRECTORY kosio/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kosio
         FILES_MATCHING
-        PATTERN "*.h"
-        PATTERN "*.cpp" EXCLUDE
-)
-
-install(EXPORT kosioTargets
-        FILE kosioTargets.cmake
-        NAMESPACE kosio::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
-)
-
-include(CMakePackageConfigHelpers)
-
-write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfigVersion.cmake"
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY AnyNewerVersion
-)
-
-configure_package_config_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/kosioConfig.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfig.cmake"
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
-)
-
-install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/kosioConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kosio
+        PATTERN "*.hpp"
 )
 
 # ====== TEST ======

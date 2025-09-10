@@ -4,7 +4,7 @@
 #include "kosio/net.hpp"
 using namespace kosio;
 using namespace kosio::async;
-using namespace kosio::socket::net;
+using namespace kosio::net;
 
 auto process(TcpStream stream) -> Task<void> {
     char buf[1024]{};

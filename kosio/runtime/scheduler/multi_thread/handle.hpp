@@ -11,8 +11,8 @@ public:
         for (std::size_t i = 0; i < config.num_workers; i++) {
             std::latch sync{2};
             auto thread_name = "kosio-WORKER-" + std::to_string(i);
-            threads_.emplace_back([i, this, config, &thread_name, &sync]() {
-                Worker worker{i, this, config};
+            threads_.emplace_back([i, this, &thread_name, &sync]() {
+                Worker worker{i, shared_};
 
                 util::set_current_thread_name(thread_name);
 
@@ -71,12 +71,11 @@ static inline void schedule_remote(std::coroutine_handle<> handle) {
     t_shared->schedule_remote(handle);
 }
 
-template <typename It>
-static inline void schedule_remote_batch(It itemFirst, std::size_t count) {
+static inline void schedule_remote_batch(std::list<std::coroutine_handle<>> &&handles, std::size_t n) {
     if (t_shared == nullptr) [[unlikely]] {
         std::unreachable();
         return;
     }
-    t_shared->schedule_remote_batch(itemFirst, count);
+    t_shared->schedule_remote_batch(std::move(handles), n);
 }
 } // namespace kosio::runtime::scheduler::multi_thread

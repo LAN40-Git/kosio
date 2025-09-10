@@ -64,6 +64,14 @@ static inline void schedule_remote(std::coroutine_handle<> handle) {
         scheduler::multi_thread::schedule_remote(handle);
     }
 }
+
+static inline void schedule_remote_batch(std::list<std::coroutine_handle<>> handles, int n) {
+    if (is_current_thread()) {
+        scheduler::current_thread::schedule_remote_batch(std::move(handles), n);
+    } else {
+        scheduler::multi_thread::schedule_remote_batch(std::move(handles), n);
+    }
+}
 } // namespace kosio::runtime::detail
 
 namespace kosio {

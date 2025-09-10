@@ -7,8 +7,7 @@
 #include <netdb.h>
 #include <variant>
 
-namespace kosio::net
-{
+namespace kosio::net {
 class Ipv4Addr {
 public:
     Ipv4Addr(uint8_t a, uint8_t b, uint8_t c, uint8_t d)

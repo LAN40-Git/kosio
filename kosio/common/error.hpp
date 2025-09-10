@@ -95,6 +95,7 @@ public:
         kUnknown = detail::IoErrorCodeBase,
         kWriteZero,
         kEarlyEOF,
+        kInvalidAddresses,
     };
 public:
     explicit IoError(Code error_code)
@@ -110,6 +111,8 @@ public:
                 return "Write return zero.";
             case kEarlyEOF:
                 return "Read EOF too early.";
+            case kInvalidAddresses:
+                return "Invalid addresses.";
             default:
                 return strerror(error_code_);
         }

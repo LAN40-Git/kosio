@@ -1,7 +1,7 @@
 #pragma once
-#include "../../log.hpp"
+#include "kosio/log.hpp"
 #include "kosio/common/error.hpp"
-#include "kosio/runtime/io/io_uring.h"
+#include "kosio/runtime/io/io_uring.hpp"
 #include "kosio/io/base/callback.hpp"
 #include <optional>
 #include <list>

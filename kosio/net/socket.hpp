@@ -2,7 +2,7 @@
 #include "kosio/io/io.hpp"
 
 namespace kosio::net::detail {
-class Socket : io::detail::FD {
+class Socket : public io::detail::FD {
 public:
     explicit Socket(int fd)
         : FD(fd) {}
@@ -27,7 +27,7 @@ public:
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto shutdown(int how) const {
+    auto shutdown(int how) const noexcept {
         return io::detail::Shutdown{fd_, how};
     }
 
@@ -41,6 +41,5 @@ public:
         }
         return T{Socket{fd}};
     }
-
 };
 } // namespace kosio::net::detail

@@ -7,7 +7,7 @@ using namespace kosio::io;
 using namespace kosio::log;
 using namespace kosio::time;
 using namespace kosio::async;
-using namespace kosio::socket::net;
+using namespace kosio::net;
 
 constexpr std::string_view response = R"(
 HTTP/1.1 200 OK

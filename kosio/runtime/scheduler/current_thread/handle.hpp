@@ -45,12 +45,11 @@ static inline void schedule_remote(std::coroutine_handle<> handle) {
     t_worker->schedule_remote(handle);
 }
 
-template <typename It>
-static inline void schedule_remote_batch(It itemFirst, std::size_t count) {
+static inline void schedule_remote_batch(std::list<std::coroutine_handle<>> &&handles, std::size_t n) {
     if (t_worker == nullptr) [[unlikely]] {
         std::unreachable();
         return;
     }
-    t_worker->schedule_remote_batch(itemFirst, count);
+    t_worker->schedule_remote_batch(std::move(handles), n);
 }
 } // namespace kosio::runtime::scheduler::current_thread
