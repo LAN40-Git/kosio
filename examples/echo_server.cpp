@@ -3,8 +3,8 @@
 #include "kosio/core.hpp"
 #include "kosio/net.hpp"
 using namespace kosio;
-using namespace kosio::async;
 using namespace kosio::net;
+using namespace kosio::async;
 
 auto process(TcpStream stream) -> Task<void> {
     char buf[1024]{};

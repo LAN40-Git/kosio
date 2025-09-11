@@ -9,7 +9,7 @@ public:
         : level_(level) {}
 
 public:
-    void add_entry(std::unique_ptr<Entry> entry, uint64_t when) {
+    void add_entry(std::unique_ptr<Entry>&& entry, uint64_t when) {
         auto slot = slot_for(when);
         slots_[slot].push_back(std::move(entry));
         occupied_ |= (1ULL << slot);

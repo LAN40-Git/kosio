@@ -1,0 +1,52 @@
+#pragma once
+#include "kosio/io/awaiter/statx.hpp"
+
+namespace kosio::fs {
+namespace detail {
+class Metadata : public io::detail::IoRegistrator<Metadata> {
+private:
+    using Super = IoRegistrator<Metadata>;
+
+public:
+    Metadata(int fd)
+        : Super{io_uring_prep_statx,
+                fd,
+                "",
+                AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT,
+                STATX_ALL,
+                &statx_} {}
+
+    Metadata(std::string_view path)
+        : Super(io_uring_prep_statx,
+                AT_FDCWD,
+                path.data(),
+                AT_STATX_SYNC_AS_STAT,
+                STATX_ALL,
+                &statx_) {}
+
+    auto await_resume() const noexcept -> Result<struct statx, IoError> {
+        if (this->cb_.result_ >= 0) [[likely]] {
+            return statx_;
+        } else {
+            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+        }
+    }
+
+private:
+    struct statx statx_ {};
+};
+
+template <class T>
+struct ImplAsyncMetadata {
+    [[REMEMBER_CO_AWAIT]]
+    auto metadata() const noexcept -> Metadata {
+        return Metadata{static_cast<const T *>(this)->fd()};
+    }
+};
+} // namespace detail
+
+[[REMEMBER_CO_AWAIT]]
+static inline auto metadata(std::string_view dir_path) {
+    return detail::Metadata(dir_path);
+}
+} // namespace kosio::fs

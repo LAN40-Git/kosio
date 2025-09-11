@@ -59,12 +59,17 @@ public:
         return result;
     }
 
-    // Remove a timeout entry
+    // Remember to wake up the worker
     void remove(Entry* entry) noexcept {
         // 惰性删除
         entry->data_ = nullptr;
-        entry->handle_ = nullptr;
-        // TODO: 并不真正处理标记为删除的事件
+        if (entry->handle_) {
+            // 将句柄放入下一个即将被处理的槽位
+            auto [new_entry, result] = Entry::make(entry->handle_, start_time_ + elapsed_);
+            levels_[0]->add_entry(std::move(new_entry), elapsed_);
+            // 将原来事件的句柄标记为删除
+            entry->handle_ = nullptr;
+        }
     }
 
     [[nodiscard]]

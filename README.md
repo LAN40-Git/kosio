@@ -65,11 +65,13 @@ auto main() -> int {
 
 ## Todo Lists
 
-- [x] 重构分层时间轮及 Time 组件
-- [ ] 完善文档
-- [ ] 重构改进任务调度功能
-- [x] 支持 Signal
-- [ ] 重构 NetWorking 组件
-- [ ] 添加 FIleSystem 组件
+- [x] 重构分层时间轮
+- [x] 重构 NetWorking 组件
+- [x] 添加 Signal 组件
+- [x] 添加 FIleSystem 组件
 - [ ] 添加 Sync 组件
-- [ ] 添加数据监控功能
+- [ ] 重构 NetWorking 组件
+- [ ] 重构 FileSystem 组件
+- [ ] 重构 Sync 组件
+- [ ] 重构改进任务调度功能
+- [ ] 完善文档

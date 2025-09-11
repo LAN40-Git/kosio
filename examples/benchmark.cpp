@@ -1,13 +1,15 @@
 #include "kosio/core.hpp"
 #include "kosio/log.hpp"
 #include "kosio/net.hpp"
+#include "kosio/signal.hpp"
 
-using namespace kosio::runtime;
 using namespace kosio::io;
+using namespace kosio::net;
 using namespace kosio::log;
 using namespace kosio::time;
 using namespace kosio::async;
-using namespace kosio::net;
+using namespace kosio::signal;
+using namespace kosio::runtime;
 
 constexpr std::string_view response = R"(
 HTTP/1.1 200 OK
@@ -55,11 +57,7 @@ auto server() -> Task<void> {
 
 auto main_loop() -> Task<void> {
     kosio::spawn(server());
-    while (true) {
-        // co_await kosio::timer::sleep(20);
-        co_await std::suspend_always{};
-        console.info("Main loop.");
-    }
+    co_await ctrl_c();
 }
 
 auto main(int argc, char **argv) -> int {

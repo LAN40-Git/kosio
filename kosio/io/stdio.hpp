@@ -1,0 +1,63 @@
+#pragma once
+#include "kosio/io/io.hpp"
+#include "kosio/common/error.hpp"
+#include "kosio/common/debug.hpp"
+
+namespace kosio::io {
+namespace detail {
+template <int FD>
+[[REMEMBER_CO_AWAIT]]
+auto async_read(std::span<char> buf) noexcept -> async::Task<Result<void, IoError>> {
+    auto ret = co_await io::read(FD,
+                                 buf.data(),
+                                 static_cast<unsigned int>(buf.size_bytes()),
+                                 static_cast<std::size_t>(-1));
+    if (!ret) [[unlikely]] {
+        co_return std::unexpected{ret.error()};
+    }
+    if (ret.value() == 0) [[unlikely]] {
+        co_return std::unexpected{make_error<IoError>(IoError::kEarlyEOF)};
+    }
+    co_return Result<void, IoError>{};
+}
+
+template <int FD>
+[[REMEMBER_CO_AWAIT]]
+auto async_write(std::span<const char> buf) noexcept -> async::Task<Result<void, IoError>> {
+    Result<std::size_t, IoError> ret{0uz};
+    while (!buf.empty()) {
+        ret = co_await io::write(FD,
+                                 buf.data(),
+                                 static_cast<unsigned int>(buf.size_bytes()),
+                                 static_cast<std::size_t>(-1));
+        if (!ret) [[unlikely]] {
+            co_return std::unexpected{ret.error()};
+        }
+        if (ret.value() == 0) [[unlikely]] {
+            co_return std::unexpected{make_error<IoError>(IoError::kWriteZero)};
+        }
+        buf = buf.subspan(ret.value(), buf.size_bytes() - ret.value());
+    }
+    co_return Result<void, IoError>{};
+}
+} // namespace detail
+
+[[REMEMBER_CO_AWAIT]]
+static inline auto input(std::span<char> buf) -> async::Task<Result<void, IoError>> {
+    co_return co_await detail::async_read<STDIN_FILENO>(buf);
+}
+
+template <typename... Args>
+[[REMEMBER_CO_AWAIT]]
+static inline auto print(std::string_view fmt, Args &&...args) -> async::Task<Result<void, IoError>> {
+    co_return co_await detail::async_write<STDOUT_FILENO>(
+    std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)));
+}
+
+template <typename... Args>
+[[REMEMBER_CO_AWAIT]]
+static inline auto eprint(std::string_view fmt, Args &&...args) -> async::Task<Result<void, IoError>> {
+    co_return co_await detail::async_write<STDERR_FILENO>(
+        std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)));
+}
+} // namespace kosio::io

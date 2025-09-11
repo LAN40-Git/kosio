@@ -6,7 +6,7 @@ namespace detail {
 class Unlink : public IoRegistrator<Unlink> {
 public:
     Unlink(int dfd, const char *path, int flags)
-        : IoRegistrator(io_uring_prep_unlinkat, dfd, path, flags) {}
+        : IoRegistrator{io_uring_prep_unlinkat, dfd, path, flags} {}
 
     Unlink(const char *path, int flags)
         : IoRegistrator{io_uring_prep_unlink, path, flags} {}
