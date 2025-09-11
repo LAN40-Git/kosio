@@ -69,7 +69,7 @@ auto main() -> int {
 - [x] 重构 NetWorking 组件
 - [x] 添加 Signal 组件
 - [x] 添加 FIleSystem 组件
-- [ ] 添加 Sync 组件
+- [x] 添加 Sync 组件
 - [ ] 重构 NetWorking 组件
 - [ ] 重构 FileSystem 组件
 - [ ] 重构 Sync 组件

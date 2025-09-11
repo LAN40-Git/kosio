@@ -28,7 +28,7 @@ public:
     void wake_up_one();
     void wake_up_all() const;
     void wake_up_if_work_pending();
-    void close() const;
+    void close();
 
     void schedule_remote(std::coroutine_handle<> task) {
         global_queue_.push(std::move(task));

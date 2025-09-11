@@ -6,16 +6,14 @@
 
 namespace kosio {
 namespace detail {
-// 错误码起始值
-static inline constexpr int ErrorCodeBase = 6000;
-// 错误码间隔值
+static inline constexpr int ErrorCodeBase = 8000;
 static inline constexpr int ErrorCodeInterval = 1000;
-// 常规错误码起始值
-static inline constexpr int CommonErrorCodeBase = ErrorCodeBase;
-// 定时器错误码起始值
-static inline constexpr int TimerErrorCodeBase = CommonErrorCodeBase + ErrorCodeInterval;
-// Io 错误码起始值
+// Time Error
+static inline constexpr int TimerErrorCodeBase = ErrorCodeBase;
+// Io Error
 static inline constexpr int IoErrorCodeBase = TimerErrorCodeBase + ErrorCodeInterval;
+// Sync Error
+static inline constexpr int SyncErrorCodeBase = IoErrorCodeBase + ErrorCodeInterval;
 
 template <class DeriverError>
 class ErrorBase {
@@ -113,6 +111,29 @@ public:
                 return "Read EOF too early.";
             case kInvalidAddresses:
                 return "Invalid addresses.";
+            default:
+                return strerror(error_code_);
+        }
+    }
+};
+
+// ========== Sync Error ==========
+class SyncError : public detail::ErrorBase<SyncError> {
+public:
+    enum Code {
+        kUnknown = detail::SyncErrorCodeBase,
+    };
+
+public:
+    explicit SyncError(int error_code)
+        : ErrorBase<SyncError>(error_code) {}
+
+public:
+    [[nodiscard]]
+    auto error_message() const noexcept -> std::string_view {
+        switch (static_cast<Code>(error_code_)) {
+            case kUnknown:
+                return "Unknown sync error.";
             default:
                 return strerror(error_code_);
         }

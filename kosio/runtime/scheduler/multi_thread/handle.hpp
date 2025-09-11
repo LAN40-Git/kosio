@@ -38,7 +38,7 @@ public:
         shared_.schedule_remote(task);
     }
 
-    void close() const {
+    void close() {
         shared_.close();
     }
 

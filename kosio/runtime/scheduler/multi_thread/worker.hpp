@@ -287,7 +287,7 @@ inline void Shared::wake_up_if_work_pending() {
     }
 }
 
-inline void Shared::close() const {
+inline void Shared::close() {
     for (auto& worker : workers_) {
         worker->shutdown();
     }
