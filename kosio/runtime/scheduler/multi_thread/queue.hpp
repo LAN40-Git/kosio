@@ -91,10 +91,12 @@ public:
     }
 
 private:
-    std::list<std::coroutine_handle<>> tasks_{};
-    std::atomic<std::size_t>           num_{0};
-    std::mutex                         mutex_{};
-    bool                               is_closed_{false};
+    alignas(64) std::list<std::coroutine_handle<>> tasks_{};
+    alignas(64) std::atomic<std::size_t>           num_{0};
+    char padding1[64 - sizeof(std::atomic<std::size_t>)];
+
+    alignas(64) std::mutex                         mutex_{};
+    bool                                           is_closed_{false};
 };
 
 class LocalQueue {
@@ -329,8 +331,15 @@ private:
     }
 
 private:
+    // alignas(64) std::atomic<uint64_t> head_{0};
+    // alignas(64) std::atomic<uint32_t> tail_{0};
+    // alignas(64) std::array<std::coroutine_handle<>, runtime::detail::LOCAL_QUEUE_CAPACITY> buffer_;
     alignas(64) std::atomic<uint64_t> head_{0};
+    char padding1[64 - sizeof(std::atomic<uint64_t>)];
+
     alignas(64) std::atomic<uint32_t> tail_{0};
+    char padding2[64 - sizeof(std::atomic<uint32_t>)];
+
     alignas(64) std::array<std::coroutine_handle<>, runtime::detail::LOCAL_QUEUE_CAPACITY> buffer_;
 };
 

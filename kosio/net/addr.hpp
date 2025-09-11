@@ -28,10 +28,10 @@ public:
 
 public:
     [[nodiscard]]
-    static auto parse(std::string_view ip) -> std::expected<Ipv4Addr, std::error_code> {
+    static auto parse(std::string_view ip) -> Result<Ipv4Addr, IoError> {
         uint32_t addr;
         if (::inet_pton(AF_INET, ip.data(), &addr) != 1) {
-            return std::unexpected{std::error_code(errno, std::generic_category())};
+            return std::unexpected{make_error<IoError>(errno)};
         }
         return Ipv4Addr{addr};
     }
@@ -89,10 +89,10 @@ public:
 
 public:
     [[nodiscard]]
-    static auto parse(std::string_view ip) -> std::expected<Ipv6Addr, std::error_code> {
+    static auto parse(std::string_view ip) -> Result<Ipv6Addr, IoError> {
         in6_addr addr{};
         if (::inet_pton(AF_INET6, ip.data(), &addr) != 1) [[unlikely]] {
-            return std::unexpected{std::error_code(errno, std::generic_category())};
+            return std::unexpected{make_error<IoError>(errno)};
         }
         return Ipv6Addr{addr};
     }
@@ -205,17 +205,17 @@ public:
 public:
     [[nodiscard]]
     static auto parse(std::string_view host_name, uint16_t port)
-    -> std::expected<SocketAddr, std::error_code> {
+    -> Result<SocketAddr, IoError> {
         addrinfo hints{};
         hints.ai_flags = AI_NUMERICSERV;
         addrinfo *result{nullptr};
         if (::getaddrinfo(host_name.data(),
             std::to_string(port).data(),
             &hints, &result) != 0) [[unlikely]] {
-            return std::unexpected{std::error_code(errno, std::generic_category())};
+            return std::unexpected{make_error<IoError>(errno)};
         }
         if (result == nullptr) [[unlikely]] {
-            return std::unexpected{std::error_code(errno, std::generic_category())};
+            return std::unexpected{make_error<IoError>(errno)};
         }
         SocketAddr sock{result->ai_addr, result->ai_addrlen};
         ::freeaddrinfo(result);

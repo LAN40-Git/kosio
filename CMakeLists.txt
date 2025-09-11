@@ -29,8 +29,6 @@ include(GNUInstallDirs)
 
 install(DIRECTORY kosio/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kosio
-        FILES_MATCHING
-        PATTERN "*.hpp"
 )
 
 # ====== TEST ======

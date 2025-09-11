@@ -10,7 +10,7 @@ public:
         : shared_(config) {
         for (std::size_t i = 0; i < config.num_workers; i++) {
             std::latch sync{2};
-            auto thread_name = "kosio-WORKER-" + std::to_string(i);
+            auto thread_name = "KOSIO-WORKER-" + std::to_string(i);
             threads_.emplace_back([i, this, &thread_name, &sync]() {
                 Worker worker{i, shared_};
 

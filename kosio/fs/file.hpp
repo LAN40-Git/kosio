@@ -75,7 +75,7 @@ public:
 
 template <typename T>
 [[REMEMBER_CO_AWAIT]]
-static inline auto read_to_end(std::string_view path) -> async::Task<Result<T>> {
+static inline auto read_to_end(std::string_view path) -> async::Task<Result<T, IoError>> {
     auto file = co_await File::open(path);
     if (!file) [[unlikely]] {
         co_return std::unexpected{file.error()};

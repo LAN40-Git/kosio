@@ -226,6 +226,13 @@ private:
     void maintenance() {
         if (this->tick_ % shared_.config_.io_interval == 0) {
             [[maybe_unused]] auto _ = poll();
+            check_shutdown();
+        }
+    }
+
+    void check_shutdown() {
+        if (!is_shutdown_) [[likely]] {
+            is_shutdown_ = shared_.global_queue_.is_closed();
         }
     }
 
@@ -241,9 +248,11 @@ private:
     }
 
     void sleep() {
+        check_shutdown();
         if (transition_to_sleepling()) {
             while (!is_shutdown_) [[likely]] {
                 driver_.wait(local_queue_, shared_.global_queue_);
+                check_shutdown();
                 if (transition_from_sleepling()) {
                     break;
                 }
@@ -285,12 +294,5 @@ inline void Shared::wake_up_if_work_pending() {
     if (!global_queue_.empty()) {
         wake_up_one();
     }
-}
-
-inline void Shared::close() {
-    for (auto& worker : workers_) {
-        worker->shutdown();
-    }
-    wake_up_all();
 }
 } // namespace kosio::runtime::scheduler::multi_thread

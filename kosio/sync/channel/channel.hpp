@@ -93,12 +93,12 @@ class Channel {
     };
 
 public:
-    auto send(T value) -> async::Task<Result<void>> {
+    auto send(T value) -> async::Task<Result<void, IoError>> {
         co_await mutex_.lock();
         co_return co_await SendAwaiter{*this, value};
     }
 
-    auto recv() -> async::Task<Result<T>> {
+    auto recv() -> async::Task<Result<T, IoError>> {
         co_await mutex_.lock();
         co_return co_await RecvAwaiter{*this};
     }

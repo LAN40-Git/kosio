@@ -7,7 +7,7 @@ class Handle : util::Noncopyable {
 public:
     explicit Handle(const runtime::detail::Config& config)
     : worker_(this, config) {
-        util::set_current_thread_name("kosio-WORKER-0");
+        util::set_current_thread_name("KOSIO-WORKER-0");
     }
 
     ~Handle() {

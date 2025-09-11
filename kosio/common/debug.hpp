@@ -2,7 +2,7 @@
 #include <cassert>
 #ifdef NEED_KOSIO_LOG
 
-#include "log.h"
+#include "kosio/log.hpp"
 
 inline auto &debug_logger = kosio::log::console;
 
