@@ -17,26 +17,31 @@
 
 本项目参照 [tokio](https://github.com/tokio-rs/tokio) 和 [zedio](https://github.com/8sileus/zedio) 实现，目前正在重构改进相关模块，非常感谢 [zedio](https://github.com/8sileus/zedio) 的作者为我解惑。
 
-
-
 ## 特点
 
 - 具有工作窃取负载平衡的多线程调度器。
 - 基于 `io_uring` (为异步 IO 设计的框架) 实现的 `Proactor` 模式。
 - 零成本抽象: 无虚函数、无运行时多态、无动态调度。
 
-
+## 子库 (参考[zedio](https://github.com/8sileus/zedio))
+- fs
+- io
+- log
+- net
+- signal
+- sync
+- time
 
 ## Example
 
 ```c++
 // an echo server
 // ignore all errors
-#include "core.h"
-#include "net.h"
+#include "kosio/net.hpp"
+#include "kosio/core.hpp"
 using namespace kosio;
+using namespace kosio::net;
 using namespace kosio::async;
-using namespace kosio::socket::net;
 
 auto process(TcpStream stream) -> Task<void> {
     char buf[1024]{};
