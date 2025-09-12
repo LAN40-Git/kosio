@@ -23,7 +23,7 @@
 - 基于 `io_uring` (为异步 IO 设计的框架) 实现的 `Proactor` 模式。
 - 零成本抽象: 无虚函数、无运行时多态、无动态调度。
 
-## 子库 (参考[zedio](https://github.com/8sileus/zedio))
+## 子库
 - fs
 - io
 - log
@@ -71,12 +71,13 @@ auto main() -> int {
 ## Todo Lists
 
 - [x] 重构分层时间轮
-- [x] 重构 NetWorking 组件
-- [x] 添加 Signal 组件
-- [x] 添加 FIleSystem 组件
-- [x] 添加 Sync 组件
-- [ ] 重构 NetWorking 组件
-- [ ] 重构 FileSystem 组件
-- [ ] 重构 Sync 组件
+- [x] 重构 NetWorking 库
+- [x] 添加 Signal 库
+- [x] 添加 FIleSystem 库
+- [x] 添加 Sync 库
+- [ ] 完善 Time 库
+- [ ] 重构 NetWorking 库
+- [ ] 重构 FileSystem 库
+- [ ] 重构 Sync 库
 - [ ] 重构改进任务调度功能
 - [ ] 完善文档

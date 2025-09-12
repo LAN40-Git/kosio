@@ -52,7 +52,7 @@ public:
     }
 
     [[nodiscard]]
-    auto seek(off64_t offset, int whence) noexcept {
+    auto seek(off64_t offset, int whence) const noexcept {
         ::lseek64(fd_, offset, whence);
     }
 
