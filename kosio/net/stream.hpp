@@ -52,7 +52,7 @@ public:
                     return false;
                 }
                 this->sqe_->fd = fd_;
-                this->sqe_->addr = static_cast<unsigned long>(addr_.sockaddr());
+                this->sqe_->addr = reinterpret_cast<unsigned long>(addr_.sockaddr());
                 Super::await_suspend(handle);
                 return true;
             }
