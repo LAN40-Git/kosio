@@ -12,6 +12,40 @@ struct ImplAsyncWrite {
                      static_cast<std::size_t>(-1)};
     }
 
+    template <typename... Ts>
+        requires(constructible_to_char_slice<Ts> && ...)
+    [[REMEMBER_CO_AWAIT]]
+    auto write_vectored(Ts &&...bufs) noexcept {
+        constexpr std::size_t N = sizeof...(Ts);
+
+        class WriteVectored : public IoRegistrator<WriteVectored> {
+        private:
+            using Super = IoRegistrator<WriteVectored>;
+
+        public:
+            WriteVectored(int fd,Ts&&...bufs)
+                : Super{io_uring_prep_writev,fd, nullptr, N, static_cast<std::size_t>(-1)}
+            , iovecs_{ iovec{
+                .iov_base = const_cast<char*>(std::span<const char>(bufs).data()),
+                .iov_len = std::span<const char>(bufs).size_bytes(),
+              }...} {
+                this->sqe_->addr = reinterpret_cast<unsigned long long>(iovecs_.data());
+            }
+
+            auto await_resume() const noexcept -> Result<std::size_t, IoError> {
+                if (this->cb_.result_ >= 0) [[likely]] {
+                    return static_cast<std::size_t>(this->cb_.result_);
+                } else {
+                    return ::std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                }
+            }
+
+        private:
+            std::array<struct iovec, N> iovecs_;
+        };
+        return WriteVectored{static_cast<T *>(this)->fd(), std::forward<Ts>(bufs)...};
+    }
+
     [[REMEMBER_CO_AWAIT]]
     auto write_all(std::span<const char> buf) noexcept
     -> async::Task<Result<void, IoError>> {

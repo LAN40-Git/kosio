@@ -106,12 +106,12 @@ private:
             return;
         }
 
-        timeval tv_time;
+        timeval tv_time{};
         ::gettimeofday(&tv_time, nullptr);
         auto cur_second = tv_time.tv_sec;
         auto cur_millisecond = tv_time.tv_usec / 1000;
         if (cur_second != last_second) {
-            struct tm tm_time;
+            struct tm tm_time{};
             ::localtime_r(&cur_second, &tm_time);
             constexpr auto format = "%Y-%m-%d %H:%M:%S";
             ::strftime(buffer.data(), buffer.size(), format, &tm_time);
