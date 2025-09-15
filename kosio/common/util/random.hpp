@@ -23,9 +23,9 @@ public:
         }
     }
 
-    int32_t rand_range(int32_t min, int32_t max) {
+    uint32_t rand_range(uint32_t min, uint32_t max) {
         assert(min <= max);  // 参数检查
-        return min + static_cast<int32_t>(fastrand_n(max - min + 1));
+        return min + fastrand_n(max - min + 1);
     }
 
 private:
