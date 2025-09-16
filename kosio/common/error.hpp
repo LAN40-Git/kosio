@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <expected>
 #include <string_view>
 #include <cstring>

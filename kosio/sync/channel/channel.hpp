@@ -48,7 +48,7 @@ class Channel {
     public:
         Channel                &channel_;
         T                      &value_;
-        Result<void, SyncError> result_;
+        Result<void>            result_;
         std::coroutine_handle<> handle_;
     };
 
@@ -88,7 +88,7 @@ class Channel {
 
     public:
         Channel                &channel_;
-        Result<T, SyncError>    result_;
+        Result<T>    result_;
         std::coroutine_handle<> handle_;
     };
 

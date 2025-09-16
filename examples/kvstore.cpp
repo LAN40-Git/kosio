@@ -44,7 +44,7 @@ public:
     }
 
 public:
-    static auto open(std::string_view path) -> kosio::async::Task<kosio::Result<KVStore, kosio::Error>> {
+    static auto open(std::string_view path) -> kosio::async::Task<kosio::Result<KVStore>> {
         if (auto has_file = co_await
         kosio::fs::File::options()
         .write(true)
