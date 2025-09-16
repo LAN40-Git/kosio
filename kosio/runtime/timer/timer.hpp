@@ -31,9 +31,9 @@ public:
     // Add a timeout entry
     [[nodiscard]]
     auto insert(kosio::io::detail::Callback *data, uint64_t expiration_time)
-    const noexcept -> Result<Entry*, TimerError> {
+    const noexcept -> Result<Entry*> {
         if (expiration_time <= start_time_ + elapsed_) [[unlikely]] {
-            return std::unexpected{make_error<TimerError>(TimerError::kPassedTime)};
+            return std::unexpected{make_error(Error::kPassedTime)};
         }
         // 事件到期的时间
         auto when = expiration_time - start_time_;
@@ -46,9 +46,9 @@ public:
 
     [[nodiscard]]
     auto insert(std::coroutine_handle<> handle, uint64_t expiration_time)
-    const noexcept -> Result<Entry*, TimerError> {
+    const noexcept -> Result<Entry*> {
         if (expiration_time <= start_time_ + elapsed_) [[unlikely]] {
-            return std::unexpected{make_error<TimerError>(TimerError::kPassedTime)};
+            return std::unexpected{make_error(Error::kPassedTime)};
         }
         // 事件到期的时间
         auto when = expiration_time - start_time_;

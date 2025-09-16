@@ -11,11 +11,11 @@ public:
     Rename(const char *oldpath, const char *newpath)
         : IoRegistrator{io_uring_prep_rename, oldpath, newpath} {}
 
-    auto await_resume() const noexcept -> Result<void, IoError> {
+    auto await_resume() const noexcept -> Result<void> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return {};
         } else {
-            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };

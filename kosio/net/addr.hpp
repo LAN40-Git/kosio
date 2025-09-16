@@ -28,10 +28,10 @@ public:
 
 public:
     [[nodiscard]]
-    static auto parse(std::string_view ip) -> Result<Ipv4Addr, IoError> {
+    static auto parse(std::string_view ip) -> Result<Ipv4Addr> {
         uint32_t addr;
         if (::inet_pton(AF_INET, ip.data(), &addr) != 1) {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return Ipv4Addr{addr};
     }
@@ -89,10 +89,10 @@ public:
 
 public:
     [[nodiscard]]
-    static auto parse(std::string_view ip) -> Result<Ipv6Addr, IoError> {
+    static auto parse(std::string_view ip) -> Result<Ipv6Addr> {
         in6_addr addr{};
         if (::inet_pton(AF_INET6, ip.data(), &addr) != 1) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return Ipv6Addr{addr};
     }
@@ -205,17 +205,17 @@ public:
 public:
     [[nodiscard]]
     static auto parse(std::string_view host_name, uint16_t port)
-    -> Result<SocketAddr, IoError> {
+    -> Result<SocketAddr> {
         addrinfo hints{};
         hints.ai_flags = AI_NUMERICSERV;
         addrinfo *result{nullptr};
         if (::getaddrinfo(host_name.data(),
             std::to_string(port).data(),
             &hints, &result) != 0) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         if (result == nullptr) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         SocketAddr sock{result->ai_addr, result->ai_addrlen};
         ::freeaddrinfo(result);

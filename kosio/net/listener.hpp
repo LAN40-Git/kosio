@@ -32,11 +32,11 @@ public:
                         &length_,
                         SOCK_NONBLOCK} {}
 
-            auto await_resume() const noexcept -> Result<std::pair<Stream, Addr>, IoError> {
+            auto await_resume() const noexcept -> Result<std::pair<Stream, Addr>> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return std::make_pair(Stream{Socket{this->cb_.result_}}, addr_);
                 } else {
-                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
 
@@ -49,7 +49,7 @@ public:
 
 public:
     [[nodiscard]]
-    static auto bind(const Addr& addr) -> Result<Listener, IoError> {
+    static auto bind(const Addr& addr) -> Result<Listener> {
         auto ret = Socket::create(addr.family(), SOCK_STREAM | SOCK_NONBLOCK, 0);
         if (!ret) [[unlikely]] {
             return std::unexpected{ret.error()};
@@ -65,7 +65,7 @@ public:
     }
 
     [[nodiscard]]
-    static auto bind(const std::span<Addr> &addresses) -> Result<Listener, IoError> {
+    static auto bind(const std::span<Addr> &addresses) -> Result<Listener> {
         for (const auto &address : addresses) {
             if (auto ret = bind(address); ret) [[likely]] {
                 return ret;
@@ -73,7 +73,7 @@ public:
                 LOG_ERROR("Bind {} failed, error: {}", address.to_string(), ret.error().message());
             }
         }
-        return std::unexpected{make_error<IoError>(IoError::kInvalidAddresses)};
+        return std::unexpected{make_error(Error::kInvalidAddresses)};
     }
 
 private:

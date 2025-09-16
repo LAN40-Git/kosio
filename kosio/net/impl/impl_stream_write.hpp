@@ -46,11 +46,11 @@ struct ImplStreamWrite {
                        .msg_flags = MSG_NOSIGNAL}
                 {}
 
-            auto await_resume() const noexcept -> Result<std::size_t, IoError> {
+            auto await_resume() const noexcept -> Result<std::size_t> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return static_cast<std::size_t>(this->cb_.result_);
                 } else {
-                    return ::std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return ::std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
 
@@ -62,19 +62,19 @@ struct ImplStreamWrite {
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto write_all(std::span<const char> buf) noexcept -> async::Task<Result<void, IoError>> {
-        Result<std::size_t, IoError> ret{0uz};
+    auto write_all(std::span<const char> buf) noexcept -> async::Task<Result<void>> {
+        Result<std::size_t> ret{0uz};
         while (!buf.empty()) {
             ret = co_await this->write(buf);
             if (!ret) [[unlikely]] {
                 co_return std::unexpected{ret.error()};
             }
             if (ret.value() == 0) [[unlikely]] {
-                co_return std::unexpected{make_error<IoError>(IoError::kWriteZero)};
+                co_return std::unexpected{make_error(Error::kWriteZero)};
             }
             buf = buf.subspan(ret.value(), buf.size_bytes() - ret.value());
         }
-        co_return Result<void, IoError>{};
+        co_return Result<void>{};
     }
 };
 } // namespace kosio::net::detail

@@ -2,7 +2,7 @@
 #include "kosio/io/io.hpp"
 
 namespace kosio::io::detail {
-template<class T>
+template <class T>
 struct ImplAsyncRead {
     [[REMEMBER_CO_AWAIT]]
     auto read(std::span<char> buf) const noexcept {
@@ -16,7 +16,7 @@ struct ImplAsyncRead {
         requires(constructible_to_char_slice<Ts> && ...)
     [[REMEMBER_CO_AWAIT]]
     auto read_vectored(Ts &&...bufs) const noexcept {
-        constexpr std::size_t N = sizeof...(Ts);
+        static constexpr std::size_t N = sizeof...(Ts);
 
         class ReadVectored : public IoRegistrator<ReadVectored> {
         private:
@@ -32,11 +32,11 @@ struct ImplAsyncRead {
                 this->sqe_->addr = reinterpret_cast<unsigned long long>(iovecs_.data());
             }
 
-            auto await_resume() const noexcept -> Result<std::size_t, IoError> {
+            auto await_resume() const noexcept -> Result<std::size_t> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return static_cast<std::size_t>(this->cb_.result_);
                 } else {
-                    return ::std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return ::std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
 
@@ -47,19 +47,19 @@ struct ImplAsyncRead {
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto read_exact(std::span<char> buf) const noexcept -> async::Task<Result<void, IoError>> {
-        Result<std::size_t, IoError> ret{0uz};
+    auto read_exact(std::span<char> buf) const noexcept -> async::Task<Result<void>> {
+        Result<std::size_t> ret{0uz};
         while (!buf.empty()) {
             ret = co_await this->read(buf);
             if (!ret) [[unlikely]] {
                 co_return std::unexpected{ret.error()};
             }
             if (ret.value() == 0) {
-                co_return std::unexpected{make_error<IoError>(IoError::kEarlyEOF)};
+                co_return std::unexpected{make_error(Error::kEarlyEOF)};
             }
             buf = buf.subspan(ret.value(), buf.size_bytes() - ret.value());
         }
-        co_return Result<void, IoError>{};
+        co_return Result<void>{};
     }
 };
 } // namespace kosio::io::detail

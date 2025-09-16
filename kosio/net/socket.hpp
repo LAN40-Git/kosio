@@ -11,17 +11,17 @@ public:
     template <typename Addr>
         requires is_socket_address<Addr>
     [[nodiscard]]
-    auto bind(const Addr &addr) -> Result<void, IoError> {
+    auto bind(const Addr &addr) -> Result<void> {
         if (::bind(fd_, addr.sockaddr(), addr.length()) != 0) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return {};
     }
 
     [[nodiscard]]
-    auto listen(int maxn) const -> Result<void, IoError> {
+    auto listen(int maxn) const -> Result<void> {
         if (::listen(fd_, maxn) != 0) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return {};
     }
@@ -34,10 +34,10 @@ public:
 public:
     template <typename T = Socket>
     [[nodiscard]]
-    static auto create(const int domain, const int type, const int protocol) -> Result<T, IoError> {
+    static auto create(const int domain, const int type, const int protocol) -> Result<T> {
         auto fd = ::socket(domain, type, protocol);
         if (fd < 0) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return T{Socket{fd}};
     }

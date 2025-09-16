@@ -24,7 +24,7 @@ public:
     template <class C>
         requires requires(C c) { c.resize(0uz); }
     [[REMEMBER_CO_AWAIT]]
-    auto read_to_end(C &buf) const noexcept -> kosio::async::Task<Result<void, IoError>> {
+    auto read_to_end(C &buf) const noexcept -> kosio::async::Task<Result<void>> {
         auto old_len = buf.size();
         {
             auto ret = co_await this->metadata();
@@ -34,7 +34,7 @@ public:
             buf.resize(old_len + ret.value().stx_size - lseek64(fd_, 0, SEEK_CUR));
         }
         auto span = std::span<char>{buf}.subspan(old_len);
-        auto ret = Result<std::size_t, IoError>{};
+        auto ret = Result<std::size_t>{};
         while (true) {
             ret = co_await this->read(span);
             if (!ret) [[unlikely]] {
@@ -48,7 +48,7 @@ public:
                 break;
             }
         }
-        co_return Result<void, IoError>{};
+        co_return Result<void>{};
     }
 
     [[nodiscard]]
@@ -75,7 +75,7 @@ public:
 
 template <typename T>
 [[REMEMBER_CO_AWAIT]]
-static inline auto read_to_end(std::string_view path) -> async::Task<Result<T, IoError>> {
+static inline auto read_to_end(std::string_view path) -> async::Task<Result<T>> {
     auto file = co_await File::open(path);
     if (!file) [[unlikely]] {
         co_return std::unexpected{file.error()};

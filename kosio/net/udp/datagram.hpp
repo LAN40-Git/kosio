@@ -12,7 +12,7 @@ public:
 
 public:
     [[nodiscard]]
-    static auto unbound(bool is_ipv6 = false) -> Result<UdpDatagram, IoError> {
+    static auto unbound(bool is_ipv6 = false) -> Result<UdpDatagram> {
         return detail::Socket::create<UdpDatagram>(is_ipv6 ? AF_INET6 : AF_INET,
                                                    SOCK_DGRAM | SOCK_NONBLOCK,
                                                    IPPROTO_UDP);

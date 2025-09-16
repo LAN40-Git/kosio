@@ -15,7 +15,7 @@ public:
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto create_dir_all(std::string_view dir_path) const -> async::Task<Result<void, IoError>> {
+    auto create_dir_all(std::string_view dir_path) const -> async::Task<Result<void>> {
         std::stack<std::string_view> dir_stack;
         std::string_view current_path = dir_path;
 
@@ -48,7 +48,7 @@ public:
             dir_stack.pop();
         }
 
-        co_return Result<void, IoError>{};
+        co_return Result<void>{};
     }
 
     void permission(mode_t permission) noexcept {

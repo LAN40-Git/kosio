@@ -7,9 +7,9 @@ namespace kosio::net::detail {
     [[nodiscard]]
 static inline auto
 set_sock_opt(int fd, int level, int optname, const void *optval, socklen_t optlen) noexcept
-    -> Result<void, IoError> {
+    -> Result<void> {
     if (::setsockopt(fd, level, optname, optval, optlen) == -1) [[unlikely]] {
-        return std::unexpected{make_error<IoError>(errno)};
+        return std::unexpected{make_error(errno)};
     }
     return {};
 }
@@ -17,9 +17,9 @@ set_sock_opt(int fd, int level, int optname, const void *optval, socklen_t optle
 [[nodiscard]]
 static inline auto
 get_sock_opt(int fd, int level, int optname, void *optval, socklen_t optlen) noexcept
-    -> Result<void, IoError> {
+    -> Result<void> {
     if (auto ret = ::getsockopt(fd, level, optname, optval, &optlen); ret == -1) [[unlikely]] {
-        return std::unexpected{make_error<IoError>(errno)};
+        return std::unexpected{make_error(errno)};
     }
     return {};
 }
@@ -37,7 +37,7 @@ struct ImplNodelay {
     }
 
     [[nodiscard]]
-    auto nodelay() const noexcept -> Result<bool, IoError> {
+    auto nodelay() const noexcept -> Result<bool> {
         int optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_TCP,
@@ -65,7 +65,7 @@ struct ImplPasscred {
     }
 
     [[nodiscard]]
-    auto passcred() const noexcept -> Result<bool, IoError> {
+    auto passcred() const noexcept -> Result<bool> {
         int optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -92,7 +92,7 @@ struct ImplRecvBufSize {
     }
 
     [[nodiscard]]
-    auto recv_buffer_size() const noexcept -> Result<std::size_t, IoError> {
+    auto recv_buffer_size() const noexcept -> Result<std::size_t> {
         auto size{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -109,7 +109,7 @@ struct ImplRecvBufSize {
 template <class T>
 struct ImplSendBufSize {
     [[nodiscard]]
-    auto set_send_buffer_size(int size) noexcept -> Result<std::size_t, IoError> {
+    auto set_send_buffer_size(int size) noexcept -> Result<std::size_t> {
         return set_sock_opt(static_cast<T *>(this)->fd(),
                             SOL_SOCKET,
                             SO_SNDBUF,
@@ -118,7 +118,7 @@ struct ImplSendBufSize {
     }
 
     [[nodiscard]]
-    auto send_buffer_size() const noexcept -> Result<std::size_t, IoError> {
+    auto send_buffer_size() const noexcept -> Result<std::size_t> {
         auto size{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -136,7 +136,7 @@ struct ImplSendBufSize {
 template <class T>
 struct ImplKeepalive {
     [[nodiscard]]
-    auto set_keepalive(bool on) noexcept -> Result<void, IoError> {
+    auto set_keepalive(bool on) noexcept -> Result<void> {
         auto optval{on ? 1 : 0};
         return set_sock_opt(static_cast<T *>(this)->fd(),
                             SOL_SOCKET,
@@ -146,7 +146,7 @@ struct ImplKeepalive {
     }
 
     [[nodiscard]]
-    auto keepalive() const noexcept -> Result<bool, IoError> {
+    auto keepalive() const noexcept -> Result<bool> {
         auto optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -164,7 +164,7 @@ struct ImplKeepalive {
 template <class T>
 struct ImplLinger {
     [[nodiscard]]
-    auto set_linger(std::optional<std::chrono::seconds> duration) noexcept -> Result<void, IoError> {
+    auto set_linger(std::optional<std::chrono::seconds> duration) noexcept -> Result<void> {
         struct linger lin {
             .l_onoff{0}, .l_linger{0},
         };
@@ -176,7 +176,7 @@ struct ImplLinger {
     }
 
     [[nodiscard]]
-    auto linger() const noexcept -> Result<std::optional<std::chrono::seconds>, IoError> {
+    auto linger() const noexcept -> Result<std::optional<std::chrono::seconds>> {
         struct linger lin;
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -198,7 +198,7 @@ struct ImplLinger {
 template <class T>
 struct ImplBoradcast {
     [[nodiscard]]
-    auto set_broadcast(bool on) noexcept -> Result<void, IoError> {
+    auto set_broadcast(bool on) noexcept -> Result<void> {
         auto optval{on ? 1 : 0};
         return set_sock_opt(static_cast<T *>(this)->fd(),
                             SOL_SOCKET,
@@ -208,7 +208,7 @@ struct ImplBoradcast {
     }
 
     [[nodiscard]]
-    auto broadcast() const noexcept -> Result<bool, IoError> {
+    auto broadcast() const noexcept -> Result<bool> {
         auto optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -226,12 +226,12 @@ struct ImplBoradcast {
 template <class T>
 struct ImplTTL {
     [[nodiscard]]
-    auto set_ttl(uint32_t ttl) noexcept -> Result<void, IoError> {
+    auto set_ttl(uint32_t ttl) noexcept -> Result<void> {
         return set_sock_opt(static_cast<T *>(this)->fd(), IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
     }
 
     [[nodiscard]]
-    auto ttl() const noexcept -> Result<uint32_t, IoError> {
+    auto ttl() const noexcept -> Result<uint32_t> {
         uint32_t optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     IPPROTO_IP,
@@ -249,7 +249,7 @@ struct ImplTTL {
 template <class T>
 struct ImplReuseAddr {
     [[nodiscard]]
-    auto set_reuseaddr(bool on) noexcept -> Result<void, IoError> {
+    auto set_reuseaddr(bool on) noexcept -> Result<void> {
         auto optval{on ? 1 : 0};
         return set_sock_opt(static_cast<T *>(this)->fd(),
                             SOL_SOCKET,
@@ -259,7 +259,7 @@ struct ImplReuseAddr {
     }
 
     [[nodiscard]]
-    auto reuseaddr() const noexcept -> Result<bool, IoError> {
+    auto reuseaddr() const noexcept -> Result<bool> {
         auto optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -277,7 +277,7 @@ struct ImplReuseAddr {
 template <class T>
 struct ImplReusePort {
     [[nodiscard]]
-    auto set_reuseport(bool on) noexcept -> Result<void, IoError> {
+    auto set_reuseport(bool on) noexcept -> Result<void> {
         auto optval{on ? 1 : 0};
         return set_sock_opt(static_cast<T *>(this)->fd(),
                             SOL_SOCKET,
@@ -287,7 +287,7 @@ struct ImplReusePort {
     }
 
     [[nodiscard]]
-    auto reuseport() const noexcept -> Result<bool, IoError> {
+    auto reuseport() const noexcept -> Result<bool> {
         auto optval{0};
         if (auto ret = get_sock_opt(static_cast<const T *>(this)->fd(),
                                     SOL_SOCKET,
@@ -305,7 +305,7 @@ struct ImplReusePort {
 template <class T>
 struct ImplMark {
     [[nodiscard]]
-    auto set_mark(uint32_t mark) noexcept -> Result<void, IoError> {
+    auto set_mark(uint32_t mark) noexcept -> Result<void> {
         return set_sock_opt(static_cast<T *>(this)->fd(), SOL_SOCKET, SO_MARK, &mark, sizeof(mark));
     }
 };

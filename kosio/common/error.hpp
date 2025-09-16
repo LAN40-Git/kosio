@@ -5,106 +5,33 @@
 #include <format>
 
 namespace kosio {
-namespace detail {
-static inline constexpr int ErrorCodeBase = 8000;
-static inline constexpr int ErrorCodeInterval = 1000;
-// Time Error
-static inline constexpr int TimerErrorCodeBase = ErrorCodeBase;
-// Io Error
-static inline constexpr int IoErrorCodeBase = TimerErrorCodeBase + ErrorCodeInterval;
-// Sync Error
-static inline constexpr int SyncErrorCodeBase = IoErrorCodeBase + ErrorCodeInterval;
-
-template <class DeriverError>
-class ErrorBase {
+class Error {
 public:
-    explicit ErrorBase(int error_code)
-        : error_code_(error_code) {}
-
-public:
-    [[nodiscard]]
-    auto value() const noexcept -> int { return error_code_; }
-
-    [[nodiscard]]
-    auto message() const noexcept -> std::string_view {
-        return static_cast<const DeriverError*>(this)->error_message();
-    }
-
-protected:
-    int error_code_;
-};
-} // namespace detail
-
-/* Template of DriverError
-// ========== Fixme ==========
-class Fixme : public detail::ErrorBase<Fixme> {
-public:
-    enum Code {
-        kUnknown = Fixme,
-    };
-
-public:
-    explicit Fixme(int error_code)
-        : ErrorBase<Fixme>(error_code) {}
-
-public:
-    [[nodiscard]]
-    auto error_message() const noexcept -> std::string_view {
-        switch (static_cast<Code>(error_code_)) {
-            case kUnknown:
-                return "Unknown Fixme error.";
-            default:
-                return strerror(error_code_);
-        }
-    }
-};
-*/
-
-// ========== Timer Error ==========
-class TimerError : public detail::ErrorBase<TimerError> {
-public:
-    enum Code {
-        kUnknown = detail::TimerErrorCodeBase,
+    enum ErrorCode {
+        kUnknown = 8000,
         kPassedTime,
-    };
-
-public:
-    explicit TimerError(Code error_code)
-        : ErrorBase<TimerError>(static_cast<int>(error_code)) {}
-
-public:
-    [[nodiscard]]
-    auto error_message() const noexcept -> std::string_view {
-        switch (static_cast<Code>(error_code_)) {
-            case kUnknown:
-                return "Unknown timer error.";
-            case kPassedTime:
-                return "Time has passed.";
-            default:
-                return strerror(error_code_);
-        }
-    }
-};
-
-// ========== Io Error ==========
-class IoError : public detail::ErrorBase<IoError> {
-public:
-    enum Code {
-        kUnknown = detail::IoErrorCodeBase,
         kWriteZero,
         kEarlyEOF,
         kInvalidAddresses,
     };
+
 public:
-    explicit IoError(Code error_code)
-        : ErrorBase<IoError>(static_cast<int>(error_code)) {}
+    explicit Error(int err_code)
+        : error_code_{err_code} {}
 
 public:
     [[nodiscard]]
-    auto error_message() const noexcept -> std::string_view {
-        switch (static_cast<Code>(error_code_)) {
+    auto value() const noexcept -> int {
+        return error_code_;
+    }
+
+    [[nodiscard]]
+    auto message() const noexcept -> std::string_view {
+        switch (error_code_) {
             case kUnknown:
-                return "Unknown io error.";
+                return "Unknown error.";
+            case kPassedTime:
+                return "Time has passed.";
             case kWriteZero:
                 return "Write return zero.";
             case kEarlyEOF:
@@ -115,57 +42,40 @@ public:
                 return strerror(error_code_);
         }
     }
+
+private:
+    int error_code_;
 };
 
-// ========== Sync Error ==========
-class SyncError : public detail::ErrorBase<SyncError> {
-public:
-    enum Code {
-        kUnknown = detail::SyncErrorCodeBase,
-    };
-
-public:
-    explicit SyncError(int error_code)
-        : ErrorBase<SyncError>(error_code) {}
-
-public:
-    [[nodiscard]]
-    auto error_message() const noexcept -> std::string_view {
-        switch (static_cast<Code>(error_code_)) {
-            case kUnknown:
-                return "Unknown sync error.";
-            default:
-                return strerror(error_code_);
-        }
-    }
-};
-
-template <class ErrorType>
-    requires std::derived_from<ErrorType, detail::ErrorBase<ErrorType>>
 [[nodiscard]]
-static inline auto make_error(int error_code) -> detail::ErrorBase<ErrorType> {
-    return detail::ErrorBase<ErrorType>(error_code);
+static inline auto make_error(int error_code) -> Error {
+    assert(error_code >= 0);
+    return Error{error_code};
 }
 
-template <typename ResultType, class ErrorType>
-using Result = std::expected<ResultType, detail::ErrorBase<ErrorType>>;
+template <typename T>
+using Result = std::expected<T, Error>;
 } // namespace kosio
 
 namespace std {
-template <typename ErrorType>
-class formatter<kosio::detail::ErrorBase<ErrorType>> {
+template <>
+struct formatter<kosio::Error> {
 public:
-    constexpr auto parse(format_parse_context& ctx) {
-        auto it = ctx.begin();
-        auto end = ctx.end();
+    constexpr auto parse(format_parse_context &context) {
+        auto it{context.begin()};
+        auto end{context.end()};
+        if (it == end || *it == '}') {
+            return it;
+        }
+        ++it;
         if (it != end && *it != '}') {
             throw format_error("Invalid format specifier for Error");
         }
         return it;
     }
 
-    auto format(const kosio::detail::ErrorBase<ErrorType>& error, auto& ctx) const {
-        return format_to(ctx.out(), "{} (error {})", error.message(), error.value());
+    auto format(const kosio::Error &error, auto &context) const noexcept {
+        return format_to(context.out(), "{} (error {})", error.message(), error.value());
     }
 };
 } // namespace std

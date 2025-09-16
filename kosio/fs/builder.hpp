@@ -52,11 +52,11 @@ public:
             Open(std::string_view path, int flags, mode_t mode)
                 : Super{io_uring_prep_openat, AT_FDCWD, path.data(), flags, mode} {}
 
-            auto await_resume() const noexcept -> Result<F, IoError> {
+            auto await_resume() const noexcept -> Result<F> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return F{this->cb_.result_};
                 } else {
-                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
         };

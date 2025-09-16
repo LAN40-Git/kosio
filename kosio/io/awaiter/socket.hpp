@@ -8,11 +8,11 @@ public:
     Socket(int domain, int type, int protocol, unsigned int flags)
         : IoRegistrator(io_uring_prep_socket, domain, type, protocol, flags) {}
 
-    auto await_resume() const noexcept -> Result<int, IoError> {
+    auto await_resume() const noexcept -> Result<int> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return this->cb_.result_;
         } else {
-            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };

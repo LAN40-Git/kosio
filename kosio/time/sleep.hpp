@@ -33,14 +33,14 @@ public:
         }
     }
 
-    auto await_resume() const noexcept -> Result<void, TimerError> {
+    auto await_resume() const noexcept -> Result<void> {
         return result_;
     }
 
 
 private:
     io::detail::Callback     cb_{};
-    Result<void, TimerError> result_{};
+    Result<void> result_{};
 };
 } // namespace detail
 

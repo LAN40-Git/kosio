@@ -14,11 +14,11 @@ public:
     SymLink(const char *target, const char *linkpath)
         : Super{io_uring_prep_symlink, target, linkpath} {}
 
-    auto await_resume() const noexcept -> Result<void, IoError> {
+    auto await_resume() const noexcept -> Result<void> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return {};
         } else {
-            return ::std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return ::std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };

@@ -8,11 +8,11 @@ public:
     Read(int fd, void* buf, unsigned nbytes, __u64 offse)
         : IoRegistrator{io_uring_prep_read, fd, buf, nbytes, offse} {}
 
-    auto await_resume() const noexcept -> Result<std::size_t, IoError> {
+    auto await_resume() const noexcept -> Result<std::size_t> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return static_cast<std::size_t>(this->cb_.result_);
         } else {
-            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };

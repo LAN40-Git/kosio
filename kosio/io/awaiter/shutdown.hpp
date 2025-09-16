@@ -8,11 +8,11 @@ public:
     Shutdown(int fd, int how)
         : IoRegistrator{io_uring_prep_shutdown, fd, how} {}
 
-    auto await_resume() const noexcept -> Result<void, IoError> {
+    auto await_resume() const noexcept -> Result<void> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return {};
         } else {
-            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };

@@ -74,7 +74,7 @@ public:
     }
 
     [[nodiscard]]
-    auto set_nonblocking(bool status) const noexcept -> Result<void, IoError> {
+    auto set_nonblocking(bool status) const noexcept -> Result<void> {
         auto flags = ::fcntl(fd_, F_GETFL, 0);
         if (status) {
             flags |= O_NONBLOCK;
@@ -82,16 +82,16 @@ public:
             flags &= ~O_NONBLOCK;
         }
         if (::fcntl(fd_, F_SETFL, flags) == -1) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return {};
     }
 
     [[nodiscard]]
-    auto nonblocking() const noexcept -> Result<bool, IoError> {
+    auto nonblocking() const noexcept -> Result<bool> {
         auto flags = ::fcntl(fd_, F_GETFL, 0);
         if (flags == -1) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return {true};
     }

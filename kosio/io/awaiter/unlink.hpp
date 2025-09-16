@@ -11,11 +11,11 @@ public:
     Unlink(const char *path, int flags)
         : IoRegistrator{io_uring_prep_unlink, path, flags} {}
 
-    auto await_resume() const noexcept -> Result<void, IoError> {
+    auto await_resume() const noexcept -> Result<void> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return {};
         } else {
-            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };

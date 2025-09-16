@@ -17,7 +17,7 @@ public:
     }
 
     [[nodiscard]]
-    auto listen(int n) -> Result<TcpListener, IoError> {
+    auto listen(int n) -> Result<TcpListener> {
         if (auto ret = inner_.listen(n); !ret) [[unlikely]] {
             return std::unexpected{ret.error()};
         }
@@ -36,9 +36,9 @@ public:
                 sqe_->addr = reinterpret_cast<unsigned long>(addr_.sockaddr());
             }
 
-            auto await_resume() noexcept -> Result<TcpStream, IoError> {
+            auto await_resume() noexcept -> Result<TcpStream> {
                 if (this->cb_.result_ < 0) [[unlikely]] {
-                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return std::unexpected{make_error(-this->cb_.result_)};
                 }
                 return TcpStream{std::move(inner_)};
             }
@@ -57,12 +57,12 @@ public:
 
 public:
     [[nodiscard]]
-    static auto v4() -> Result<TcpSocket, IoError> {
+    static auto v4() -> Result<TcpSocket> {
         return Socket::create<TcpSocket>(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
     }
 
     [[nodiscard]]
-    static auto v6() -> Result<TcpSocket, IoError> {
+    static auto v6() -> Result<TcpSocket> {
         return Socket::create<TcpSocket>(AF_INET6, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
     }
 

@@ -31,5 +31,7 @@ install(DIRECTORY kosio/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kosio
 )
 
-# ====== TEST ======
+# ====== EXAMPLES ======
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
+# ====== TESTS ======
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)

@@ -34,13 +34,13 @@ public:
 
 public:
     [[nodiscard]]
-    static auto bind(const Addr &addr) -> Result<Datagram, IoError> {
+    static auto bind(const Addr &addr) -> Result<Datagram> {
         auto ret = Socket::create<Datagram>(addr.family(), SOCK_DGRAM | SOCK_NONBLOCK, 0);
         if (!ret) [[unlikely]] {
             return std::unexpected{ret.error()};
         }
         if (::bind(ret.value().fd(), addr.sockaddr(), addr.length()) != 0) [[unlikely]] {
-            return std::unexpected{make_error<IoError>(errno)};
+            return std::unexpected{make_error(errno)};
         }
         return Datagram{std::move(ret.value())};
     }

@@ -57,14 +57,14 @@ public:
                 return true;
             }
 
-            auto await_resume() noexcept -> Result<Stream, IoError> {
+            auto await_resume() noexcept -> Result<Stream> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return Stream{Socket{fd_}};
                 } else {
                     if (fd_ >= 0) {
                         ::close(fd_);
                     }
-                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
 

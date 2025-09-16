@@ -36,11 +36,11 @@ public:
                    .msg_controllen = 0,
                    .msg_flags = static_cast<int>(flags)} {};
 
-            auto await_resume() const noexcept -> Result<std::pair<std::size_t, Addr>, IoError> {
+            auto await_resume() const noexcept -> Result<std::pair<std::size_t, Addr>> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return std::make_pair(static_cast<std::size_t>(this->cb_.result_), addr_);
                 } else {
-                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
 

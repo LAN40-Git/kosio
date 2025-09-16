@@ -8,11 +8,11 @@ namespace kosio::io {
             Statx(int dfd, const char *path, int flags, unsigned mask, struct statx *statxbuf)
                 : IoRegistrator{io_uring_prep_statx, dfd, path, flags, mask, statxbuf} {}
 
-            auto await_resume() const noexcept -> Result<void, IoError> {
+            auto await_resume() const noexcept -> Result<void> {
                 if (this->cb_.result_ >= 0) [[likely]] {
                     return {};
                 } else {
-                    return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+                    return std::unexpected{make_error(-this->cb_.result_)};
                 }
             }
         };

@@ -11,11 +11,11 @@ public:
     Open(const char *path, int flags, mode_t mode)
         : Open{AT_FDCWD, path, flags, mode} {}
 
-    auto await_resume() const noexcept -> Result<int, IoError> {
+    auto await_resume() const noexcept -> Result<int> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return this->cb_.result_;
         } else {
-            return std::unexpected{make_error<IoError>(-this->cb_.result_)};
+            return std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };
