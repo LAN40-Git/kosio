@@ -66,20 +66,6 @@ public:
         return Close{fd};
     }
 
-    void sync_close() noexcept {
-        if (!is_valid()) {
-            return;
-        }
-        for (auto i = 0; i < 3; ++i) {
-            auto ret = ::close(fd_);
-            if (ret == 0) [[likely]] {
-                break;
-            }
-            // Failed to close
-        }
-        fd_ = -1;
-    }
-
     [[nodiscard]]
     auto release() noexcept -> int {
         int released_fd = fd_;
