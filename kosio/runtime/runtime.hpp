@@ -31,6 +31,8 @@ public:
         handle_.wait();
     }
 
+    /// @brief Showndown the runtime after `delay` ms
+    /// @param delay Countdown to turn off runtime
     void shutdown_timeout(uint64_t delay) {
         auto task = [](Handle &handle, uint64_t delay) -> async::Task<void> {
             co_await kosio::time::sleep(delay);
@@ -65,7 +67,7 @@ static inline void schedule_remote(std::coroutine_handle<> handle) {
     }
 }
 
-static inline void schedule_remote_batch(std::list<std::coroutine_handle<>> handles, int n) {
+static inline void schedule_remote_batch(std::list<std::coroutine_handle<>> handles, std::size_t n) {
     if (is_current_thread()) {
         scheduler::current_thread::schedule_remote_batch(std::move(handles), n);
     } else {
@@ -79,5 +81,9 @@ static inline auto spawn(async::Task<void> &&task) {
     auto handle = task.take();
     runtime::detail::schedule_local(handle);
     return handle;
+}
+
+static inline auto spawn_batch(std::list<std::coroutine_handle<>> handles, std::size_t n) {
+    runtime::detail::schedule_remote_batch(std::move(handles), n);
 }
 }
