@@ -10,6 +10,8 @@ class BaseStream : public ImplStreamRead<BaseStream<Stream, Addr>>
 public:
     using Reader = ReadHalf<Addr>;
     using Writer = WriteHalf<Addr>;
+    using OwnedReader = OwnedReadHalf<Stream, Addr>;
+    using OwnedWriter = OwnedWriteHalf<Stream, Addr>;
 
 protected:
     explicit BaseStream(Socket &&inner)
@@ -78,6 +80,12 @@ public:
     [[nodiscard]]
     auto split() const noexcept -> std::pair<Reader, Writer> {
         return std::make_pair(Reader{inner_}, Writer{inner_});
+    }
+
+    [[nodiscard]]
+    auto into_split() noexcept -> std::pair<OwnedReader, OwnedWriter> {
+        auto stream = std::make_shared<Stream>(std::move(inner_));
+        return std::make_pair(OwnedReader{stream}, OwnedWriter{stream});
     }
 
 private:

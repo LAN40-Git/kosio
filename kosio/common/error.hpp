@@ -14,6 +14,8 @@ public:
         kWriteZero,
         kEarlyEOF,
         kInvalidAddresses,
+        kJsonParseFailed,
+        kReuniteFailed,
     };
 
 public:
@@ -39,6 +41,10 @@ public:
                 return "Read EOF too early.";
             case kInvalidAddresses:
                 return "Invalid addresses.";
+            case kJsonParseFailed:
+                return "Failed to parse json file.";
+            case kReuniteFailed:
+                return "Failed to reunite tcp stream.";
             default:
                 return strerror(error_code_);
         }

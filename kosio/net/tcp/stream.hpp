@@ -12,4 +12,6 @@ public:
     explicit TcpStream(detail::Socket&& inner)
         : BaseStream{std::move(inner)} {}
 };
+using OwnedTcpStreamReader = detail::OwnedReadHalf<TcpStream, SocketAddr>;
+using OwnedTcpStreamWriter = detail::OwnedWriteHalf<TcpStream, SocketAddr>;
 } // namespace kosio::net
