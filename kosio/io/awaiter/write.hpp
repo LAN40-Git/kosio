@@ -5,7 +5,7 @@ namespace kosio::io {
 namespace detail {
 class Write : public IoRegistrator<Write> {
 public:
-    Write(int fd, const void* buf, unsigned nbytes, __u64 offse)
+    Write(int fd, const void* buf, std::size_t nbytes, __u64 offse)
         : IoRegistrator{io_uring_prep_write, fd, buf, nbytes, offse} {}
 
     auto await_resume() const noexcept -> Result<std::size_t> {
@@ -19,7 +19,7 @@ public:
 } // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
-static inline auto write(int fd, const void* buf, unsigned nbytes, __u64 offse) {
+static inline auto write(int fd, const void* buf, std::size_t nbytes, __u64 offse) {
     return detail::Write(fd, buf, nbytes, offse);
 }
 } // namespace kosio::io

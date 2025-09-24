@@ -4,22 +4,25 @@
 namespace kosio::io {
 namespace detail {
 class Read : public IoRegistrator<Read> {
+private:
+    using Super = IoRegistrator<Read>;
+
 public:
-    Read(int fd, void* buf, unsigned nbytes, __u64 offse)
-        : IoRegistrator{io_uring_prep_read, fd, buf, nbytes, offse} {}
+    Read(int fd, void *buf, std::size_t nbytes, uint64_t offset)
+        : Super{io_uring_prep_read, fd, buf, nbytes, offset} {}
 
     auto await_resume() const noexcept -> Result<std::size_t> {
         if (this->cb_.result_ >= 0) [[likely]] {
             return static_cast<std::size_t>(this->cb_.result_);
         } else {
-            return std::unexpected{make_error(-this->cb_.result_)};
+            return ::std::unexpected{make_error(-this->cb_.result_)};
         }
     }
 };
 } // namespace detail
 
 [[REMEMBER_CO_AWAIT]]
-static inline auto read(int fd, void* buf, unsigned nbytes, __u64 offse) {
-    return detail::Read{fd, buf, nbytes, offse};
+static inline auto read(int fd, void *buf, std::size_t nbytes, uint64_t offset) {
+    return detail::Read{fd, buf, nbytes, offset};
 }
 } // namespace kosio::io

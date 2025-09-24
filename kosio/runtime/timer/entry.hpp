@@ -27,7 +27,7 @@ static constexpr auto compute_level_range() -> std::array<uint64_t, runtime::det
 }
 } // namespace detail
 
-// 分层时间轮支持的
+// 分层时间轮支持的最大睡眠时间
 static constexpr uint64_t MAX_DURATION = (1ULL << (6 * runtime::detail::NUM_LEVELS)) - 1;
 
 // 每层槽位对应的时间跨度

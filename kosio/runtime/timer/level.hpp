@@ -66,7 +66,6 @@ public:
         EntryList entries;
         std::swap(entries, slots_[slot]);
         occupied_ &= ~(1ULL << slot);
-        // the compiler will do move for us
         return entries;
     }
 

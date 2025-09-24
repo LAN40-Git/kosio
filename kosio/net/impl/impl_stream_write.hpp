@@ -33,18 +33,18 @@ struct ImplStreamWrite {
         public:
             WriteVectored(int fd,Ts&&...bufs)
                 : Super{io_uring_prep_sendmsg,fd,&msg_,MSG_NOSIGNAL}
-                , iovecs_{ iovec{
-                  .iov_base = const_cast<char*>(std::span<const char>(bufs).data()),
-                  .iov_len = std::span<const char>(bufs).size_bytes(),
-                }...} ,
-                msg_{.msg_name =nullptr,
-                       .msg_namelen = 0,
-                       .msg_iov = iovecs_.data(),
-                       .msg_iovlen = N,
-                       .msg_control = nullptr,
-                       .msg_controllen = 0,
-                       .msg_flags = MSG_NOSIGNAL}
-                {}
+            , iovecs_{ iovec{
+                .iov_base = const_cast<char*>(std::span<const char>(bufs).data()),
+                .iov_len = std::span<const char>(bufs).size_bytes(),
+              }...} ,
+              msg_{.msg_name =nullptr,
+                     .msg_namelen = 0,
+                     .msg_iov = iovecs_.data(),
+                     .msg_iovlen = N,
+                     .msg_control = nullptr,
+                     .msg_controllen = 0,
+                     .msg_flags = MSG_NOSIGNAL}
+            {}
 
             auto await_resume() const noexcept -> Result<std::size_t> {
                 if (this->cb_.result_ >= 0) [[likely]] {
