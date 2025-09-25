@@ -12,6 +12,7 @@
 #include "kosio/io/awaiter/mkdir.hpp"
 #include "kosio/io/awaiter/open.hpp"
 #include "kosio/io/awaiter/read.hpp"
+#include "kosio/io/awaiter/readv.hpp"
 #include "kosio/io/awaiter/recv.hpp"
 #include "kosio/io/awaiter/rename.hpp"
 #include "kosio/io/awaiter/send.hpp"
@@ -25,6 +26,7 @@
 #include "kosio/io/awaiter/symlink.hpp"
 #include "kosio/io/awaiter/unlink.hpp"
 #include "kosio/io/awaiter/write.hpp"
+#include "kosio/io/awaiter/writev.hpp"
 #include <string>
 #include <fcntl.h>
 #include <expected>
