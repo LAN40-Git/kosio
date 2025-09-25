@@ -2,7 +2,7 @@
 #include "kosio/io/io.hpp"
 
 namespace kosio::io::detail {
-template<class T>
+template <class T>
 struct ImplAsyncWrite {
     [[REMEMBER_CO_AWAIT]]
     auto write(std::span<const char> buf) noexcept {
@@ -16,7 +16,7 @@ struct ImplAsyncWrite {
         requires(constructible_to_char_slice<Ts> && ...)
     [[REMEMBER_CO_AWAIT]]
     auto write_vectored(Ts &&...bufs) noexcept {
-        static constexpr std::size_t N = sizeof...(Ts);
+        constexpr std::size_t N = sizeof...(Ts);
 
         class WriteVectored : public IoRegistrator<WriteVectored> {
         private:
@@ -25,10 +25,10 @@ struct ImplAsyncWrite {
         public:
             WriteVectored(int fd,Ts&&...bufs)
                 : Super{io_uring_prep_writev,fd, nullptr, N, static_cast<std::size_t>(-1)}
-            , iovecs_{ iovec{
-                .iov_base = const_cast<char*>(std::span<const char>(bufs).data()),
-                .iov_len = std::span<const char>(bufs).size_bytes(),
-              }...} {
+                , iovecs_{ iovec{
+                  .iov_base = const_cast<char*>(std::span<const char>(bufs).data()),
+                  .iov_len = std::span<const char>(bufs).size_bytes(),
+                }...} {
                 this->sqe_->addr = reinterpret_cast<unsigned long long>(iovecs_.data());
             }
 
@@ -47,18 +47,17 @@ struct ImplAsyncWrite {
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto write_all(std::span<const char> buf) noexcept
-    -> async::Task<Result<void>> {
+    auto write_all(std::span<const char> buf) noexcept -> async::Task<Result<void>> {
         Result<std::size_t> ret{0uz};
         while (!buf.empty()) {
             ret = co_await this->write(buf);
             if (!ret) [[unlikely]] {
                 co_return std::unexpected{ret.error()};
             }
-            if (ret.value() == 0) {
+            if (ret.value() == 0) [[unlikely]] {
                 co_return std::unexpected{make_error(Error::kWriteZero)};
             }
-            buf = buf.subspan( ret.value(), buf.size_bytes() - ret.value());
+            buf = buf.subspan(ret.value(), buf.size_bytes() - ret.value());
         }
         co_return Result<void>{};
     }
