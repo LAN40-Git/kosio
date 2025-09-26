@@ -82,8 +82,4 @@ static inline auto spawn(async::Task<void> &&task) {
     runtime::detail::schedule_local(handle);
     return handle;
 }
-
-static inline auto spawn_batch(std::list<std::coroutine_handle<>> handles, std::size_t n) {
-    runtime::detail::schedule_remote_batch(std::move(handles), n);
-}
 }

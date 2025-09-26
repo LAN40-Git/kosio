@@ -16,7 +16,7 @@ public:
         kInvalidAddresses,
         kJsonParseFailed,
         kReuniteFailed,
-        kEmptyConcurrentQueue,
+        kEmptySPSCQueue,
     };
 
 public:
@@ -46,6 +46,8 @@ public:
                 return "Failed to parse json file.";
             case kReuniteFailed:
                 return "Failed to reunite tcp stream.";
+            case kEmptySPSCQueue:
+                return "Empty spsc queue.";
             default:
                 return strerror(error_code_);
         }

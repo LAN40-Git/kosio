@@ -51,10 +51,6 @@ public:
         }
     }
 
-    void shutdown() {
-        is_shutdown_ = true;
-    }
-
     void wake_up() const {
         driver_.wake_up();
     }
@@ -76,7 +72,7 @@ private:
     }
 
     [[nodiscard]]
-    auto transition_to_sleepling() -> bool {
+    auto transition_to_sleeping() -> bool {
         if (has_task()) {
             return false;
         }
@@ -84,15 +80,21 @@ private:
         auto is_last_searcher = shared_.idle_.transition_worker_to_sleeping(index_, is_searching_);
 
         is_searching_ = false;
+
         if (is_last_searcher) {
             shared_.wake_up_if_work_pending();
         }
         return true;
     }
 
+    /// Returns `true` if the transition happened.
     [[nodiscard]]
-    auto transition_from_sleepling() -> bool {
+    auto transition_from_sleeping() -> bool {
         if (has_task()) {
+            // When a worker wakes, it should only transition to the "searching"
+            // state when the wake originates from another worker *or* a new task
+            // is pushed. We do *not* want the worker to transition to "searching"
+            // when it wakes when the I/O driver receives new events.
             is_searching_ = !shared_.idle_.remove(index_);
             return true;
         }
@@ -105,7 +107,6 @@ private:
         return true;
     }
 
-    [[nodiscard]]
     auto transition_to_searching() -> bool {
         if (!is_searching_) {
             is_searching_ = shared_.idle_.transition_worker_to_searching();
@@ -129,8 +130,7 @@ private:
         return lifo_slot_.has_value() || !local_queue_.empty();
     }
 
-    [[nodiscard]]
-    auto should_notify_others() const -> bool {
+    auto should_notify_others() const noexcept -> bool {
         if (is_searching_) {
             return false;
         }
@@ -143,35 +143,36 @@ private:
 
     [[nodiscard]]
     auto next_task() -> std::optional<std::coroutine_handle<>> {
-        // 1. 每隔（global_queue_interval）次就尝试从全局队列获取任务
-        // 2. 尝试从本地队列取出任务，若本地队列为空，则尝试从全局队列取出至少一个任务
         if (tick_ % shared_.config_.global_queue_interval == 0) {
-            return next_remote_task().or_else([this] {
-                return next_local_task();
-            });
+            return shared_.next_remote_task().or_else([this] { return next_local_task(); });
         } else {
             if (auto task = next_local_task(); task) {
                 return task;
             }
 
-            auto& global_queue = shared_.global_queue_;
-
-            if (global_queue.empty()) {
+            if (shared_.global_queue_.empty()) {
                 return std::nullopt;
             }
 
             auto n = std::min(local_queue_.remaining_slots(), local_queue_.capacity() / 2);
             if (n == 0) [[unlikely]] {
                 // All tasks of current worker are being stolen
-                return next_remote_task();
+                return shared_.next_remote_task();
             }
+            // We need pull 1/num_workers part of tasks
             n = std::min(shared_.global_queue_.size() / shared_.workers_.size() + 1, n);
+            // n will be set to the number of tasks that are actually fetched
             auto tasks = shared_.global_queue_.pop_n(n);
             if (n == 0) {
                 return std::nullopt;
             }
-            local_queue_.push_batch(tasks, n);
-            return next_local_task();
+            auto result = std::move(tasks.front());
+            tasks.pop_front();
+            n -= 1;
+            if (n > 0) {
+                local_queue_.push_batch(tasks, n);
+            }
+            return result;
         }
     }
 
@@ -180,47 +181,33 @@ private:
         if (lifo_slot_.has_value()) {
             std::optional<std::coroutine_handle<>> result{std::nullopt};
             result.swap(lifo_slot_);
+            assert(!lifo_slot_.has_value());
             return result;
         }
-
-        if (local_queue_.empty()) {
-            return std::nullopt;
-        }
-
         return local_queue_.pop();
     }
 
     [[nodiscard]]
-    auto next_remote_task() const -> std::optional<std::coroutine_handle<>> {
-        auto& global_queue = shared_.global_queue_;
-        if (global_queue.empty()) {
-            return std::nullopt;
-        }
-
-        return global_queue.pop();
-    }
-
-    [[nodiscard]]
     auto steal_task() -> std::optional<std::coroutine_handle<>> {
+        // Avoid to many worker stealing at same time
         if (!transition_to_searching()) {
             return std::nullopt;
         }
-
         auto num = shared_.workers_.size();
+        // auto start = rand() % num;
         auto start = static_cast<std::size_t>(rand_.fastrand_n(static_cast<uint32_t>(num)));
         for (std::size_t i = 0; i < num; ++i) {
-            i = (start + i) % num;
-            if (i == index_) {
+            auto idx = (start + i) % num;
+            if (idx == index_) {
                 continue;
             }
-
-            // TODO: 动态调整窃取的任务数量
-            if (auto result =
-                shared_.workers_[i]->local_queue_.steal_into(local_queue_); result) {
+            if (auto result = shared_.workers_[idx]->local_queue_.steal_into(local_queue_);
+                result) {
                 return result;
-            }
+                }
         }
-        return next_remote_task();
+        // Final check the global queue again
+        return shared_.next_remote_task();
     }
 
     void maintenance() {
@@ -249,11 +236,11 @@ private:
 
     void sleep() {
         check_shutdown();
-        if (transition_to_sleepling()) {
-            while (!is_shutdown_) [[likely]] {
+        if (transition_to_sleeping()) {
+            while (!is_shutdown_) {
                 driver_.wait(local_queue_, shared_.global_queue_);
                 check_shutdown();
-                if (transition_from_sleepling()) {
+                if (transition_from_sleeping()) {
                     break;
                 }
             }

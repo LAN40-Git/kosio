@@ -25,7 +25,7 @@ public:
     }
 
     ~Handle() {
-        shared_.close();
+        close();
         for (auto &thread : threads_) {
             if (thread.joinable()) {
                 thread.join();
@@ -44,9 +44,7 @@ public:
 
     void wait() {
         for (auto &thread : threads_) {
-            if (thread.joinable()) {
-                thread.join();
-            }
+            thread.join();
         }
     }
 

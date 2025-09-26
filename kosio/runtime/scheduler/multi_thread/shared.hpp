@@ -29,6 +29,14 @@ public:
     void wake_up_all() const;
     void wake_up_if_work_pending();
 
+    [[nodiscard]]
+    auto next_remote_task() -> std::optional<std::coroutine_handle<>> {
+        if (global_queue_.empty()) {
+            return std::nullopt;
+        }
+        return global_queue_.pop();
+    }
+
     void close() {
         if (global_queue_.close()) {
             wake_up_all();

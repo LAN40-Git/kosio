@@ -1,13 +1,12 @@
 #pragma once
-#include "foskv/common/error.hpp"
-#include <kosio/sync.hpp>
+#include "kosio/common/error.hpp"
 
-namespace foskv::util {
+namespace kosio::sync {
 template <typename T>
 class SPSCQueue {
 public:
     [[REMEMBER_CO_AWAIT]]
-    auto push(T&& value) -> kosio::async::Task<> {
+    auto push(T&& value) -> async::Task<> {
         co_await mutex_.lock();
         std::unique_lock lock{mutex_, std::adopt_lock};
         queue_.push(std::move(value));
@@ -15,7 +14,7 @@ public:
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto pop() -> kosio::async::Task<Result<T>> {
+    auto pop() -> async::Task<Result<T>> {
         co_await mutex_.lock();
         std::unique_lock lock{mutex_, std::adopt_lock};
         while (queue_.empty()) {
@@ -37,7 +36,7 @@ public:
     }
 
     [[REMEMBER_CO_AWAIT]]
-    auto shutdown() -> kosio::async::Task<> {
+    auto shutdown() -> async::Task<> {
         co_await mutex_.lock();
         std::unique_lock lock{mutex_, std::adopt_lock};
         is_shutdown_.store(true, std::memory_order_relaxed);
@@ -45,9 +44,9 @@ public:
     }
 
 private:
-    std::queue<T>                  queue_;
-    kosio::sync::Mutex             mutex_;
-    kosio::sync::ConditionVariable cv_;
-    std::atomic<bool>              is_shutdown_{false};
+    std::queue<T>     queue_;
+    Mutex             mutex_;
+    ConditionVariable cv_;
+    std::atomic<bool> is_shutdown_{false};
 };
-} // namespace foskv::util
+} // namespace kosio::sync

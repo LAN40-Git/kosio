@@ -16,7 +16,6 @@
 #include <utility>
 
 namespace kosio::runtime::scheduler::multi_thread {
-
 class GlobalQueue {
 public:
     [[nodiscard]]
@@ -91,12 +90,10 @@ public:
     }
 
 private:
-    alignas(64) std::list<std::coroutine_handle<>> tasks_{};
-    alignas(64) std::atomic<std::size_t>           num_{0};
-    char padding1[64 - sizeof(std::atomic<std::size_t>)];
-
-    alignas(64) std::mutex                         mutex_{};
-    bool                                           is_closed_{false};
+    std::list<std::coroutine_handle<>> tasks_{};
+    std::atomic<std::size_t>           num_{0};
+    std::mutex                         mutex_{};
+    bool                               is_closed_{false};
 };
 
 class LocalQueue {
