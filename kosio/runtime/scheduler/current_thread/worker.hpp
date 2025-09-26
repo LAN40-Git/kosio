@@ -82,16 +82,10 @@ private:
     [[nodiscard]]
     auto next_task() -> std::optional<std::coroutine_handle<>> {
         if (tick_ % config_.global_queue_interval == 0) {
-            return next_remote_task().or_else([this] {
-                return next_local_task();
-            });
+            return global_queue_.pop().or_else([this] { return next_local_task(); });
         } else {
             if (auto task = next_local_task(); task) {
                 return task;
-            }
-
-            if (global_queue_.empty()) {
-                return std::nullopt;
             }
 
             auto handles = global_queue_.pop_all();
@@ -99,9 +93,11 @@ private:
             if (handles.empty()) {
                 return std::nullopt;
             }
+            auto result = std::move(handles.front());
+            handles.pop_front();
 
             local_queue_.push_batch(handles);
-            return next_local_task();
+            return result;
         }
     }
 
@@ -112,11 +108,6 @@ private:
             result.swap(lifo_slot_);
             return result;
         }
-
-        if (local_queue_.empty()) {
-            return std::nullopt;
-        }
-
         return local_queue_.pop();
     }
 
@@ -137,9 +128,17 @@ private:
         return true;
     }
 
+    void check_shutdown() {
+        if (!is_shutdown_) [[likely]] {
+            is_shutdown_ = global_queue_.is_closed();
+        }
+    }
+
     void sleep() {
+        check_shutdown();
         while (!is_shutdown_) [[likely]] {
             driver_.wait(local_queue_, global_queue_);
+            check_shutdown();
             if (!local_queue_.empty() || !global_queue_.empty()) {
                 break;
             }
