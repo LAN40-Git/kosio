@@ -16,6 +16,7 @@ public:
         kInvalidAddresses,
         kJsonParseFailed,
         kReuniteFailed,
+        kEmptyConcurrentQueue,
     };
 
 public:
