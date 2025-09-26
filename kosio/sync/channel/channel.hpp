@@ -1,6 +1,9 @@
 #pragma once
 #include "kosio/sync/mutex.hpp"
+#ifdef BLOCK_SIZE
+#undef BLOCK_SIZE
 #include "kosio/third_party/concurrentqueue/concurrentqueue.h"
+#endif
 #include <queue>
 #include <coroutine>
 
