@@ -33,6 +33,11 @@ public:
         return inner_.fd();
     }
 
+    [[nodiscard]]
+    auto is_valid() const noexcept -> bool {
+        return inner_.is_valid();
+    }
+
 public:
     [[REMEMBER_CO_AWAIT]]
     static auto connect(const Addr &addr) {

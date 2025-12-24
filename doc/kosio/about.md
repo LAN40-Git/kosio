@@ -13,3 +13,8 @@ cmake ..
 make -j$(nproc)
 sudo make install
 ```
+
+## Uninstall
+```shell
+sudo rm -rf usr/local/include/kosio
+```
