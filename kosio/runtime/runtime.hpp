@@ -82,4 +82,11 @@ static inline auto spawn(async::Task<void> &&task) {
     runtime::detail::schedule_local(handle);
     return handle;
 }
+
+static inline auto spawn(std::coroutine_handle<> handle) {
+    if (handle && !handle.done()) {
+        runtime::detail::schedule_local(handle);
+    }
+    return handle;
 }
+} // namespace kosio
