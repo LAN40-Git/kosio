@@ -114,7 +114,7 @@ private:
         // auto cur_millisecond = tv_time.tv_usec / 1000;
         auto cur_ms = util::current_ms();
         auto cur_second = static_cast<time_t>(cur_ms / 1000);
-        auto cur_millisecond = cur_ms % 1000;
+        auto cur_millisecond = static_cast<int64_t>(cur_ms % 1000);
         if (cur_second != last_second) {
             struct tm tm_time{};
             ::localtime_r(&cur_second, &tm_time);
