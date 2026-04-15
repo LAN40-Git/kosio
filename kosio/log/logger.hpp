@@ -1,9 +1,4 @@
 #pragma once
-#include "file.hpp"
-#include "level.hpp"
-#include "buffer.hpp"
-#include "kosio/common/util/thread.hpp"
-#include "kosio/common/util/noncopyable.hpp"
 #include <list>
 #include <thread>
 #include <string>
@@ -11,6 +6,13 @@
 #include <atomic>
 #include <condition_variable>
 #include <source_location>
+
+#include "file.hpp"
+#include "level.hpp"
+#include "buffer.hpp"
+#include "kosio/common/util/time.hpp"
+#include "kosio/common/util/thread.hpp"
+#include "kosio/common/util/noncopyable.hpp"
 
 namespace kosio::log {
 namespace detail {
@@ -106,10 +108,13 @@ private:
             return;
         }
 
-        timeval tv_time{};
-        ::gettimeofday(&tv_time, nullptr);
-        auto cur_second = tv_time.tv_sec;
-        auto cur_millisecond = tv_time.tv_usec / 1000;
+        // timeval tv_time{};
+        // ::gettimeofday(&tv_time, nullptr);
+        // auto cur_second = tv_time.tv_sec;
+        // auto cur_millisecond = tv_time.tv_usec / 1000;
+        auto cur_ms = util::current_ms();
+        auto cur_second = static_cast<time_t>(cur_ms / 1000);
+        auto cur_millisecond = cur_ms % 1000;
         if (cur_second != last_second) {
             struct tm tm_time{};
             ::localtime_r(&cur_second, &tm_time);

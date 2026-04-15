@@ -5,30 +5,26 @@
 #include <stdexcept>
 
 namespace kosio::util {
-constexpr std::chrono::nanoseconds CACHE_THRESHOLD{1'000'000}; // 1ms
 
 static inline uint64_t current_ms() noexcept {
-    struct alignas(64) Cache {
-        timespec last_ts {};
-        uint64_t cached_ms = 0;
-    };
-    thread_local Cache tls_cache;
-
     timespec now{};
-    clock_gettime(CLOCK_MONOTONIC_COARSE, &now);
+    clock_gettime(CLOCK_REALTIME_COARSE, &now);
+    return static_cast<uint64_t>(now.tv_sec) * 1000ULL + now.tv_nsec / 1'000'000;
+}
 
-    uint64_t now_ms = static_cast<uint64_t>(now.tv_sec) * 1000ULL + now.tv_nsec / 1'000'000;
-    uint64_t cached_ms = tls_cache.cached_ms;
+static inline std::string format_time(uint64_t ms) {
+    thread_local std::array<char, 64> buffer{};
+    thread_local time_t               last_second{0};
 
-    if (now_ms >= cached_ms) {
-        uint64_t diff_ms = now_ms - cached_ms;
-        if (diff_ms < CACHE_THRESHOLD.count() / 1'000'000) {
-            return cached_ms;
-        }
+    auto cur_second = static_cast<time_t>(ms / 1000);
+    auto cur_millisecond = ms % 1000;
+    if (cur_second != last_second) {
+        struct tm tm_time{};
+        ::localtime_r(&cur_second, &tm_time);
+        constexpr auto format = "%Y-%m-%d %H:%M:%S";
+        ::strftime(buffer.data(), buffer.size(), format, &tm_time);
     }
 
-    tls_cache.last_ts = now;
-    tls_cache.cached_ms = now_ms;
-    return now_ms;
+    return std::format("{}.{:03}", buffer.data(), cur_millisecond);
 }
 } // namespace kosio::util
