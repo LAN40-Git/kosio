@@ -17,7 +17,7 @@ static inline std::string format_time(uint64_t ms) {
     thread_local time_t               last_second{0};
 
     auto cur_second = static_cast<time_t>(ms / 1000);
-    auto cur_millisecond = ms % 1000;
+    auto cur_millisecond = static_cast<int64_t>(ms % 1000);
     if (cur_second != last_second) {
         struct tm tm_time{};
         ::localtime_r(&cur_second, &tm_time);
