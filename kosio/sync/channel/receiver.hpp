@@ -32,7 +32,7 @@ public:
 
     auto operator=(Receiver &&other) noexcept -> Receiver & {
         channel_->sub_receiver();
-        channel_ = std::move(other->channel_);
+        channel_ = std::move(other.channel_);
         return *this;
     }
 
