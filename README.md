@@ -15,7 +15,7 @@
 
 本项目是一个使用 `c++` 实现的异步运行时，大量使用 `c++` 编译期编程技术以减少运行时开销，通过任务窃取来实现负载均衡，能够安全的在高并发高负载下高效调度各种 `io` 和定时任务。
 
-本项目参照 [tokio](https://github.com/tokio-rs/tokio) 和 [zedio](https://github.com/8sileus/zedio) 实现，目前正在重构改进相关模块，非常感谢 [zedio](https://github.com/8sileus/zedio) 的作者为我解惑。
+本项目在 [zedio](https://github.com/8sileus/zedio) 的基础上对分层时间轮做了重构，其它模块几乎未改变，旨在学习其实现思想，若有余力会尝试重构更多模块。
 
 ## 特点
 

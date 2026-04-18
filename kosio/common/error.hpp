@@ -17,6 +17,7 @@ public:
         kJsonParseFailed,
         kReuniteFailed,
         kEmptySPSCQueue,
+        kClosedChannel
     };
 
 public:
@@ -48,6 +49,8 @@ public:
                 return "Failed to reunite tcp stream.";
             case kEmptySPSCQueue:
                 return "Empty spsc queue.";
+            case kClosedChannel:
+                return "Channel has closed.";
             default:
                 return strerror(error_code_);
         }
