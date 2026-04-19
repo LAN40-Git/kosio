@@ -6,13 +6,13 @@
 
 namespace kosio::util {
 
-static inline uint64_t current_ms() noexcept {
+static inline auto current_ms() noexcept -> int64_t {
     timespec now{};
     clock_gettime(CLOCK_REALTIME_COARSE, &now);
     return static_cast<uint64_t>(now.tv_sec) * 1000ULL + now.tv_nsec / 1'000'000;
 }
 
-static inline std::string format_time(uint64_t ms) {
+static inline auto format_time(int64_t ms) -> std::string {
     thread_local std::array<char, 64> buffer{};
     thread_local time_t               last_second{0};
 

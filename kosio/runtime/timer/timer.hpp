@@ -60,7 +60,7 @@ public:
     }
 
     // Remember to wake up the worker
-    void remove(Entry* entry) noexcept {
+    void remove(Entry* entry) const noexcept {
         // 惰性删除
         entry->data_ = nullptr;
         if (entry->handle_) {
