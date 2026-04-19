@@ -60,7 +60,7 @@ public:
                     LOG_ERROR("io_uring_wait_cqe_timeout failed, error: {}", strerror(-ret));
             }
         } else {
-            if (auto ret = io_uring_wait_cqe(&ring_, &cqe); ret != 0) [[unlikely]] {
+            if (auto ret = io_uring_wait_cqe(&ring_, &cqe); ret != 0 && ret != -EINTR) [[unlikely]] {
                 LOG_ERROR("io_uring_wait_cqe failed, error: {}", strerror(-ret));
             }
         }
