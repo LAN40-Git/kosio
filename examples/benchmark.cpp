@@ -56,8 +56,7 @@ auto server() -> Task<void> {
 }
 
 auto main_loop() -> Task<void> {
-    auto handle = server().take();
-    kosio::spawn(handle);
+    kosio::spawn(server());
     co_await ctrl_c();
 }
 
