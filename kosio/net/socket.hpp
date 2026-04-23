@@ -31,6 +31,24 @@ public:
         return io::detail::Shutdown{fd_, how};
     }
 
+    [[nodiscard]]
+    auto set_reuse_addr(bool enable) const -> Result<void> {
+        int opt = enable ? 1 : 0;
+        if (::setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) != 0) [[unlikely]] {
+            return std::unexpected{make_error(errno)};
+        }
+        return {};
+    }
+
+    [[nodiscard]]
+    auto set_reuse_port(bool enable) const -> Result<void> {
+        int opt = enable ? 1 : 0;
+        if (::setsockopt(fd_, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) != 0) [[unlikely]] {
+            return std::unexpected{make_error(errno)};
+        }
+        return {};
+    }
+
 public:
     template <typename T = Socket>
     [[nodiscard]]

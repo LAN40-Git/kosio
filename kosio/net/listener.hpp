@@ -55,6 +55,12 @@ public:
             return std::unexpected{ret.error()};
         }
         auto& inner = ret.value();
+        if (auto ret = inner.set_reuse_addr(true); !ret) {
+            return std::unexpected{ret.error()};
+        }
+        if (auto ret = inner.set_reuse_port(true); !ret) {
+            return std::unexpected{ret.error()};
+        }
         if (auto ret = inner.bind(addr); !ret) [[unlikely]] {
             return std::unexpected{ret.error()};
         }
